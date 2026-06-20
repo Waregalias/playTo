@@ -1,0 +1,11 @@
+main {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+}
+
+h1 {
+  margin: 0;
+  font: 600 2rem/1.2 system-ui, sans-serif;
+}
