@@ -1,0 +1,65 @@
+<div class="min-h-screen bg-parchment font-lora">
+
+  <!-- Hero -->
+  <section class="relative w-full overflow-hidden" style="height: 60vh; min-height: 420px;">
+    <div class="absolute inset-0 bg-gradient-to-b from-[#c4a882] via-[#9a8070] to-[#6a5a70]"></div>
+    <div class="absolute inset-0 flex flex-col items-center justify-center text-white px-6">
+      <h1 class="font-cinzel text-5xl md:text-7xl font-bold text-center drop-shadow-lg tracking-wide leading-tight">
+        Cozy Kingdom
+      </h1>
+      <p class="font-cinzel text-lg md:text-xl mt-3 tracking-widest text-white/90 drop-shadow">
+        Create, Relax, and Thrive
+      </p>
+      <button
+        data-testid="signup-btn"
+        (click)="isModalOpen.set(true)"
+        class="mt-8 bg-white/90 text-burgundy font-cinzel text-sm tracking-widest px-10 py-4 rounded-full hover:bg-white transition-colors shadow-lg"
+      >
+        ✒ Sign up
+      </button>
+    </div>
+  </section>
+
+  <!-- Features (chargées quand la section entre dans le viewport) -->
+  @defer (on viewport) {
+    <section class="py-16 px-8 max-w-5xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        @for (feature of features; track feature.title) {
+          <div class="flex flex-col items-center text-center">
+            <h3 class="font-cinzel text-xs tracking-[0.2em] uppercase text-burgundy">
+              {{ feature.title }}
+            </h3>
+            <div
+              class="w-36 h-36 rounded-full mt-5 shadow-inner"
+              [style.background]="feature.bgColor"
+            ></div>
+            <hr class="w-full border-gold/50 mt-6" />
+            <p class="mt-5 text-sm leading-relaxed text-stone">
+              {{ feature.description }}
+            </p>
+          </div>
+        }
+      </div>
+    </section>
+  } @placeholder {
+    <div class="py-16 h-72"></div>
+  }
+
+  <!-- Séparateur décoratif -->
+  <div class="flex justify-center py-4">
+    <span class="text-gold text-3xl">〜</span>
+  </div>
+
+  <!-- Citation -->
+  <section class="py-12 px-8 text-center">
+    <p class="font-lora text-3xl md:text-4xl italic text-gray-800 max-w-3xl mx-auto leading-snug">
+      "A soothing escape into a world of your own creation."
+    </p>
+    <p class="mt-4 font-cinzel text-xs tracking-widest text-stone">— Cozy Gamer Magazine</p>
+  </section>
+
+</div>
+
+@if (isModalOpen()) {
+  <app-login-modal (closed)="closeModal()" />
+}
