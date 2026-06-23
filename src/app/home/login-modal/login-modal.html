@@ -1,0 +1,41 @@
+<div
+  class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+  (click)="onBackdropClick($event)"
+>
+  <div class="bg-parchment rounded-2xl p-8 w-full max-w-sm shadow-2xl relative">
+
+    <button
+      data-testid="close-btn"
+      (click)="close()"
+      class="absolute top-4 right-4 text-stone hover:text-burgundy text-2xl leading-none transition-colors"
+    >
+      ×
+    </button>
+
+    <h2 class="font-cinzel text-2xl text-center text-burgundy mb-2">
+      Cozy Kingdom
+    </h2>
+    <p class="font-lora text-center text-stone text-sm mb-6">
+      Entrez votre jeton pour accéder à votre compte
+    </p>
+
+    <input
+      type="text"
+      data-testid="token-input"
+      [value]="token()"
+      (input)="token.set($any($event.target).value)"
+      placeholder="Jeton de connexion"
+      class="w-full border border-parchment-dark rounded-lg px-4 py-3 bg-white/60 font-lora text-sm focus:outline-none focus:border-gold transition-colors"
+    />
+
+    <button
+      data-testid="submit-btn"
+      (click)="submit()"
+      [disabled]="!token()"
+      class="w-full mt-4 bg-burgundy text-white font-cinzel text-sm tracking-widest py-3 rounded-lg hover:bg-burgundy-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+    >
+      Entrer dans le royaume
+    </button>
+
+  </div>
+</div>
