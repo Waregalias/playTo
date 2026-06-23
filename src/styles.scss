@@ -1,1 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'tailwindcss';
+
+@theme {
+  --font-cinzel: 'Cinzel', serif;
+  --font-lora: 'Lora', serif;
+
+  --color-parchment: #f5f0e8;
+  --color-parchment-dark: #ede7d9;
+  --color-burgundy: #6b2d5e;
+  --color-burgundy-dark: #501f47;
+  --color-gold: #c9a84c;
+  --color-stone: #9c8fa0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-parchment);
+}
