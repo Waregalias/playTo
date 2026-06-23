@@ -76,8 +76,8 @@ Composant standalone, enfant de `HomeComponent`. Affiché via `@if (isModalOpen(
 - Bouton fermeture (×) en coin haut-droit.
 
 Inputs/Outputs :
-- `@input isOpen: InputSignal<boolean>`
-- `@output closed: OutputEmitterRef<void>`
+- `output<void>` : `closed` — émis quand l'utilisateur ferme la modale
+- Pas d'input `isOpen` — la visibilité est contrôlée par `@if (isModalOpen())` dans `HomeComponent`
 
 ### GameComponent
 
@@ -96,7 +96,22 @@ Placeholder minimal. Affiche un titre "Bienvenue dans le royaume" avec un lien r
 
 Importées dans `styles.scss` via `@import` Google Fonts.
 
-### Palette Tailwind (extension dans `tailwind.config.js`)
+### Palette Tailwind v4 (via `@theme` dans `styles.scss`)
+
+Tailwind v4 ne nécessite pas de `tailwind.config.js`. Les tokens personnalisés sont déclarés via la directive `@theme` directement dans `styles.scss` :
+
+```scss
+@use 'tailwindcss';
+
+@theme {
+  --color-parchment: #f5f0e8;
+  --color-parchment-dark: #ede7d9;
+  --color-burgundy: #6b2d5e;
+  --color-burgundy-dark: #501f47;
+  --color-gold: #c9a84c;
+  --color-stone: #9c8fa0;
+}
+```
 
 | Token | Valeur | Usage |
 |---|---|---|
@@ -109,7 +124,7 @@ Importées dans `styles.scss` via `@import` Google Fonts.
 
 ### Tailwind
 
-Intégré via `ng add @angular/tailwind` (ou équivalent). Directives `@tailwind base/components/utilities` dans `styles.scss`.
+Intégré via `ng add tailwindcss`. Import dans `styles.scss` : `@use 'tailwindcss';`.
 
 ---
 

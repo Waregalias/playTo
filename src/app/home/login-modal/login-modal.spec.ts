@@ -53,4 +53,23 @@ describe('LoginModalComponent', () => {
     expect(emitted.length).toBe(1);
     expect(fixture.componentInstance.token()).toBe('');
   });
+
+  it('ne navigue pas si le token est vide', async () => {
+    const fixture = TestBed.createComponent(LoginModalComponent);
+    await fixture.whenStable();
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.nativeElement.querySelector('[data-testid="submit-btn"]').click();
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('met à jour le signal token via l\'événement input', async () => {
+    const fixture = TestBed.createComponent(LoginModalComponent);
+    await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('[data-testid="token-input"]') as HTMLInputElement;
+    input.value = 'mon-jeton-test';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.token()).toBe('mon-jeton-test');
+  });
 });

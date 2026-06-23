@@ -18,7 +18,7 @@ export class LoginModalComponent {
 
   submit(): void {
     if (this.token()) {
-      this.router.navigate(['/game']);
+      void this.router.navigate(['/game']);
     }
   }
 
