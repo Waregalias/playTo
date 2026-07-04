@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "ng-serve",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start", "--", "--port", "4201"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "web", "start", "--port", "4201"],
       "port": 4201
     }
   ]
