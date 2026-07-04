@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Les Braises d'Aldenfer — maquette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --nuit:#0C1219;
+    --panneau:#17212C;
+    --panneau-2:#1E2A38;
+    --lisere:#2C3B4B;
+    --brume:#7E93A6;
+    --os:#E9DFC9;
+    --braise:#E07A28;
+    --lueur:#FFC46B;
+    --danger:#C05248;
+    --vert:#7FA98C;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#060A0F;
+    color:var(--os);
+    font-family:"Alegreya Sans",system-ui,sans-serif;
+    font-size:16px;
+    display:flex;justify-content:center;
+  }
+  #app{
+    width:100%;max-width:520px;height:100dvh;
+    background:var(--nuit);
+    display:flex;flex-direction:column;
+    position:relative;overflow:hidden;
+    box-shadow:0 0 60px rgba(0,0,0,.8);
+  }
+  h1,h2,h3,.display{font-family:"Cinzel",serif;letter-spacing:.04em}
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  button:focus-visible,a:focus-visible{outline:2px solid var(--lueur);outline-offset:2px}
+
+  /* ——— Barre de statut ——— */
+  #statusbar{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;
+    background:linear-gradient(180deg,#141D28,#101822);
+    border-bottom:1px solid var(--lisere);
+    flex-shrink:0;
+  }
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#3B4C5E,#1B2733);
+    border:2px solid var(--braise);
+    display:grid;place-items:center;
+    font-family:"Cinzel",serif;font-weight:700;color:var(--lueur);
+    flex-shrink:0;
+  }
+  .who{line-height:1.15;flex-shrink:0}
+  .who b{font-size:.9rem}
+  .who small{color:var(--brume);font-size:.72rem;display:block}
+  .gauges{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+  .gauge{height:9px;border-radius:5px;background:#0A1016;border:1px solid var(--lisere);overflow:hidden;position:relative}
+  .gauge>i{display:block;height:100%;border-radius:4px;transition:width .5s ease}
+  .g-hp>i{width:86%;background:linear-gradient(90deg,#8C3B34,var(--danger))}
+  .g-sta>i{width:72%;background:linear-gradient(90deg,#B15E17,var(--lueur))}
+  .gauge span{position:absolute;inset:0;font-size:.58rem;line-height:9px;text-align:center;color:#fff;text-shadow:0 1px 2px #000}
+  .purse{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:.72rem;color:var(--brume);flex-shrink:0}
+  .purse b{color:var(--os)}
+  .purse .frag b{color:var(--lueur)}
+
+  /* ——— File d'actions ——— */
+  #queuebar{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 14px;font-size:.78rem;color:var(--brume);
+    background:#0E1621;border-bottom:1px solid var(--lisere);flex-shrink:0;
+  }
+  #queuebar .dot{width:7px;height:7px;border-radius:50%;background:var(--braise);box-shadow:0 0 6px var(--braise);animation:pulse 1.6s infinite}
+  #queuebar b{color:var(--lueur);font-variant-numeric:tabular-nums}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* ——— Zone d'écran ——— */
+  main{flex:1;overflow-y:auto;overscroll-behavior:contain;position:relative}
+  .screen{display:none;padding:14px;animation:fadein .25s ease}
+  .screen.on{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--brume)}
+  .screen>h2{font-size:1.25rem;color:var(--lueur);margin:2px 0 12px;font-weight:700}
+
+  .card{
+    background:var(--panneau);border:1px solid var(--lisere);
+    border-radius:10px;padding:12px 14px;margin-bottom:12px;
+  }
+  .card h3{font-size:.92rem;color:var(--os);margin-bottom:6px}
+  .muted{color:var(--brume);font-size:.85rem}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:linear-gradient(180deg,#2A3B4C,#1D2A38);
+    border:1px solid var(--lisere);border-radius:8px;
+    padding:9px 14px;font-size:.88rem;font-weight:600;color:var(--os);
+    transition:transform .08s ease,border-color .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.primary{
+    background:linear-gradient(180deg,#E58A2E,#B85F13);
+    border-color:#F0A853;color:#1A0E02;
+    box-shadow:0 2px 10px rgba(224,122,40,.35);
+  }
+  .btn.full{width:100%}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
+
+  /* ——— Carte ——— */
+  #mapwrap{
+    position:relative;border-radius:12px;overflow:hidden;
+    border:1px solid var(--lisere);
+    background:radial-gradient(120% 100% at 50% 0%,#182430 0%,#0C141D 70%);
+  }
+  #hexmap{display:block;width:100%;height:auto;touch-action:manipulation}
+  .hex{stroke:#0A1119;stroke-width:1.5;cursor:pointer;transition:filter .15s}
+  .hex:hover{filter:brightness(1.25)}
+  .hex.sel{stroke:var(--lueur);stroke-width:2.5}
+  .hexlabel{font-size:7px;fill:#0B1218;font-weight:700;pointer-events:none;text-anchor:middle}
+  .fog{fill:#26313D;opacity:.92;pointer-events:none}
+  .mist-drift{animation:drift 14s linear infinite alternate;opacity:.5;pointer-events:none}
+  .mist-drift.slow{animation-duration:22s;opacity:.32}
+  @keyframes drift{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+  .braise-core{animation:embers 2.4s ease-in-out infinite}
+  @keyframes embers{0%,100%{opacity:.65;r:4}50%{opacity:1;r:6}}
+  @media (prefers-reduced-motion:reduce){
+    .mist-drift,.braise-core,#queuebar .dot{animation:none}
+  }
+  #maplegend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:8px 4px 0;font-size:.72rem;color:var(--brume)}
+  #maplegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+
+  #hexpanel{margin-top:12px}
+  #hexpanel .costs{display:flex;gap:14px;margin:8px 0 10px;font-size:.85rem}
+  #hexpanel .costs b{color:var(--lueur)}
+
+  /* ——— Bastion ——— */
+  .npc{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #202D3B}
+  .npc:last-child{border-bottom:none}
+  .npc .face{
+    width:44px;height:44px;border-radius:8px;flex-shrink:0;
+    display:grid;place-items:center;font-family:"Cinzel",serif;font-weight:700;font-size:1.05rem;
+    background:linear-gradient(160deg,#2B3B4C,#16202B);border:1px solid var(--lisere);color:var(--brume);
+  }
+  .npc b{font-size:.9rem}
+  .npc small{display:block;color:var(--brume);font-size:.78rem;margin-top:1px}
+  .npc q{display:block;font-style:italic;color:#B7A98C;font-size:.8rem;margin-top:4px}
+  .npc .btn{margin-left:auto;padding:6px 10px;font-size:.75rem;flex-shrink:0}
+
+  .projbar{height:14px;border-radius:7px;background:#0A1016;border:1px solid var(--lisere);overflow:hidden;margin:8px 0 4px}
+  .projbar>i{display:block;height:100%;background:linear-gradient(90deg,#8A5416,var(--braise),var(--lueur));transition:width .6s ease}
+  .goalrow{display:flex;justify-content:space-between;font-size:.8rem;color:var(--brume);font-variant-numeric:tabular-nums}
+
+  .daily{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #202D3B;font-size:.86rem}
+  .daily:last-child{border:none}
+  .daily .tick{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--brume);flex-shrink:0;display:grid;place-items:center;font-size:.7rem}
+  .daily.done .tick{border-color:var(--vert);background:var(--vert);color:#0C1219}
+  .daily.done span{color:var(--brume);text-decoration:line-through}
+  .daily em{margin-left:auto;font-style:normal;color:var(--lueur);font-size:.78rem;flex-shrink:0}
+
+  /* ——— Héros ——— */
+  .herohead{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+  .portrait{
+    width:76px;height:76px;border-radius:12px;flex-shrink:0;
+    background:
+      radial-gradient(circle at 50% 28%,#5A6E82 0 26%,transparent 27%),
+      radial-gradient(ellipse at 50% 78%,#43566B 0 38%,transparent 40%),
+      linear-gradient(160deg,#243546,#101B26);
+    border:2px solid var(--braise);
+    box-shadow:0 0 14px rgba(224,122,40,.25) inset;
+  }
+  .herohead h2{font-size:1.15rem;color:var(--lueur)}
+  .statgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center}
+  .statgrid .st{background:var(--panneau-2);border:1px solid var(--lisere);border-radius:8px;padding:7px 2px}
+  .statgrid b{display:block;font-size:1.05rem;color:var(--lueur)}
+  .statgrid small{font-size:.62rem;letter-spacing:.12em;color:var(--brume)}
+
+  .branchtabs{display:flex;gap:6px;margin-bottom:10px}
+  .branchtabs button{
+    flex:1;padding:7px 4px;font-size:.78rem;border-radius:7px;
+    border:1px solid var(--lisere);background:var(--panneau-2);color:var(--brume);
+  }
+  .branchtabs button.on{border-color:var(--braise);color:var(--lueur);background:#241C11}
+  .skillrow{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #202D3B}
+  .skillrow:last-child{border:none}
+  .skillrow .rune{
+    width:38px;height:38px;border-radius:8px;flex-shrink:0;display:grid;place-items:center;
+    font-family:"Cinzel",serif;font-weight:700;
+    background:#241C11;border:1px solid var(--braise);color:var(--lueur);
+  }
+  .skillrow.locked .rune{background:var(--panneau-2);border-color:var(--lisere);color:var(--brume)}
+  .skillrow.locked b,.skillrow.locked small{color:var(--brume)}
+  .skillrow b{font-size:.86rem;display:block}
+  .skillrow small{font-size:.76rem;color:#AEB9A0}
+  .skillrow .cost{margin-left:auto;font-size:.7rem;color:var(--lueur);flex-shrink:0;text-align:right}
+
+  /* ——— Raid ——— */
+  #bossart{
+    height:130px;border-radius:10px;margin-bottom:12px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(ellipse 60% 90% at 50% 105%,rgba(224,122,40,.28),transparent 60%),
+      radial-gradient(circle at 50% 34%,#37475A 0 15%,transparent 16%),
+      radial-gradient(ellipse at 50% 92%,#2C3B4C 0 46%,transparent 48%),
+      linear-gradient(180deg,#131E2A,#0A121B);
+    border:1px solid var(--lisere);
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;
+  }
+  #bossart h3{font-size:1rem;color:var(--os);text-shadow:0 2px 8px #000}
+  .bossbar{height:20px;border-radius:10px;background:#0A1016;border:1px solid #4A2B23;overflow:hidden;position:relative}
+  .bossbar>i{display:block;height:100%;background:linear-gradient(90deg,#7E2F26,var(--danger));transition:width .6s ease}
+  .bossbar span{position:absolute;inset:0;text-align:center;font-size:.72rem;line-height:20px;color:#fff;text-shadow:0 1px 2px #000;font-variant-numeric:tabular-nums}
+  .tiers{display:flex;justify-content:space-between;font-size:.68rem;color:var(--brume);padding:4px 2px 0}
+  .tiers b.hit{color:var(--braise)}
+  .raidmeta{display:flex;justify-content:space-between;font-size:.8rem;color:var(--brume);margin:10px 0}
+  .raidlog{font-size:.78rem;color:var(--brume);line-height:1.5;max-height:96px;overflow-y:auto}
+  .raidlog b{color:var(--os)}
+
+  /* ——— Combat (overlay) ——— */
+  #combat{
+    position:absolute;inset:0;z-index:30;display:none;flex-direction:column;
+    background:radial-gradient(120% 90% at 50% 0%,#1A2836 0%,#080D13 75%);
+    padding:14px;animation:fadein .2s ease;
+  }
+  #combat.on{display:flex}
+  .foe{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0;
+  }
+  .foe .fig{
+    width:104px;height:104px;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 34%,#4E6076 0 22%,transparent 23%),
+      radial-gradient(ellipse at 50% 80%,#3A4C60 0 40%,transparent 42%),
+      radial-gradient(circle,#1B2836 55%,transparent 70%);
+    border:2px solid var(--lisere);
+    box-shadow:0 0 34px rgba(126,147,166,.22);
+    transition:transform .12s;
+  }
+  .foe .fig.hitanim{transform:scale(.93);border-color:var(--danger)}
+  .foe h3{font-size:1.02rem;color:var(--os)}
+  .foebar,.mybar{width:100%;max-width:300px}
+  .foebar .gauge>i{width:100%;background:linear-gradient(90deg,#7E2F26,var(--danger))}
+  .mybar .gauge>i{width:100%;background:linear-gradient(90deg,#8C3B34,var(--danger))}
+  .barlabel{display:flex;justify-content:space-between;font-size:.72rem;color:var(--brume);margin-bottom:3px}
+  #clog{
+    background:rgba(10,16,22,.75);border:1px solid var(--lisere);border-radius:8px;
+    padding:8px 10px;font-size:.8rem;line-height:1.5;height:88px;overflow-y:auto;margin:10px 0;color:var(--brume);
+  }
+  #clog b{color:var(--lueur)}
+  #cactions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+  #cactions .btn{padding:14px 6px;font-size:.9rem}
+  #cactions .btn small{display:block;font-weight:400;font-size:.68rem;color:inherit;opacity:.75}
+
+  /* ——— Nav basse ——— */
+  nav{
+    display:flex;flex-shrink:0;
+    background:#0B121B;border-top:1px solid var(--lisere);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav button{
+    flex:1;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;
+    color:var(--brume);font-size:.66rem;letter-spacing:.06em;
+  }
+  nav button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  nav button.on{color:var(--lueur)}
+  nav button.on svg{filter:drop-shadow(0 0 5px rgba(255,196,107,.55))}
+
+  /* ——— Toast ——— */
+  #toast{
+    position:absolute;left:50%;bottom:78px;transform:translateX(-50%) translateY(20px);
+    background:#241C11;border:1px solid var(--braise);color:var(--lueur);
+    padding:9px 16px;border-radius:20px;font-size:.82rem;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:.3s;z-index:40;
+  }
+  #toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Barre de statut -->
+  <header id="statusbar">
+    <div class="avatar">R</div>
+    <div class="who"><b>Ravive</b><small>Lame · niv. 4</small></div>
+    <div class="gauges">
+      <div class="gauge g-hp"><i></i><span>PV 86/102</span></div>
+      <div class="gauge g-sta"><i id="stabar"></i><span id="stalabel">Endurance 72/100</span></div>
+    </div>
+    <div class="purse">
+      <span>◉ <b id="ecus">148</b> écus</span>
+      <span class="frag">✦ <b>3</b> fragments</span>
+      <span>⚑ <b>12</b> gloire</span>
+    </div>
+  </header>
+
+  <!-- File d'actions -->
+  <div id="queuebar"><span class="dot"></span><span id="queuetext">Aucune action en cours — la flammèche attend.</span></div>
+
+  <main>
+    <!-- ═══════ CARTE ═══════ -->
+    <section class="screen on" id="s-carte">
+      <span class="eyebrow">Région 1 · Brume niveau 2</span>
+      <h2>Les Landes de Vellebrune</h2>
+      <div id="mapwrap">
+        <svg id="hexmap" viewBox="0 0 340 300" role="img" aria-label="Carte hexagonale des Landes de Vellebrune"></svg>
+      </div>
+      <div id="maplegend">
+        <span><i style="background:#8E9C6B"></i>Plaine</span>
+        <span><i style="background:#4F6B4A"></i>Forêt</span>
+        <span><i style="background:#8A7B5C"></i>Colline</span>
+        <span><i style="background:#5E6E63"></i>Marais</span>
+        <span><i style="background:#6E6A72"></i>Ruines</span>
+        <span><i style="background:#3D4854"></i>Route</span>
+        <span><i style="background:#26313D"></i>Brume</span>
+      </div>
+      <div class="card" id="hexpanel">
+        <h3 id="hp-title">Choisis un hexagone</h3>
+        <p class="muted" id="hp-desc">Touche une case adjacente pour voir le coût du déplacement, ou ta case pour fouiller.</p>
+        <div class="costs" id="hp-costs" hidden>
+          <span>⚡ <b id="hp-sta">–</b> endurance</span>
+          <span>⏳ <b id="hp-time">–</b></span>
+        </div>
+        <button class="btn primary full" id="hp-go" hidden>Se mettre en route</button>
+      </div>
+    </section>
+
+    <!-- ═══════ BASTION ═══════ -->
+    <section class="screen" id="s-bastion">
+      <span class="eyebrow">Région 0 · dernier feu du royaume</span>
+      <h2>Bastion de Cendrelune</h2>
+
+      <div class="card">
+        <h3>Chantier communautaire — Le Beffroi du Grand Cairn</h3>
+        <p class="muted">Reconstruisez le beffroi pour sonner le Glas et forcer Maugrith à se manifester.</p>
+        <div class="projbar"><i id="projfill" style="width:64%"></i></div>
+        <div class="goalrow"><span>Bois d'ombre</span><span id="projwood">3 214 / 5 000</span></div>
+        <div class="goalrow"><span>Minerai de suie</span><span>2 880 / 3 000</span></div>
+        <div class="goalrow"><span>Verre de cendre</span><span>417 / 500</span></div>
+        <button class="btn full" id="contrib" style="margin-top:10px">Livrer 25 bois d'ombre (⚡5)</button>
+      </div>
+
+      <div class="card">
+        <h3>Contrats du jour</h3>
+        <div class="daily done"><span class="tick">✓</span><span>Abattre 3 Loups de suie</span><em>+30 ◉</em></div>
+        <div class="daily"><span class="tick"></span><span>Fouiller 2 points d'intérêt</span><em>+25 ◉</em></div>
+        <div class="daily"><span class="tick"></span><span>Livrer 50 minerai au chantier</span><em>+40 ◉ · 60 XP</em></div>
+      </div>
+
+      <div class="card">
+        <h3>Habitants du bastion</h3>
+        <div class="npc">
+          <div class="face">M</div>
+          <div><b>Intendante Mira</b><small>Quêtes &amp; contrats</small>
+          <q>« On ne meurt qu'une fois par jour, c'est le règlement. »</q></div>
+          <button class="btn">Parler</button>
+        </div>
+        <div class="npc">
+          <div class="face" style="color:var(--braise)">A</div>
+          <div><b>Aldo Brasfer</b><small>Forge · craft · réparations</small>
+          <q>« Ta lame pleure la rouille. Ça s'entend d'ici. »</q></div>
+          <button class="btn">Forger</button>
+        </div>
+        <div class="npc">
+          <div class="face">E</div>
+          <div><b>Archiviste Ennor</b><small>Compétences · carte communautaire</small>
+          <q>« La Flamme n'est pas morte. On l'a prise. »</q></div>
+          <button class="btn">Archives</button>
+        </div>
+        <div class="npc">
+          <div class="face">F</div>
+          <div><b>Fenk</b><small>Marchand ambulant — stock dans 14 h 22</small>
+          <q>« Elle rêve, mon ami. Et nous marchons dans son rêve. »</q></div>
+          <button class="btn">Négocier</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ HÉROS ═══════ -->
+    <section class="screen" id="s-heros">
+      <div class="herohead">
+        <div class="portrait" aria-hidden="true"></div>
+        <div>
+          <span class="eyebrow">Lame · Rang Porteur d'étincelle</span>
+          <h2>Ravive</h2>
+          <span class="muted">Niveau 4 · 380 / 918 XP · 1 point de compétence</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="statgrid">
+          <div class="st"><b>10</b><small>FOR</small></div>
+          <div class="st"><b>6</b><small>ADR</small></div>
+          <div class="st"><b>4</b><small>VOL</small></div>
+          <div class="st"><b>11</b><small>VIT</small></div>
+          <div class="st"><b>5</b><small>FER</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Arbre de compétences</h3>
+        <div class="branchtabs" role="tablist">
+          <button class="on" data-b="0">Rempart</button>
+          <button data-b="1">Fer</button>
+          <button data-b="2">Vétéran</button>
+        </div>
+        <div id="skilllist"></div>
+      </div>
+    </section>
+
+    <!-- ═══════ RAID ═══════ -->
+    <section class="screen" id="s-raid">
+      <span class="eyebrow">Raid de région · fenêtre : 31 h 12 restantes</span>
+      <h2>Maugrith, le Berger de Brume</h2>
+
+      <div id="bossart"><h3>Le troupeau d'ombres se resserre…</h3></div>
+
+      <div class="card">
+        <div class="barlabel"><span>Vigueur du Gardien (serveur)</span><span>61 %</span></div>
+        <div class="bossbar"><i id="bossfill" style="width:61%"></i><span id="bosstext">2 452 800 / 4 020 000</span></div>
+        <div class="tiers"><b class="hit">75 % ✓</b><b>50 %</b><b>25 %</b><b>Chute</b></div>
+        <div class="raidmeta">
+          <span>87 Ravivés engagés</span>
+          <span>Prochain assaut : <b style="color:var(--lueur)">prêt</b></span>
+        </div>
+        <button class="btn primary full" id="assault">Lancer un assaut (⚡25)</button>
+      </div>
+
+      <div class="card">
+        <h3>Chronique du raid</h3>
+        <div class="raidlog" id="raidlog">
+          <div><b>Serelle</b> inflige 1 240 dégâts — le troupeau bêle dans le lointain.</div>
+          <div><b>Kordan</b> tombe face à la projection. Sa flammèche vacille.</div>
+          <div>⚠ Palier 75 % franchi : <b>la Brume s'épaissit</b> sur les Landes (2 h).</div>
+          <div><b>Yria</b> inflige 986 dégâts avec la Flèche de la lanterne.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════ COMBAT (overlay) ═══════ -->
+  <div id="combat" role="dialog" aria-label="Combat">
+    <div class="foe">
+      <div class="barlabel foebar"><span id="foename">Projection de Maugrith</span><span id="foehp">100 %</span></div>
+      <div class="gauge foebar"><i id="foebar"></i></div>
+      <div class="fig" id="foefig"></div>
+      <div class="barlabel mybar"><span>Ravive</span><span id="myhp">86 / 102</span></div>
+      <div class="gauge mybar"><i id="mybar" style="width:84%"></i></div>
+    </div>
+    <div id="clog"><div>La Brume s'ouvre. Le combat commence — <b>tour 1</b>.</div></div>
+    <div id="cactions">
+      <button class="btn primary" data-a="atk">Attaque<small>fiable</small></button>
+      <button class="btn" data-a="skill">Frappe lourde<small>×1,3 · recharge 2 t</small></button>
+      <button class="btn" data-a="item">Potion de cendre<small>+30 PV · reste 2</small></button>
+      <button class="btn" data-a="flee">Fuir<small>~55 %</small></button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- Nav -->
+  <nav>
+    <button class="on" data-s="carte" aria-label="Carte">
+      <svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14"/></svg>Carte</button>
+    <button data-s="bastion" aria-label="Bastion">
+      <svg viewBox="0 0 24 24"><path d="M4 21V9l4-2V4h2v2h4V4h2v3l4 2v12M4 21h16M10 21v-5h4v5"/></svg>Bastion</button>
+    <button data-s="heros" aria-label="Héros">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Héros</button>
+    <button data-s="raid" aria-label="Raid">
+      <svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Raid</button>
+  </nav>
+</div>
+
+<script>
+/* ══════════ Navigation ══════════ */
+const navBtns = document.querySelectorAll('nav button');
+navBtns.forEach(b => b.addEventListener('click', () => {
+  navBtns.forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.screen').forEach(s =>
+    s.classList.toggle('on', s.id === 's-' + b.dataset.s));
+  document.querySelector('main').scrollTop = 0;
+}));
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+/* ══════════ État joueur (démo) ══════════ */
+const P = { sta: 72, staMax: 100, hp: 86, hpMax: 102, ecus: 148 };
+function renderSta(){
+  document.getElementById('stabar').style.width = (P.sta / P.staMax * 100) + '%';
+  document.getElementById('stalabel').textContent = `Endurance ${P.sta}/${P.staMax}`;
+}
+function spend(cost){
+  if (P.sta < cost){ toast('Ta flammèche est trop faible — repose-toi.'); return false; }
+  P.sta -= cost; renderSta(); return true;
+}
+
+/* ══════════ Carte hexagonale ══════════ */
+// terrains : couleur, coût endurance, minutes (× brume déjà incluse pour la démo)
+const T = {
+  plaine:  { c:'#8E9C6B', sta:5,  min:2,  n:'Plaine'  },
+  foret:   { c:'#4F6B4A', sta:8,  min:5,  n:'Forêt'   },
+  colline: { c:'#8A7B5C', sta:10, min:8,  n:'Colline' },
+  marais:  { c:'#5E6E63', sta:12, min:10, n:'Marais'  },
+  ruines:  { c:'#6E6A72', sta:8,  min:6,  n:'Ruines'  },
+  route:   { c:'#3D4854', sta:3,  min:1,  n:'Route de cendre' },
+  autel:   { c:'#B0885A', sta:5,  min:2,  n:'Autel'   },
+};
+// grille axiale (q,r) — région 1 démo. fog = non découvert. poi = point d'intérêt. braise = objectif.
+const H = [
+  {q:0,r:2,t:'route'},{q:1,r:2,t:'route'},{q:2,r:2,t:'autel',poi:'Autel du Vieux Gué'},
+  {q:3,r:1,t:'plaine'},{q:3,r:2,t:'plaine'},{q:2,r:3,t:'plaine'},
+  {q:4,r:1,t:'foret'},{q:4,r:2,t:'foret',poi:'Ruines de Vellebrune-la-Basse'},
+  {q:3,r:3,t:'marais'},{q:4,r:3,t:'marais',poi:'Marais des Soupirs'},
+  {q:5,r:0,t:'colline'},{q:5,r:1,t:'colline'},{q:5,r:2,t:'ruines'},
+  {q:6,r:0,t:'ruines',fog:1},{q:6,r:1,t:'plaine',fog:1},{q:6,r:2,t:'foret',fog:1},
+  {q:5,r:3,t:'plaine',fog:1},{q:7,r:0,t:'colline',fog:1},
+  {q:7,r:1,t:'autel',fog:1,braise:1},{q:6,r:3,t:'marais',fog:1},
+  {q:2,r:1,t:'plaine'},{q:1,r:3,t:'plaine'},{q:4,r:0,t:'plaine'},
+];
+let player = H[2];              // départ : Autel du Vieux Gué
+let selected = null;
+
+const SZ = 22, SQ3 = Math.sqrt(3);
+const px = h => ({ x: SZ * (SQ3 * h.q + SQ3/2 * h.r) + 34, y: SZ * 1.5 * h.r + 40 });
+const corners = (x,y) => Array.from({length:6},(_,i)=>{
+  const a = Math.PI/180 * (60*i - 30);
+  return (x + SZ*Math.cos(a)).toFixed(1) + ',' + (y + SZ*Math.sin(a)).toFixed(1);
+}).join(' ');
+const isAdj = (a,b) => [[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]]
+  .some(([dq,dr]) => a.q+dq===b.q && a.r+dr===b.r);
+
+const svg = document.getElementById('hexmap');
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent || svg).appendChild(e); return e;
+}
+
+function drawMap(){
+  svg.innerHTML = '';
+  const gHex = el('g',{}), gMist = el('g',{}), gMark = el('g',{});
+  H.forEach(h => {
+    const {x,y} = px(h);
+    const poly = el('polygon', { points: corners(x,y), class:'hex',
+      fill: h.fog ? '#26313D' : T[h.t].c }, gHex);
+    if (h === selected) poly.classList.add('sel');
+    poly.addEventListener('click', () => selectHex(h));
+    if (h.fog){
+      // nappes de brume dérivante
+      el('ellipse', { cx:x, cy:y-4, rx:16, ry:6, fill:'#7E93A6', class:'mist-drift' }, gMist);
+      el('ellipse', { cx:x-5, cy:y+6, rx:13, ry:5, fill:'#5A6B7A', class:'mist-drift slow' }, gMist);
+      if (h.braise){ // lueur de la Braise perçant la brume
+        el('circle', { cx:x, cy:y, r:5, fill:'#E07A28', class:'braise-core' }, gMark);
+      }
+      return;
+    }
+    if (h.poi) el('text', { x, y:y+3, class:'hexlabel' }, gMark).textContent = h.t==='autel' ? '⌂' : '✦';
+  });
+  // marqueur joueur
+  const pp = px(player);
+  el('circle', { cx:pp.x, cy:pp.y, r:7, fill:'#FFC46B', stroke:'#1A0E02', 'stroke-width':2 }, gMark);
+  el('circle', { cx:pp.x, cy:pp.y, r:11, fill:'none', stroke:'#FFC46B', 'stroke-width':1, opacity:.5, class:'braise-core' }, gMark);
+}
+
+function selectHex(h){
+  selected = h; drawMap();
+  const title = document.getElementById('hp-title'),
+        desc  = document.getElementById('hp-desc'),
+        costs = document.getElementById('hp-costs'),
+        go    = document.getElementById('hp-go');
+  costs.hidden = true; go.hidden = true;
+
+  if (h.fog){
+    title.textContent = 'Brume opaque';
+    desc.textContent = h.braise
+      ? 'Une lueur orange perce la grisaille. La Braise du Grand Cairn est là — mais Maugrith la garde.'
+      : 'Personne n\'a encore cartographié cette zone. Approche-toi pour la révéler.';
+    return;
+  }
+  if (h === player){
+    title.textContent = T[h.t].n + (h.poi ? ' — ' + h.poi : '');
+    desc.textContent = h.poi ? 'Tu peux fouiller ce lieu (⚡10 · 5 min).' : 'Tu es ici. Rien à fouiller sur cette case.';
+    if (h.poi){
+      go.hidden = false; go.textContent = 'Fouiller (⚡10)';
+      go.onclick = () => { if (spend(10)) queue('Fouille : ' + h.poi, 5); };
+    }
+    return;
+  }
+  title.textContent = T[h.t].n + (h.poi ? ' — ' + h.poi : '');
+  if (!isAdj(player, h)){
+    desc.textContent = 'Trop loin : déplace-toi de case en case (ou empile jusqu\'à 3 actions).';
+    return;
+  }
+  desc.textContent = 'Case adjacente. La Brume de niveau 2 alourdit le pas (coûts ×1,5 inclus).';
+  costs.hidden = false;
+  document.getElementById('hp-sta').textContent = T[h.t].sta;
+  document.getElementById('hp-time').textContent = T[h.t].min + ' min';
+  go.hidden = false; go.textContent = 'Se mettre en route';
+  go.onclick = () => {
+    if (!spend(T[h.t].sta)) return;
+    queue('Déplacement → ' + T[h.t].n, T[h.t].min, () => {
+      player = h; if (h.fog) delete h.fog; drawMap();
+      toast('Arrivé : ' + T[h.t].n);
+      // révèle les adjacents
+      H.forEach(o => { if (o.fog && !o.braise && isAdj(h,o)) delete o.fog; });
+      drawMap();
+    });
+  };
+}
+
+/* file d'actions — timers raccourcis ×60 pour la démo (1 min = 1 s) */
+let queueTimer = null;
+function queue(label, minutes, done){
+  const qt = document.getElementById('queuetext');
+  let left = minutes; // secondes en démo
+  qt.innerHTML = `${label} — <b>${fmt(left)}</b> <i style="font-style:normal;color:#5A6B7A">(démo : 1 min → 1 s)</i>`;
+  clearInterval(queueTimer);
+  queueTimer = setInterval(() => {
+    left--;
+    if (left <= 0){
+      clearInterval(queueTimer);
+      qt.textContent = 'Aucune action en cours — la flammèche attend.';
+      toast(label + ' : terminé');
+      done && done();
+    } else {
+      qt.innerHTML = `${label} — <b>${fmt(left)}</b> <i style="font-style:normal;color:#5A6B7A">(démo)</i>`;
+    }
+  }, 1000);
+}
+const fmt = m => m + ' min';
+
+/* ══════════ Bastion ══════════ */
+let wood = 3214;
+document.getElementById('contrib').addEventListener('click', () => {
+  if (!spend(5)) return;
+  wood = Math.min(5000, wood + 25);
+  document.getElementById('projwood').textContent = wood.toLocaleString('fr-FR') + ' / 5 000';
+  document.getElementById('projfill').style.width = Math.round((wood/5000*50) + 32) + '%';
+  toast('+25 bois livrés au beffroi');
+});
+document.querySelectorAll('.npc .btn').forEach(b =>
+  b.addEventListener('click', () => toast('Dialogue PNJ — à venir dans le prototype')));
+
+/* ══════════ Héros : arbre de compétences ══════════ */
+const BRANCHES = [
+  { n:'Rempart', s:[
+    ['I','Garde ferme','+10 % armure', 'acquis'],
+    ['II','Provocation','attire 70 % des attaques en groupe', 'acquis'],
+    ['III','Mur de fer','bloque la 1ʳᵉ attaque de chaque combat', '1 pt'],
+    ['IV','Représailles','renvoie 20 % des dégâts bloqués', '1 pt + 2 ✦'],
+    ['V','Dernier bastion','survit à un coup fatal (1/24 h)', '1 pt + 5 ✦'],
+  ]},
+  { n:'Fer', s:[
+    ['I','Frappe lourde','attaque ×1,3 · recharge 2 tours', 'acquis'],
+    ['II','Fente','ignore 25 % de l\'armure', '1 pt'],
+    ['III','Tourbillon','frappe tous les ennemis à 70 %', '1 pt'],
+    ['IV','Brise-garde','armure ennemie −30 % (3 tours)', '1 pt + 2 ✦'],
+    ['V','Exécution','+100 % dégâts sous 25 % PV', '1 pt + 5 ✦'],
+  ]},
+  { n:'Vétéran', s:[
+    ['I','Endurci','combats : endurance −20 %', '1 pt'],
+    ['II','Porteur','+10 emplacements d\'inventaire', '1 pt'],
+    ['III','Instinct','annule les embuscades', '1 pt'],
+    ['IV','Meneur','expédition : +5 % à toutes les stats', '1 pt + 2 ✦'],
+    ['V','Légende de Cendrelune','marchands : −10 %', '1 pt + 5 ✦'],
+  ]},
+];
+function renderSkills(bi){
+  const list = document.getElementById('skilllist');
+  list.innerHTML = '';
+  BRANCHES[bi].s.forEach(([tier,name,eff,cost]) => {
+    const owned = cost === 'acquis';
+    const row = document.createElement('div');
+    row.className = 'skillrow' + (owned ? '' : ' locked');
+    row.innerHTML = `<div class="rune">${tier}</div>
+      <div><b>${name}</b><small>${eff}</small></div>
+      <div class="cost">${owned ? '✓' : cost}</div>`;
+    list.appendChild(row);
+  });
+}
+document.querySelectorAll('.branchtabs button').forEach(b =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.branchtabs button').forEach(x => x.classList.toggle('on', x===b));
+    renderSkills(+b.dataset.b);
+  }));
+renderSkills(0);
+
+/* ══════════ Raid & Combat ══════════ */
+let bossHp = 2452800; const bossMax = 4020000;
+document.getElementById('assault').addEventListener('click', () => {
+  if (!spend(25)) return;
+  startCombat();
+});
+
+const C = { foeMax: 320, foe: 320, skillCd: 0, potions: 2, turn: 1, over: false };
+const clog = document.getElementById('clog');
+function log(html){ const d = document.createElement('div'); d.innerHTML = html; clog.appendChild(d); clog.scrollTop = 1e6; }
+
+function startCombat(){
+  Object.assign(C, { foe: C.foeMax, skillCd: 0, turn: 1, over: false });
+  clog.innerHTML = '<div>La projection du Berger émerge de la grisaille — <b>tour 1</b>.</div>';
+  renderCombat();
+  document.getElementById('combat').classList.add('on');
+}
+function renderCombat(){
+  document.getElementById('foebar').style.width = Math.max(0, C.foe / C.foeMax * 100) + '%';
+  document.getElementById('foehp').textContent = Math.max(0, Math.round(C.foe / C.foeMax * 100)) + ' %';
+  document.getElementById('mybar').style.width = Math.max(0, P.hp / P.hpMax * 100) + '%';
+  document.getElementById('myhp').textContent = Math.max(0,P.hp) + ' / ' + P.hpMax;
+  const sk = document.querySelector('[data-a="skill"]');
+  sk.disabled = C.skillCd > 0;
+  sk.querySelector('small').textContent = C.skillCd > 0 ? `recharge : ${C.skillCd} t` : '×1,3 · recharge 2 t';
+  const it = document.querySelector('[data-a="item"]');
+  it.disabled = C.potions <= 0;
+  it.querySelector('small').textContent = `+30 PV · reste ${C.potions}`;
+}
+const rnd = (a,b) => Math.round(a + Math.random()*(b-a));
+function foeHit(){
+  const fig = document.getElementById('foefig');
+  fig.classList.add('hitanim'); setTimeout(()=>fig.classList.remove('hitanim'), 140);
+}
+function endCombat(msg, dmg){
+  C.over = true;
+  log('<b>' + msg + '</b>');
+  setTimeout(() => {
+    document.getElementById('combat').classList.remove('on');
+    if (dmg > 0){
+      bossHp = Math.max(0, bossHp - dmg);
+      const pct = Math.round(bossHp / bossMax * 100);
+      document.getElementById('bossfill').style.width = pct + '%';
+      document.getElementById('bosstext').textContent = bossHp.toLocaleString('fr-FR') + ' / ' + bossMax.toLocaleString('fr-FR');
+      document.querySelector('#s-raid .barlabel span:last-child').textContent = pct + ' %';
+      const d = document.createElement('div');
+      d.innerHTML = `<b>Ravive</b> inflige ${dmg.toLocaleString('fr-FR')} dégâts au Gardien.`;
+      const rl = document.getElementById('raidlog'); rl.prepend(d);
+      toast(`Assaut : ${dmg.toLocaleString('fr-FR')} dégâts infligés au serveur !`);
+    }
+  }, 900);
+}
+document.querySelectorAll('#cactions .btn').forEach(b => b.addEventListener('click', () => {
+  if (C.over) return;
+  const a = b.dataset.a;
+  let total = C.foeMax - C.foe;
+  if (a === 'atk'){
+    const d = rnd(38, 52); C.foe -= d; foeHit();
+    log(`Tour ${C.turn} — Attaque : <b>${d}</b> dégâts.`);
+  } else if (a === 'skill'){
+    const d = rnd(55, 72); C.foe -= d; C.skillCd = 3; foeHit();
+    log(`Tour ${C.turn} — <b>Frappe lourde</b> : ${d} dégâts !`);
+  } else if (a === 'item'){
+    C.potions--; P.hp = Math.min(P.hpMax, P.hp + 30);
+    log(`Tour ${C.turn} — Potion de cendre : <b>+30 PV</b>.`);
+  } else if (a === 'flee'){
+    if (Math.random() < .55){ endCombat('Tu te fonds dans la Brume. Fuite réussie.', C.foeMax - C.foe); return; }
+    log(`Tour ${C.turn} — Fuite manquée ! Le Berger te rattrape.`);
+  }
+  if (C.foe <= 0){ endCombat('La projection se disperse en volutes grises. Victoire !', C.foeMax); return; }
+  // riposte
+  const fd = rnd(9, 16); P.hp -= fd;
+  log(`Le Berger abat sa houlette : <b>−${fd} PV</b>.`);
+  if (P.hp <= 0){
+    P.hp = Math.round(P.hpMax * .5);
+    endCombat('Ta flammèche vacille… Tu te réveilleras au bastion (malus 2 h).', C.foeMax - C.foe);
+    renderSta(); renderCombat(); return;
+  }
+  if (C.skillCd > 0) C.skillCd--;
+  C.turn++;
+  renderCombat();
+}));
+
+drawMap(); renderSta();
+</script>
+</body>
+</html>
