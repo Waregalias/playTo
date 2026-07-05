@@ -1,0 +1,49 @@
+<div class="creation">
+  <span class="eyebrow">{{ t.eyebrow }}</span>
+  <h2>{{ t.title }}</h2>
+  <p class="intro">{{ t.intro }}</p>
+
+  <label class="field-label" for="ravive-name">{{ t.nameLabel }}</label>
+  <input
+    id="ravive-name"
+    data-testid="name-input"
+    type="text"
+    maxlength="24"
+    [placeholder]="t.namePlaceholder"
+    [value]="name()"
+    (input)="name.set($any($event.target).value)"
+  />
+
+  <span class="field-label">{{ t.classLabel }}</span>
+  <div class="classes" role="radiogroup" [attr.aria-label]="t.classLabel">
+    @for (klass of classes; track klass) {
+      <button
+        type="button"
+        role="radio"
+        [attr.aria-checked]="selectedClass() === klass"
+        [attr.data-testid]="'class-' + klass"
+        class="class-card"
+        [class.selected]="selectedClass() === klass"
+        (click)="selectedClass.set(klass)"
+      >
+        <img [src]="portraits[klass]" [alt]="t.classes[klass].name" />
+        <b>{{ t.classes[klass].name }}</b>
+        <small>{{ t.classes[klass].tagline }}</small>
+      </button>
+    }
+  </div>
+
+  @if (error(); as message) {
+    <p class="error" data-testid="creation-error">{{ message }}</p>
+  }
+
+  <button
+    type="button"
+    data-testid="create-btn"
+    class="submit"
+    [disabled]="!canSubmit()"
+    (click)="submit()"
+  >
+    {{ t.submit }}
+  </button>
+</div>

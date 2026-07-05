@@ -1,16 +1,17 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import {
   CLASS_BASE_ATTRIBUTES,
   maxHp,
   xpForNextLevel,
   computeStamina,
+  neighbours,
   STAMINA_MAX,
   type CharacterClass,
   type CharacterDto,
   type RegenContext,
 } from '@aldenfer/shared';
 import type { Db } from '../../db/client.js';
-import { characters, hexes } from '../../db/schema.js';
+import { characters, discoveries, hexes } from '../../db/schema.js';
 import { SPAWN_POI_TYPE } from '../../db/seed/world-data.js';
 import { AppError } from '../../lib/app-error.js';
 
@@ -46,21 +47,36 @@ export async function createCharacter(
 
   const attributes = CLASS_BASE_ATTRIBUTES[input.class];
 
-  const [row] = await db
-    .insert(characters)
-    .values({
-      userId,
-      name: input.name,
-      class: input.class,
-      ...attributes,
-      hp: maxHp(attributes.vit),
-      stamina: STAMINA_MAX,
-      staminaUpdatedAt: now,
-      hexId: spawn.id,
-    })
-    .returning();
+  const row = await db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(characters)
+      .values({
+        userId,
+        name: input.name,
+        class: input.class,
+        ...attributes,
+        hp: maxHp(attributes.vit),
+        stamina: STAMINA_MAX,
+        staminaUpdatedAt: now,
+        hexId: spawn.id,
+      })
+      .returning();
+    if (!inserted) throw new Error('Character insert returned no row');
 
-  if (!row) throw new Error('Character insert returned no row');
+    // US2: spawn hex and its neighbours are discovered from the start.
+    const coords = [{ q: spawn.q, r: spawn.r }, ...neighbours({ q: spawn.q, r: spawn.r })];
+    const initial = await tx
+      .select()
+      .from(hexes)
+      .where(or(...coords.map((c) => and(eq(hexes.q, c.q), eq(hexes.r, c.r)))));
+    await tx
+      .insert(discoveries)
+      .values(initial.map((h) => ({ characterId: inserted.id, hexId: h.id })))
+      .onConflictDoNothing();
+
+    return inserted;
+  });
+
   return toCharacterDto(row, spawn, now);
 }
 

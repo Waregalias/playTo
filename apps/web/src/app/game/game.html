@@ -1,6 +1,83 @@
-<div class="min-h-screen bg-parchment flex flex-col items-center justify-center font-lora">
-  <h1 class="font-cinzel text-4xl text-burgundy">Bienvenue dans le royaume</h1>
-  <a routerLink="/" class="mt-8 text-stone underline hover:text-burgundy transition-colors">
-    ← Retour à l'accueil
-  </a>
+<div class="app">
+  @if (!store.loaded()) {
+    <div class="loading" aria-busy="true"></div>
+  } @else if (store.needsCharacter()) {
+    <main><app-character-creation (created)="onCharacterCreated()" /></main>
+  } @else if (store.character(); as character) {
+
+    <!-- Barre de statut (DESIGN §3) -->
+    <header class="statusbar" data-testid="statusbar">
+      <div class="avatar">{{ character.name.charAt(0) }}</div>
+      <div class="who">
+        <b>{{ character.name }}</b>
+        <small>{{ className() }} · {{ t.status.level }} {{ character.level }}</small>
+      </div>
+      <div class="gauges">
+        <div class="gauge hp">
+          <i [style.width.%]="hpPercent()"></i>
+          <span>{{ t.status.hp }} {{ character.hp }}/{{ character.hpMax }}</span>
+        </div>
+        <div class="gauge stamina">
+          <i [style.width.%]="staminaPercent()"></i>
+          <span>{{ t.status.stamina }} {{ character.stamina }}/{{ character.staminaMax }}</span>
+        </div>
+      </div>
+      <div class="purse">
+        <span>◉ <b>{{ character.currencies.ashCrowns }}</b> {{ t.status.ashCrowns }}</span>
+        <span class="frag">✦ <b>{{ character.currencies.emberFragments }}</b> {{ t.status.emberFragments }}</span>
+        <span>⚑ <b>{{ character.currencies.gloryMarks }}</b> {{ t.status.gloryMarks }}</span>
+      </div>
+    </header>
+
+    <!-- File d'actions -->
+    <div class="queuebar" data-testid="queuebar">
+      @if (queueLabel(); as label) {
+        <span class="dot"></span>
+        <span>{{ label }} — <b>{{ countdown() }}</b></span>
+        @for (action of store.actions(); track action.id) {
+          @if (action.position > 0) {
+            <button
+              class="cancel"
+              [attr.data-testid]="'cancel-' + action.position"
+              [attr.aria-label]="t.map.cancelAction + ' ' + (action.position + 1)"
+              (click)="cancelQueued(action.id)"
+            >
+              ×
+            </button>
+          }
+        }
+      } @else {
+        <span class="idle">{{ t.queue.empty }}</span>
+      }
+    </div>
+
+    <main>
+      @switch (tab()) {
+        @case ('map') { <app-map-screen /> }
+        @case ('bastion') { <p class="placeholder">{{ t.placeholders.bastion }}</p> }
+        @case ('hero') { <p class="placeholder">{{ t.placeholders.hero }}</p> }
+        @case ('raid') { <p class="placeholder">{{ t.placeholders.raid }}</p> }
+      }
+    </main>
+
+    <!-- Nav basse (DESIGN §3) -->
+    <nav>
+      <button [class.on]="tab() === 'map'" (click)="tab.set('map')" [attr.aria-label]="t.nav.map" data-testid="nav-map">
+        <svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14"/></svg>{{ t.nav.map }}
+      </button>
+      <button [class.on]="tab() === 'bastion'" (click)="tab.set('bastion')" [attr.aria-label]="t.nav.bastion" data-testid="nav-bastion">
+        <svg viewBox="0 0 24 24"><path d="M4 21V9l4-2V4h2v2h4V4h2v3l4 2v12M4 21h16M10 21v-5h4v5"/></svg>{{ t.nav.bastion }}
+      </button>
+      <button [class.on]="tab() === 'hero'" (click)="tab.set('hero')" [attr.aria-label]="t.nav.hero" data-testid="nav-hero">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>{{ t.nav.hero }}
+      </button>
+      <button [class.on]="tab() === 'raid'" (click)="tab.set('raid')" [attr.aria-label]="t.nav.raid" data-testid="nav-raid">
+        <svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>{{ t.nav.raid }}
+      </button>
+    </nav>
+  }
+
+  @if (toast.message(); as message) {
+    <div class="toast" role="status">{{ message }}</div>
+  }
 </div>

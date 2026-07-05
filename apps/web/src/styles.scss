@@ -43,6 +43,33 @@
   box-sizing: border-box;
 }
 
+/* ── Game design tokens (docs/DESIGN.md §2 — source of truth) ── */
+:root {
+  /* Night range (backgrounds) */
+  --g-night: #0c1219;
+  --g-abyss: #060a0f;
+  --g-panel: #17212c;
+  --g-panel-2: #1e2a38;
+  --g-border: #2c3b4b;
+
+  /* Mist range (cold content) */
+  --g-mist: #7e93a6;
+  --g-bone: #e9dfc9;
+
+  /* Ember range (rare, meaningful) */
+  --g-ember: #e07a28;
+  --g-ember-glow: #ffc46b;
+  --g-ember-deep: #b85f13;
+  --g-ember-bg: #241c11;
+
+  /* Semantic */
+  --g-danger: #c05248;
+  --g-success: #7fa98c;
+
+  --g-font-display: 'Cinzel', serif;
+  --g-font-body: 'Alegreya Sans', system-ui, sans-serif;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

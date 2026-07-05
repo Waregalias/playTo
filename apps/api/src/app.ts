@@ -13,6 +13,8 @@ import { AppError } from './lib/app-error.js';
 import { createAuth, type Auth } from './auth.js';
 import { registerAuthRoutes } from './plugins/auth.js';
 import { registerCharacterRoutes } from './modules/characters/routes.js';
+import { registerActionRoutes } from './modules/actions/routes.js';
+import { registerMapRoutes } from './modules/map/routes.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -86,6 +88,8 @@ export async function buildApp(env: Env, options: BuildOptions = {}) {
 
   registerAuthRoutes(app, auth);
   registerCharacterRoutes(app, auth, now);
+  registerActionRoutes(app, auth, now);
+  registerMapRoutes(app, auth, now);
 
   return app;
 }
