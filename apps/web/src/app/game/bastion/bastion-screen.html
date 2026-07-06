@@ -1,0 +1,73 @@
+<span class="eyebrow">{{ regionName }} · dernier feu du royaume</span>
+<h2>{{ regionName }}</h2>
+
+<div class="card">
+  <h3>{{ t.boardTitle }}</h3>
+  <p class="muted hint">{{ t.boardHint }}</p>
+
+  @for (quest of questVms(); track quest.questId) {
+    <div class="quest" [attr.data-testid]="'quest-' + quest.questId">
+      <div class="quest-head">
+        <b>{{ quest.name }}</b>
+        <span
+          class="state"
+          [class.done]="quest.state === 'done'"
+          [class.active]="quest.state === 'active'"
+        >
+          {{
+            quest.state === 'done'
+              ? t.stateDone
+              : quest.state === 'active'
+                ? t.stateActive
+                : t.stateAvailable
+          }}
+        </span>
+      </div>
+
+      @if (quest.state === 'available') {
+        <p class="muted">{{ quest.hook }}</p>
+        <button
+          class="btn primary"
+          [attr.data-testid]="'accept-' + quest.questId"
+          [disabled]="pending()"
+          (click)="accept(quest.questId)"
+        >
+          {{ t.accept }}
+        </button>
+      } @else if (quest.stepText) {
+        <p class="muted">
+          {{ quest.stepText }}
+          @if (quest.killProgress) {
+            <b class="kill">{{ quest.killProgress }}</b>
+          }
+        </p>
+      }
+
+      @if (quest.choices; as choices) {
+        <div class="choices">
+          @for (choice of choices; track choice.id) {
+            <button
+              class="btn"
+              [attr.data-testid]="'choice-' + choice.id"
+              [disabled]="pending()"
+              (click)="choose(quest.questId, quest.stepId, choice.id)"
+            >
+              {{ choice.label }}
+            </button>
+          }
+        </div>
+      }
+
+      @if (quest.canFight) {
+        <button
+          class="btn primary"
+          [attr.data-testid]="'fight-' + quest.questId"
+          [disabled]="pending()"
+          (click)="fight(quest.questId)"
+        >
+          {{ t.startFight }}
+        </button>
+      }
+    </div>
+  }
+</div>

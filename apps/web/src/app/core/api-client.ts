@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
 import type {
   ActionDto,
+  AllocateAttributesInput,
   CharacterDto,
+  CharacterQuestDto,
+  CombatActionInput,
+  CombatStateDto,
   CreateActionInput,
   CreateCharacterInput,
   ErrorCode,
   HexDto,
+  InventoryEntryDto,
   RegionDto,
 } from '@aldenfer/shared';
 
@@ -60,6 +65,58 @@ export class ApiClient {
 
   async cancelAction(id: string): Promise<void> {
     await this.request('DELETE', `/api/v1/actions/${id}`);
+  }
+
+  // ── Combat (M2)
+  async getCurrentCombat(): Promise<CombatStateDto | null> {
+    const data = await this.request<{ combat: CombatStateDto | null }>(
+      'GET',
+      '/api/v1/combat/current',
+    );
+    return data.combat;
+  }
+
+  playCombatTurn(combatId: string, input: CombatActionInput): Promise<CombatStateDto> {
+    return this.request('POST', `/api/v1/combat/${combatId}/turn`, input);
+  }
+
+  startQuestCombat(questId: string): Promise<CombatStateDto> {
+    return this.request('POST', '/api/v1/combat', { source: 'quest', questId });
+  }
+
+  // ── Quests (M2)
+  async getQuests(): Promise<CharacterQuestDto[]> {
+    const data = await this.request<{ items: CharacterQuestDto[] }>('GET', '/api/v1/quests');
+    return data.items;
+  }
+
+  acceptQuest(questId: string): Promise<CharacterQuestDto> {
+    return this.request('POST', `/api/v1/quests/${questId}/accept`);
+  }
+
+  advanceQuest(questId: string, stepId: string, choice: string): Promise<CharacterQuestDto> {
+    return this.request('POST', `/api/v1/quests/${questId}/advance`, { stepId, choice });
+  }
+
+  // ── Inventory (M2)
+  async getInventory(): Promise<{ items: InventoryEntryDto[]; capacity: number; used: number }> {
+    return this.request('GET', '/api/v1/inventory');
+  }
+
+  async equipItem(entryId: string): Promise<void> {
+    await this.request('POST', `/api/v1/inventory/${entryId}/equip`);
+  }
+
+  async unequipItem(entryId: string): Promise<void> {
+    await this.request('POST', `/api/v1/inventory/${entryId}/unequip`);
+  }
+
+  async useItem(entryId: string): Promise<void> {
+    await this.request('POST', `/api/v1/inventory/${entryId}/use`);
+  }
+
+  allocateAttributes(input: AllocateAttributesInput): Promise<CharacterDto> {
+    return this.request('POST', '/api/v1/characters/me/attributes', input);
   }
 
   private async request<T>(method: string, url: string, body?: unknown): Promise<T> {

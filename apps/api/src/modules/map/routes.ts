@@ -8,7 +8,12 @@ import { AppError } from '../../lib/app-error.js';
 import { resolveDueActions } from '../actions/service.js';
 import { listRegions, listRegionHexes } from './service.js';
 
-export function registerMapRoutes(app: FastifyInstance, auth: Auth, now: () => Date): void {
+export function registerMapRoutes(
+  app: FastifyInstance,
+  auth: Auth,
+  now: () => Date,
+  rng: () => number,
+): void {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
   typed.get(
@@ -30,7 +35,7 @@ export function registerMapRoutes(app: FastifyInstance, auth: Auth, now: () => D
     },
     async (request) => {
       const character = await requireCharacter(app.db, auth, request);
-      await resolveDueActions(app.db, character.id, now());
+      await resolveDueActions(app.db, character.id, now(), rng);
       const items = await listRegionHexes(app.db, character.id, request.params.id);
       if (items === null) {
         throw new AppError('NOT_FOUND', 404);

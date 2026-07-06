@@ -3,3 +3,8 @@ export * from './stamina.js';
 export * from './actions.js';
 export * from './classes.js';
 export * from './progression.js';
+export * from './combat.js';
+export * from './foes.js';
+export * from './starter-gear.js';
+export * from './pois.js';
+export * from './quest-data.js';

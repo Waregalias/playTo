@@ -14,6 +14,7 @@ export function registerCharacterRoutes(
   app: FastifyInstance,
   auth: Auth,
   now: () => Date,
+  rng: () => number,
 ): void {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -48,7 +49,7 @@ export function registerCharacterRoutes(
         throw new AppError('NOT_FOUND', 404);
       }
       // Lazy resolution: due actions land before any state is reported.
-      await resolveDueActions(app.db, row.id, now());
+      await resolveDueActions(app.db, row.id, now(), rng);
       const character = await getMyCharacter(app.db, userId, now());
       if (!character) {
         throw new AppError('NOT_FOUND', 404);

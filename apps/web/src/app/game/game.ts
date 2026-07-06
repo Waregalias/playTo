@@ -6,12 +6,21 @@ import { ApiClient, ApiError } from '../core/api-client';
 import { ToastService } from '../core/toast';
 import { CharacterCreationComponent } from './character-creation';
 import { MapScreenComponent } from './map/map-screen';
+import { CombatOverlayComponent } from './combat/combat-overlay';
+import { HeroScreenComponent } from './hero/hero-screen';
+import { BastionScreenComponent } from './bastion/bastion-screen';
 
 type Tab = 'map' | 'bastion' | 'hero' | 'raid';
 
 @Component({
   selector: 'app-game',
-  imports: [CharacterCreationComponent, MapScreenComponent],
+  imports: [
+    CharacterCreationComponent,
+    MapScreenComponent,
+    CombatOverlayComponent,
+    HeroScreenComponent,
+    BastionScreenComponent,
+  ],
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })

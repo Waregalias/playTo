@@ -38,6 +38,7 @@ export const characterSchema = z.object({
   stamina: z.number().int().min(0).max(100),
   staminaMax: z.number().int().positive(),
   deathPenaltyUntil: z.iso.datetime().nullish(),
+  activeCombatId: z.uuid().nullish(),
   hexId: z.uuid(),
   regionId: z.number().int().min(0),
   currencies: z.object({

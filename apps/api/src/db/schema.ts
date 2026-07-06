@@ -39,6 +39,9 @@ export const actionTypeEnum = pgEnum('action_type', [
   'raid_assault',
   'expedition_leg',
 ]);
+export const questStateEnum = pgEnum('quest_state', ['available', 'active', 'done', 'failed']);
+export const rarityEnum = pgEnum('rarity', ['common', 'rare', 'ember', 'relic']);
+export const combatStatusEnum = pgEnum('combat_status', ['active', 'won', 'lost', 'fled']);
 
 // ─── World ────────────────────────────────────────────────────────────
 export const regions = pgTable(
@@ -124,6 +127,105 @@ export const discoveries = pgTable(
     sharedToArchive: boolean('shared_to_archive').notNull().default(false),
   },
   (t) => [primaryKey({ columns: [t.characterId, t.hexId] })],
+);
+
+// ─── Content: items (static, seeded) ─────────────────────────────────
+export const items = pgTable('items', {
+  id: varchar('id', { length: 40 }).primaryKey(), // "weapon.blade.t2"
+  kind: varchar('kind', { length: 20 }).notNull(), // weapon|armor|consumable|material|quest
+  rarity: rarityEnum('rarity').notNull().default('common'),
+  stats: jsonb('stats'), // Zod: itemStatsSchema
+  stackable: boolean('stackable').notNull().default(false),
+  maxDurability: integer('max_durability'),
+});
+// Names/descriptions FR live in packages/shared content, not in DB.
+
+export const inventory = pgTable(
+  'inventory',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id),
+    itemId: varchar('item_id', { length: 40 })
+      .notNull()
+      .references(() => items.id),
+    qty: integer('qty').notNull().default(1),
+    equipped: boolean('equipped').notNull().default(false),
+    durability: integer('durability'),
+  },
+  (t) => [index('inv_char_idx').on(t.characterId), check('qty_positive', sql`${t.qty} > 0`)],
+);
+
+// ─── Combat (persisted — survives app close) ─────────────────────────
+// raidId arrives with the raids table in M4.
+export const combats = pgTable(
+  'combats',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id),
+    foeSlug: varchar('foe_slug', { length: 40 }).notNull(),
+    foeHp: integer('foe_hp').notNull(),
+    foeHpMax: integer('foe_hp_max').notNull(),
+    playerHp: integer('player_hp').notNull(),
+    turn: integer('turn').notNull().default(1),
+    cooldowns: jsonb('cooldowns').notNull().default({}),
+    log: jsonb('log').notNull().default([]), // Zod: combatLogEntrySchema[]
+    status: combatStatusEnum('status').notNull().default('active'),
+    rewards: jsonb('rewards'), // Zod: combatRewardsSchema — filled on victory
+    questId: varchar('quest_id', { length: 40 }), // scripted quest fight
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('combat_active_uq')
+      .on(t.characterId)
+      .where(sql`status = 'active'`),
+  ],
+);
+
+// ─── Quests ───────────────────────────────────────────────────────────
+export const quests = pgTable('quests', {
+  id: varchar('id', { length: 40 }).primaryKey(), // "r1.main.q3"
+  regionId: integer('region_id')
+    .notNull()
+    .references(() => regions.id),
+  kind: varchar('kind', { length: 16 }).notNull(), // main|side|daily
+  steps: jsonb('steps').notNull(), // Zod: questGraphSchema
+  rewards: jsonb('rewards').notNull(), // Zod: questRewardsSchema
+  requires: jsonb('requires'), // Zod: questRequiresSchema
+});
+
+export const characterQuests = pgTable(
+  'character_quests',
+  {
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id),
+    questId: varchar('quest_id', { length: 40 })
+      .notNull()
+      .references(() => quests.id),
+    state: questStateEnum('state').notNull().default('active'),
+    stepId: varchar('step_id', { length: 24 }).notNull(),
+    progress: jsonb('progress'), // Zod: questProgressSchema
+  },
+  (t) => [primaryKey({ columns: [t.characterId, t.questId] })],
+);
+
+// Daily search ledger (US4: one search per POI per day, midnight UTC)
+export const poiSearches = pgTable(
+  'poi_searches',
+  {
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id),
+    hexId: uuid('hex_id')
+      .notNull()
+      .references(() => hexes.id),
+    searchedOn: varchar('searched_on', { length: 10 }).notNull(), // YYYY-MM-DD (UTC)
+  },
+  (t) => [primaryKey({ columns: [t.characterId, t.hexId, t.searchedOn] })],
 );
 
 // Action queue (max 3 / character — enforced in service + partial unique below)

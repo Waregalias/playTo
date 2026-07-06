@@ -1,0 +1,83 @@
+@if (combat(); as c) {
+  <div class="overlay" role="dialog" aria-label="Combat" data-testid="combat-overlay">
+    <div class="foe">
+      <div class="barlabel">
+        <span>{{ foeName() }}</span>
+        <span>{{ foePercent() }} %</span>
+      </div>
+      <div class="gauge foegauge"><i [style.width.%]="foePercent()"></i></div>
+
+      <div class="fig" [class.hitanim]="hitAnim()">
+        @if (foePortrait(); as portrait) {
+          <img [src]="portrait" [alt]="foeName()" (error)="$any($event.target).style.display = 'none'" />
+        }
+      </div>
+
+      <div class="barlabel">
+        <span>{{ store.character()?.name }}</span>
+        <span>{{ c.playerHp }} / {{ c.playerHpMax }}</span>
+      </div>
+      <div class="gauge mygauge"><i [style.width.%]="playerPercent()"></i></div>
+    </div>
+
+    <div class="clog" data-testid="combat-log">
+      @for (entry of c.log; track $index) {
+        <div>
+          <b>{{ t.turnLabel }} {{ entry.turn }}</b> — {{ entry.text }}
+          @if (entry.dmg) {
+            <b class="dmg">−{{ entry.dmg }}</b>
+          }
+        </div>
+      }
+      @if (outcomeLabel(); as outcome) {
+        <div class="outcome"><b>{{ outcome }}</b></div>
+        @if (c.rewards; as rewards) {
+          <div>
+            +{{ rewards.xp }} {{ t.rewardsXp }} · +{{ rewards.ashCrowns }} ◉
+            @for (drop of rewards.loot; track drop.itemId) {
+              <span> · {{ drop.qty }}× {{ itemName(drop.itemId) }}</span>
+            }
+          </div>
+          @if (rewards.lootLost?.length) {
+            <div>{{ t.lootLostNote }}</div>
+          }
+        }
+      }
+    </div>
+
+    @if (c.status === 'active') {
+      <div class="actions">
+        <button class="btn primary" data-testid="combat-attack" [disabled]="pending()" (click)="attack()">
+          {{ t.attack }}<small>{{ t.attackSub }}</small>
+        </button>
+        @if (skill(); as s) {
+          <button
+            class="btn"
+            data-testid="combat-skill"
+            [disabled]="pending() || s.cooldown > 0"
+            (click)="useSkill()"
+          >
+            {{ s.name }}<small>{{ t.skillSub(s.cooldown) }}</small>
+          </button>
+        }
+        <button
+          class="btn"
+          data-testid="combat-item"
+          [disabled]="pending() || potions() === 0"
+          (click)="usePotion()"
+        >
+          {{ t.itemLabel }}<small>{{ t.itemSub(potions()) }}</small>
+        </button>
+        <button class="btn" data-testid="combat-flee" [disabled]="pending()" (click)="flee()">
+          {{ t.flee }}<small>{{ t.fleeSub }}</small>
+        </button>
+      </div>
+    } @else {
+      <div class="actions done">
+        <button class="btn primary" data-testid="combat-close" (click)="close()">
+          {{ t.close }}
+        </button>
+      </div>
+    }
+  </div>
+}

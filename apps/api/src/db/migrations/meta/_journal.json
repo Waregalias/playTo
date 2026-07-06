@@ -15,6 +15,13 @@
       "when": 1783201560078,
       "tag": "0001_grey_thaddeus_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783282430198,
+      "tag": "0002_lonely_bug",
+      "breakpoints": true
     }
   ]
 }

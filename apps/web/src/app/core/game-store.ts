@@ -1,5 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import type { ActionDto, CharacterDto, HexDto, RegionDto } from '@aldenfer/shared';
+import type {
+  ActionDto,
+  CharacterDto,
+  CharacterQuestDto,
+  CombatStateDto,
+  HexDto,
+  InventoryEntryDto,
+  RegionDto,
+} from '@aldenfer/shared';
 import { ApiClient } from './api-client';
 
 const POLL_INTERVAL_MS = 30_000; // SPEC-M1: 30 s polling, WebSocket lands in M3
@@ -15,8 +23,16 @@ export class GameStore {
   readonly hexes = signal<HexDto[]>([]);
   readonly loaded = signal(false);
   readonly needsCharacter = signal(false);
+  readonly combat = signal<CombatStateDto | null>(null);
+  readonly quests = signal<CharacterQuestDto[]>([]);
+  readonly inventory = signal<{ items: InventoryEntryDto[]; capacity: number; used: number }>({
+    items: [],
+    capacity: 30,
+    used: 0,
+  });
 
   readonly currentAction = computed(() => this.actions()[0] ?? null);
+  readonly inCombat = computed(() => this.combat()?.status === 'active');
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -29,18 +45,42 @@ export class GameStore {
     }
     this.character.set(character);
     this.needsCharacter.set(false);
-    await Promise.all([this.refreshActions(), this.refreshHexes()]);
+    if (character.activeCombatId) {
+      this.combat.set(await this.api.getCurrentCombat());
+    }
+    await Promise.all([
+      this.refreshActions(),
+      this.refreshHexes(),
+      this.refreshQuests(),
+      this.refreshInventory(),
+    ]);
     this.loaded.set(true);
   }
 
   async refresh(): Promise<void> {
     const character = await this.api.getMe();
-    if (character) this.character.set(character);
-    await Promise.all([this.refreshActions(), this.refreshHexes()]);
+    if (character) {
+      this.character.set(character);
+      // A Mistborn may be waiting after a resolution (US1).
+      if (character.activeCombatId && this.combat()?.id !== character.activeCombatId) {
+        this.combat.set(await this.api.getCurrentCombat());
+      } else if (!character.activeCombatId && this.combat()?.status === 'active') {
+        this.combat.set(null);
+      }
+    }
+    await Promise.all([this.refreshActions(), this.refreshHexes(), this.refreshQuests(), this.refreshInventory()]);
   }
 
   async refreshActions(): Promise<void> {
     this.actions.set(await this.api.getActions());
+  }
+
+  async refreshQuests(): Promise<void> {
+    this.quests.set(await this.api.getQuests());
+  }
+
+  async refreshInventory(): Promise<void> {
+    this.inventory.set(await this.api.getInventory());
   }
 
   /**

@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  padding: 14px;
+  animation: fadein 0.25s ease;
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--g-mist);
+}
+
+h2 {
+  font-family: var(--g-font-display);
+  letter-spacing: 0.04em;
+  font-size: 1.25rem;
+  color: var(--g-ember-glow);
+  margin: 2px 0 12px;
+}
+
+.card {
+  background: var(--g-panel);
+  border: 1px solid var(--g-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+
+  h3 {
+    font-family: var(--g-font-display);
+    font-size: 0.92rem;
+    color: var(--g-bone);
+    margin: 0 0 4px;
+  }
+}
+
+.muted { color: var(--g-mist); font-size: 0.85rem; margin: 4px 0; }
+.hint { font-style: italic; }
+
+.quest {
+  padding: 10px 0;
+  border-bottom: 1px solid #202d3b;
+
+  &:last-child { border-bottom: none; }
+}
+
+.quest-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+
+  b { font-size: 0.9rem; color: var(--g-bone); }
+}
+
+.state {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--g-mist);
+  flex-shrink: 0;
+
+  &.active { color: var(--g-ember-glow); }
+  &.done { color: var(--g-success); }
+}
+
+.kill { color: var(--g-ember-glow); font-variant-numeric: tabular-nums; }
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--g-border);
+  background: linear-gradient(180deg, #2a3b4c, #1d2a38);
+  color: var(--g-bone);
+  transition: transform 0.08s ease;
+  padding: 8px 12px;
+
+  &:active { transform: scale(0.97); }
+  &:disabled { opacity: 0.45; }
+  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+
+  &.primary {
+    background: linear-gradient(180deg, #e58a2e, #b85f13);
+    border-color: #f0a853;
+    color: #1a0e02;
+    box-shadow: 0 2px 10px rgba(224, 122, 40, 0.35);
+  }
+}

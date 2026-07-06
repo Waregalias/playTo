@@ -57,6 +57,7 @@ function corners(x: number, y: number): string {
 })
 export class MapScreenComponent {
   readonly t = UI_FR.map;
+  readonly tExtra = UI_FR.mapExtra;
   readonly store = inject(GameStore);
   private readonly api = inject(ApiClient);
   private readonly toast = inject(ToastService);
@@ -154,7 +155,9 @@ export class MapScreenComponent {
 
     if (isHere) {
       const canRest = view.hex.terrain === 'shrine';
-      return { title, hint: this.t.hereSuffix, canRest } as PanelVm;
+      // Bastion POIs are services, not dig sites (SPEC-M2 US4).
+      const canSearch = !!view.hex.poi && this.store.character()?.regionId !== 0;
+      return { title, hint: this.t.hereSuffix, canRest, canSearch } as PanelVm;
     }
     if (!adjacent) {
       return { title, hint: this.t.tooFar } as PanelVm;
@@ -202,6 +205,20 @@ export class MapScreenComponent {
       this.pending.set(false);
     }
   }
+
+  async search(): Promise<void> {
+    if (this.pending()) return;
+    this.pending.set(true);
+    try {
+      await this.api.postAction({ type: 'search' });
+      await this.store.refresh();
+      this.selectedId.set(null);
+    } catch (err) {
+      this.toast.show(errorMessage(err));
+    } finally {
+      this.pending.set(false);
+    }
+  }
 }
 
 interface PanelVm {
@@ -209,6 +226,7 @@ interface PanelVm {
   hint: string;
   canMove?: boolean;
   canRest?: boolean;
+  canSearch?: boolean;
   costLabel?: string;
   timeLabel?: string;
 }

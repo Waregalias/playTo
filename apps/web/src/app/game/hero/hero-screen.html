@@ -1,0 +1,81 @@
+@if (store.character(); as character) {
+  <div class="herohead">
+    <div class="portrait">
+      @if (portrait(); as src) {
+        <img [src]="src" [alt]="className()" />
+      }
+    </div>
+    <div>
+      <span class="eyebrow">{{ className() }}</span>
+      <h2>{{ character.name }}</h2>
+      <span class="muted">
+        Niveau {{ character.level }} · {{ character.xp }} / {{ character.xpNext }} {{ t.xpLabel }}
+      </span>
+    </div>
+  </div>
+
+  @if (penaltyRemaining(); as remaining) {
+    <div class="card penalty" data-testid="death-penalty">
+      <b>{{ t.penaltyLabel }}</b>
+      <span class="muted">{{ t.penaltyHint }} {{ remaining }}.</span>
+    </div>
+  }
+
+  <div class="card">
+    @if (character.attributePoints > 0) {
+      <p class="allocate-hint" data-testid="attribute-points">
+        {{ t.pointsToAllocate(character.attributePoints) }}
+      </p>
+    }
+    <div class="statgrid">
+      @for (key of attributeKeys; track key) {
+        <div class="st">
+          <b>{{ character.attributes[key] }}</b>
+          <small>{{ t.statLabels[key] }}</small>
+          @if (character.attributePoints > 0) {
+            <button
+              class="plus"
+              [attr.data-testid]="'alloc-' + key"
+              [attr.aria-label]="t.statLabels[key] + ' +1'"
+              [disabled]="pending()"
+              (click)="allocate(key)"
+            >
+              +
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>{{ t.equipmentTitle }}</h3>
+    <p class="muted">{{ t.capacityLabel(store.inventory().used, store.inventory().capacity) }}</p>
+    @for (entry of store.inventory().items; track entry.id) {
+      <div class="itemrow" [attr.data-testid]="'item-' + entry.itemId">
+        <div class="rune" [class.equipped]="entry.equipped">
+          {{ itemName(entry.itemId).charAt(0) }}
+        </div>
+        <div class="iteminfo">
+          <b>
+            {{ itemName(entry.itemId) }}
+            @if (entry.qty > 1) { ×{{ entry.qty }} }
+          </b>
+          <small>
+            @if (entry.equipped) { {{ t.equippedTag }} · }
+            @if (entry.stats?.power) { ⚔ {{ entry.stats?.power }} }
+            @if (entry.stats?.armor) { 🛡 {{ entry.stats?.armor }} }
+            @if (entry.stats?.heal) { +{{ entry.stats?.heal }} PV }
+          </small>
+        </div>
+        @if (entry.kind === 'weapon' || entry.kind === 'armor') {
+          <button class="btn" [disabled]="pending()" (click)="equip(entry.id, entry.equipped)">
+            {{ entry.equipped ? t.unequip : t.equip }}
+          </button>
+        } @else if (entry.kind === 'consumable') {
+          <button class="btn" [disabled]="pending()" (click)="use(entry.id)">{{ t.use }}</button>
+        }
+      </div>
+    }
+  </div>
+}

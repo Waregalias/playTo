@@ -2,7 +2,12 @@ import { and, asc, eq, lte } from 'drizzle-orm';
 import {
   ACTION_QUEUE_MAX,
   REST_ACTION,
+  SEARCH_ACTION,
   STAMINA_MAX,
+  ENCOUNTER_CHANCES,
+  SEARCH_ENCOUNTER_BONUS,
+  REGION_1_ENCOUNTER_POOL,
+  POI_LOOT,
   computeStamina,
   effectiveMistLevel,
   isAdjacent,
@@ -10,16 +15,50 @@ import {
   neighbours,
   movePayloadSchema,
   restPayloadSchema,
+  searchPayloadSchema,
   moveResultSchema,
   restResultSchema,
+  searchResultSchema,
   type ActionDto,
   type CreateActionInput,
   type MistLevel,
+  type Rng,
 } from '@aldenfer/shared';
 import type { Db } from '../../db/client.js';
-import { actionQueue, characters, discoveries, hexes, regions } from '../../db/schema.js';
+import {
+  actionQueue,
+  characters,
+  discoveries,
+  hexes,
+  poiSearches,
+  regions,
+} from '../../db/schema.js';
 import { AppError } from '../../lib/app-error.js';
+import { applyXp } from '../../lib/progression.js';
 import { regenContextFor } from '../characters/service.js';
+import { addItem, inventoryCapacity } from '../inventory/service.js';
+import { startCombat, getActiveCombat } from '../combat/service.js';
+import { advanceOnEvent } from '../quests/hooks.js';
+
+type CharacterLockRow = typeof characters.$inferSelect;
+
+/** Rolls a Mistborn encounter after a move/search resolution (US1). */
+async function maybeStartEncounter(
+  tx: Tx,
+  character: CharacterLockRow,
+  hex: HexRow,
+  baseChance: number,
+  now: Date,
+  rng: Rng,
+): Promise<{ encounterFoeSlug?: string; combatId?: string }> {
+  if (hex.regionId === 0 || baseChance <= 0) return {};
+  if (await getActiveCombat(tx, character.id)) return {}; // one fight at a time
+  if (rng() >= baseChance) return {};
+  const foeSlug =
+    REGION_1_ENCOUNTER_POOL[Math.floor(rng() * REGION_1_ENCOUNTER_POOL.length)]!;
+  const combatId = await startCombat(tx, character, foeSlug, now, rng);
+  return { encounterFoeSlug: foeSlug, combatId };
+}
 
 type ActionRow = typeof actionQueue.$inferSelect;
 type CharacterRow = typeof characters.$inferSelect;
@@ -72,7 +111,12 @@ async function discoverAround(tx: Tx, characterId: string, hex: HexRow): Promise
  * RETURNING claim guarantees each action applies its effects exactly once,
  * whether triggered by a read (lazy resolution) or by the worker.
  */
-export async function resolveAction(db: Db, actionId: string, now: Date): Promise<boolean> {
+export async function resolveAction(
+  db: Db,
+  actionId: string,
+  now: Date,
+  rng: Rng = Math.random,
+): Promise<boolean> {
   return db.transaction(async (tx) => {
     const [claimed] = await tx
       .update(actionQueue)
@@ -94,7 +138,82 @@ export async function resolveAction(db: Db, actionId: string, now: Date): Promis
         .where(eq(characters.id, claimed.characterId));
 
       const discoveredHexIds = await discoverAround(tx, claimed.characterId, target);
-      const result = moveResultSchema.parse({ movedToHexId: target.id, discoveredHexIds });
+
+      // Quest hook (reach), then the Mist rolls its dice (US1).
+      await advanceOnEvent(tx, claimed.characterId, { kind: 'reach', poiType: target.poiType });
+      const [character] = await tx
+        .select()
+        .from(characters)
+        .where(eq(characters.id, claimed.characterId))
+        .for('update');
+      const encounter = await maybeStartEncounter(
+        tx,
+        character!,
+        target,
+        ENCOUNTER_CHANCES[target.terrain] ?? 0,
+        now,
+        rng,
+      );
+
+      const result = moveResultSchema.parse({
+        movedToHexId: target.id,
+        discoveredHexIds,
+        ...encounter,
+      });
+      await tx.update(actionQueue).set({ result }).where(eq(actionQueue.id, claimed.id));
+    } else if (claimed.type === 'search') {
+      const payload = searchPayloadSchema.parse(claimed.payload);
+      const hex = await tx.query.hexes.findFirst({ where: eq(hexes.id, payload.hexId) });
+      if (!hex) throw new Error(`Search hex ${payload.hexId} missing`);
+
+      const [character] = await tx
+        .select()
+        .from(characters)
+        .where(eq(characters.id, claimed.characterId))
+        .for('update');
+      if (!character) throw new Error(`Character ${claimed.characterId} missing`);
+
+      // XP + loot rolls (server-side randomness, journaled in result).
+      const progress = applyXp(character, SEARCH_ACTION.xpReward);
+      const capacity = inventoryCapacity(character.str);
+      const loot: Array<{ itemId: string; qty: number }> = [];
+      const lootLost: Array<{ itemId: string; qty: number }> = [];
+      for (const entry of POI_LOOT[payload.poiType] ?? []) {
+        if (rng() >= entry.chance) continue;
+        const qty = entry.qtyMin + Math.floor(rng() * (entry.qtyMax - entry.qtyMin + 1));
+        const added = await addItem(tx, character.id, entry.itemId, qty, capacity);
+        if (added.added > 0) loot.push({ itemId: entry.itemId, qty: added.added });
+        if (added.lost > 0) lootLost.push({ itemId: entry.itemId, qty: added.lost });
+      }
+      await tx
+        .update(characters)
+        .set({
+          xp: progress.xp,
+          level: progress.level,
+          attributePoints: progress.attributePoints,
+          skillPoints: progress.skillPoints,
+        })
+        .where(eq(characters.id, character.id));
+
+      await advanceOnEvent(tx, claimed.characterId, {
+        kind: 'search',
+        poiType: payload.poiType,
+      });
+      const encounter = await maybeStartEncounter(
+        tx,
+        character,
+        hex,
+        (ENCOUNTER_CHANCES[hex.terrain] ?? 0) + SEARCH_ENCOUNTER_BONUS,
+        now,
+        rng,
+      );
+
+      const result = searchResultSchema.parse({
+        xp: SEARCH_ACTION.xpReward,
+        loot,
+        ...(lootLost.length > 0 ? { lootLost } : {}),
+        ...encounter,
+      });
       await tx.update(actionQueue).set({ result }).where(eq(actionQueue.id, claimed.id));
     } else if (claimed.type === 'rest') {
       const payload = restPayloadSchema.parse(claimed.payload);
@@ -140,7 +259,12 @@ export async function resolveAction(db: Db, actionId: string, now: Date): Promis
  * Lazy resolution: applies every due action for a character, in order.
  * Every read of character state goes through here first (ARCHITECTURE §4.3).
  */
-export async function resolveDueActions(db: Db, characterId: string, now: Date): Promise<void> {
+export async function resolveDueActions(
+  db: Db,
+  characterId: string,
+  now: Date,
+  rng: Rng = Math.random,
+): Promise<void> {
   const due = await db
     .select()
     .from(actionQueue)
@@ -154,7 +278,7 @@ export async function resolveDueActions(db: Db, characterId: string, now: Date):
     .orderBy(asc(actionQueue.position));
 
   for (const action of due) {
-    await resolveAction(db, action.id, now);
+    await resolveAction(db, action.id, now, rng);
   }
 }
 
@@ -174,8 +298,9 @@ export async function enqueueAction(
   characterId: string,
   input: CreateActionInput,
   now: Date,
+  rng: Rng = Math.random,
 ): Promise<ActionDto> {
-  await resolveDueActions(db, characterId, now);
+  await resolveDueActions(db, characterId, now, rng);
 
   return db.transaction(async (tx) => {
     const [character] = await tx
@@ -184,6 +309,11 @@ export async function enqueueAction(
       .where(eq(characters.id, characterId))
       .for('update');
     if (!character) throw new AppError('NOT_FOUND', 404);
+
+    // A waiting Mistborn blocks any new intention (SPEC-M2 US1).
+    if (await getActiveCombat(tx, characterId)) {
+      throw new AppError('COMBAT_ALREADY_ACTIVE', 409);
+    }
 
     const queue = await unresolvedQueue(tx, characterId);
     if (queue.length >= ACTION_QUEUE_MAX) {
@@ -251,6 +381,66 @@ export async function enqueueAction(
       return toActionDto(row!);
     }
 
+    if (input.type === 'search') {
+      // Searchable POIs live outside the bastion (SPEC-M2 US4).
+      if (!from.poiType || from.regionId === 0) {
+        throw new AppError('NOT_ON_POI', 409);
+      }
+      const searchedOn = now.toISOString().slice(0, 10);
+      const already = await tx.query.poiSearches.findFirst({
+        where: and(
+          eq(poiSearches.characterId, characterId),
+          eq(poiSearches.hexId, from.id),
+          eq(poiSearches.searchedOn, searchedOn),
+        ),
+      });
+      if (already) {
+        throw new AppError('POI_ALREADY_SEARCHED', 409);
+      }
+
+      const computed = computeStamina(
+        { stamina: character.stamina, staminaUpdatedAt: character.staminaUpdatedAt },
+        now,
+        regenContextFor(from),
+      );
+      if (computed.stamina < SEARCH_ACTION.staminaCost) {
+        throw new AppError('INSUFFICIENT_STAMINA', 409, {
+          required: SEARCH_ACTION.staminaCost,
+          current: computed.stamina,
+        });
+      }
+      await tx
+        .update(characters)
+        .set({
+          stamina: computed.stamina - SEARCH_ACTION.staminaCost,
+          staminaUpdatedAt: computed.staminaUpdatedAt,
+        })
+        .where(eq(characters.id, character.id));
+
+      // Claim the daily ledger at enqueue — released if cancelled.
+      await tx.insert(poiSearches).values({ characterId, hexId: from.id, searchedOn });
+
+      const payload = searchPayloadSchema.parse({
+        hexId: from.id,
+        poiType: from.poiType,
+        searchedOn,
+        durationSeconds: SEARCH_ACTION.durationMinutes * 60,
+        staminaCost: SEARCH_ACTION.staminaCost,
+      });
+      const [row] = await tx
+        .insert(actionQueue)
+        .values({
+          characterId,
+          type: 'search',
+          payload,
+          position: queue.length,
+          startsAt,
+          endsAt: new Date(startsAt.getTime() + payload.durationSeconds * 1000),
+        })
+        .returning();
+      return toActionDto(row!);
+    }
+
     // rest
     if (from.terrain !== 'shrine') {
       throw new AppError('NOT_ON_SHRINE', 409);
@@ -279,8 +469,9 @@ export async function cancelAction(
   characterId: string,
   actionId: string,
   now: Date,
+  rng: Rng = Math.random,
 ): Promise<void> {
-  await resolveDueActions(db, characterId, now);
+  await resolveDueActions(db, characterId, now, rng);
 
   await db.transaction(async (tx) => {
     const [character] = await tx
@@ -303,8 +494,11 @@ export async function cancelAction(
       throw new AppError('ACTION_ALREADY_STARTED', 409);
     }
 
-    if (action.type === 'move') {
-      const payload = movePayloadSchema.parse(action.payload);
+    if (action.type === 'move' || action.type === 'search') {
+      const staminaCost =
+        action.type === 'move'
+          ? movePayloadSchema.parse(action.payload).staminaCost
+          : searchPayloadSchema.parse(action.payload).staminaCost;
       const computed = computeStamina(
         { stamina: character.stamina, staminaUpdatedAt: character.staminaUpdatedAt },
         now,
@@ -312,10 +506,24 @@ export async function cancelAction(
       await tx
         .update(characters)
         .set({
-          stamina: Math.min(STAMINA_MAX, computed.stamina + payload.staminaCost),
+          stamina: Math.min(STAMINA_MAX, computed.stamina + staminaCost),
           staminaUpdatedAt: computed.staminaUpdatedAt,
         })
         .where(eq(characters.id, character.id));
+    }
+
+    // A cancelled search releases its daily ledger claim.
+    if (action.type === 'search') {
+      const payload = searchPayloadSchema.parse(action.payload);
+      await tx
+        .delete(poiSearches)
+        .where(
+          and(
+            eq(poiSearches.characterId, characterId),
+            eq(poiSearches.hexId, payload.hexId),
+            eq(poiSearches.searchedOn, payload.searchedOn),
+          ),
+        );
     }
 
     await tx.delete(actionQueue).where(eq(actionQueue.id, action.id));

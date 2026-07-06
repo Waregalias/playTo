@@ -1,0 +1,129 @@
+import { and, eq } from 'drizzle-orm';
+import {
+  INVENTORY_BASE_CAPACITY,
+  itemStatsSchema,
+  DEATH_PENALTY,
+  type ItemStats,
+} from '@aldenfer/shared';
+import type { Db } from '../../db/client.js';
+import { inventory, items } from '../../db/schema.js';
+
+type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
+type InventoryRow = typeof inventory.$inferSelect;
+
+export function inventoryCapacity(str: number): number {
+  return INVENTORY_BASE_CAPACITY + str;
+}
+
+/** One slot per inventory row — stackables share their row (GDD §9.2). */
+export async function usedSlots(tx: Tx | Db, characterId: string): Promise<number> {
+  const rows = await tx
+    .select({ id: inventory.id })
+    .from(inventory)
+    .where(eq(inventory.characterId, characterId));
+  return rows.length;
+}
+
+export interface AddItemResult {
+  added: number;
+  /** Quantity dropped because the bag was full. */
+  lost: number;
+}
+
+/**
+ * Adds an item, stacking when possible, respecting slot capacity.
+ * Call inside the transaction of whatever grants the item.
+ */
+export async function addItem(
+  tx: Tx,
+  characterId: string,
+  itemId: string,
+  qty: number,
+  capacity: number,
+): Promise<AddItemResult> {
+  const item = await tx.query.items.findFirst({ where: eq(items.id, itemId) });
+  if (!item) throw new Error(`Unknown item ${itemId}`);
+
+  if (item.stackable) {
+    const existing = await tx.query.inventory.findFirst({
+      where: and(eq(inventory.characterId, characterId), eq(inventory.itemId, itemId)),
+    });
+    if (existing) {
+      await tx
+        .update(inventory)
+        .set({ qty: existing.qty + qty })
+        .where(eq(inventory.id, existing.id));
+      return { added: qty, lost: 0 };
+    }
+  }
+
+  const slots = await usedSlots(tx, characterId);
+  if (item.stackable) {
+    if (slots >= capacity) return { added: 0, lost: qty };
+    await tx.insert(inventory).values({ characterId, itemId, qty });
+    return { added: qty, lost: 0 };
+  }
+
+  // Non-stackable: one row per unit.
+  let added = 0;
+  for (let i = 0; i < qty; i++) {
+    if (slots + added >= capacity) break;
+    await tx.insert(inventory).values({ characterId, itemId, qty: 1 });
+    added += 1;
+  }
+  return { added, lost: qty - added };
+}
+
+/** Death toll: 25 % of every stackable material stack, floored (SPEC-M2). */
+export async function loseMaterialsOnDeath(tx: Tx, characterId: string): Promise<void> {
+  const rows = await tx
+    .select({ entry: inventory, kind: items.kind })
+    .from(inventory)
+    .innerJoin(items, eq(inventory.itemId, items.id))
+    .where(eq(inventory.characterId, characterId));
+
+  for (const { entry, kind } of rows) {
+    if (kind !== 'material') continue;
+    const lost = Math.floor(entry.qty * DEATH_PENALTY.materialLossRatio);
+    if (lost <= 0) continue;
+    if (lost >= entry.qty) {
+      await tx.delete(inventory).where(eq(inventory.id, entry.id));
+    } else {
+      await tx
+        .update(inventory)
+        .set({ qty: entry.qty - lost })
+        .where(eq(inventory.id, entry.id));
+    }
+  }
+}
+
+export interface EquippedGear {
+  weaponPower: number;
+  damageKind: 'physical' | 'arcane';
+  armor: number;
+}
+
+/** Aggregates equipped weapon & armour stats for the combat formulas. */
+export async function equippedGear(tx: Tx | Db, characterId: string): Promise<EquippedGear> {
+  const rows = await tx
+    .select({ entry: inventory, kind: items.kind, stats: items.stats })
+    .from(inventory)
+    .innerJoin(items, eq(inventory.itemId, items.id))
+    .where(and(eq(inventory.characterId, characterId), eq(inventory.equipped, true)));
+
+  const gear: EquippedGear = { weaponPower: 0, damageKind: 'physical', armor: 0 };
+  for (const row of rows) {
+    const stats: ItemStats = row.stats ? itemStatsSchema.parse(row.stats) : {};
+    if (row.kind === 'weapon') {
+      gear.weaponPower = stats.power ?? 0;
+      gear.damageKind = stats.damageKind ?? 'physical';
+    } else if (row.kind === 'armor') {
+      gear.armor += stats.armor ?? 0;
+    }
+  }
+  return gear;
+}
+
+export function toInventoryRow(row: InventoryRow): InventoryRow {
+  return row;
+}

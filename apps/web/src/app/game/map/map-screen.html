@@ -59,4 +59,9 @@
       {{ t.restAction }}
     </button>
   }
+  @if (panel().canSearch) {
+    <button class="btn primary" data-testid="search-btn" [disabled]="pending()" (click)="search()">
+      {{ tExtra.searchAction }}
+    </button>
+  }
 </div>

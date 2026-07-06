@@ -1,0 +1,108 @@
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  QUEST_DEFINITIONS,
+  questProgressSchema,
+  type CharacterQuestDto,
+  type QuestStep,
+} from '@aldenfer/shared';
+import { QUESTS_FR, UI_FR, REGION_NAMES_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
+import { ApiClient, ApiError } from '../../core/api-client';
+import { GameStore } from '../../core/game-store';
+import { ToastService } from '../../core/toast';
+
+interface QuestVm {
+  questId: string;
+  name: string;
+  hook: string;
+  state: CharacterQuestDto['state'];
+  stepText: string | null;
+  killProgress: string | null;
+  choices: Array<{ id: string; label: string }> | null;
+  stepId: string;
+  canFight: boolean;
+}
+
+@Component({
+  selector: 'app-bastion-screen',
+  templateUrl: './bastion-screen.html',
+  styleUrl: './bastion-screen.scss',
+})
+export class BastionScreenComponent {
+  readonly t = UI_FR.quests;
+  readonly regionName = REGION_NAMES_FR['cinderlune'];
+  readonly store = inject(GameStore);
+  private readonly api = inject(ApiClient);
+  private readonly toast = inject(ToastService);
+
+  readonly pending = signal(false);
+
+  readonly questVms = computed<QuestVm[]>(() =>
+    this.store.quests().map((cq) => {
+      const definition = QUEST_DEFINITIONS.find((q) => q.id === cq.questId);
+      const content = QUESTS_FR[cq.questId];
+      const step: QuestStep | undefined = definition?.steps.steps.find(
+        (s) => s.id === cq.stepId,
+      );
+      const progress = cq.progress ? questProgressSchema.parse(cq.progress) : null;
+
+      let killProgress: string | null = null;
+      if (cq.state === 'active' && step?.kind === 'kill') {
+        killProgress = this.t.killProgress(progress?.counts[step.id] ?? 0, step.count);
+      }
+
+      return {
+        questId: cq.questId,
+        name: content?.name ?? cq.questId,
+        hook: content?.hook ?? '',
+        state: cq.state,
+        stepText:
+          cq.state === 'active' ? (content?.steps[cq.stepId] ?? null) : (content?.done ?? null),
+        killProgress,
+        choices:
+          cq.state === 'active' && step?.kind === 'choice'
+            ? step.options.map((o) => ({
+                id: o.id,
+                label: content?.choices?.[o.id] ?? o.id,
+              }))
+            : null,
+        stepId: cq.stepId,
+        canFight: cq.state === 'active' && step?.kind === 'combat',
+      };
+    }),
+  );
+
+  async accept(questId: string): Promise<void> {
+    await this.run(async () => {
+      await this.api.acceptQuest(questId);
+      await this.store.refreshQuests();
+    });
+  }
+
+  async choose(questId: string, stepId: string, choice: string): Promise<void> {
+    await this.run(async () => {
+      await this.api.advanceQuest(questId, stepId, choice);
+      await this.store.refresh();
+    });
+  }
+
+  async fight(questId: string): Promise<void> {
+    await this.run(async () => {
+      const combat = await this.api.startQuestCombat(questId);
+      this.store.combat.set(combat);
+    });
+  }
+
+  private async run(fn: () => Promise<void>): Promise<void> {
+    if (this.pending()) return;
+    this.pending.set(true);
+    try {
+      await fn();
+    } catch (err) {
+      this.toast.show(
+        err instanceof ApiError && err.message ? err.message : ERROR_MESSAGES_FR.VALIDATION_ERROR,
+      );
+    } finally {
+      this.pending.set(false);
+    }
+  }
+}

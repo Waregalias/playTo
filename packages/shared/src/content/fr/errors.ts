@@ -26,4 +26,6 @@ export const ERROR_MESSAGES_FR: Record<ErrorCode, string> = {
   CHARACTER_EXISTS: 'Ta flammèche anime déjà un Ravivé — un seul par compte.',
   NOT_ON_SHRINE: 'Aucun feu ici où se reposer. Rejoins un autel.',
   ACTION_ALREADY_STARTED: 'Cette action est déjà en cours — on n’arrête pas un pas engagé.',
+  NOT_ON_POI: 'Rien à fouiller ici — cherche un lieu marqué sur la carte.',
+  NO_ACTIVE_COMBAT: 'Aucun Brumeux ne te fait face.',
 };

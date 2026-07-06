@@ -1,7 +1,9 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../client.js';
-import { regions, hexes } from '../schema.js';
+import { regions, hexes, items, quests } from '../schema.js';
 import { REGION_SEEDS, HEX_SEEDS } from './world-data.js';
+import { ITEM_SEEDS } from './items-data.js';
+import { QUEST_SEEDS } from './quests-data.js';
 
 const databaseUrl =
   process.env['DATABASE_URL'] ?? 'postgres://aldenfer:aldenfer@localhost:5432/aldenfer';
@@ -42,11 +44,58 @@ async function seed() {
       },
     });
 
+  await db
+    .insert(items)
+    .values(
+      ITEM_SEEDS.map((i) => ({
+        id: i.id,
+        kind: i.kind,
+        rarity: i.rarity,
+        stats: i.stats ?? null,
+        stackable: i.stackable,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: items.id,
+      set: {
+        kind: sql`excluded.kind`,
+        rarity: sql`excluded.rarity`,
+        stats: sql`excluded.stats`,
+        stackable: sql`excluded.stackable`,
+      },
+    });
+
+  await db
+    .insert(quests)
+    .values(
+      QUEST_SEEDS.map((q) => ({
+        id: q.id,
+        regionId: q.regionId,
+        kind: q.kind,
+        steps: q.steps,
+        rewards: q.rewards,
+        requires: q.requires ?? null,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: quests.id,
+      set: {
+        regionId: sql`excluded.region_id`,
+        kind: sql`excluded.kind`,
+        steps: sql`excluded.steps`,
+        rewards: sql`excluded.rewards`,
+        requires: sql`excluded.requires`,
+      },
+    });
+
   const [{ count }] = (await db.execute(
     sql`SELECT count(*)::int AS count FROM hexes`,
   )) as unknown as [{ count: number }];
 
-  console.log(`Seed complete: ${REGION_SEEDS.length} regions, ${count} hexes.`);
+  console.log(
+    `Seed complete: ${REGION_SEEDS.length} regions, ${count} hexes, ` +
+      `${ITEM_SEEDS.length} items, ${QUEST_SEEDS.length} quests.`,
+  );
   process.exit(0);
 }
 

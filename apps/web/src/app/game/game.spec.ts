@@ -40,6 +40,9 @@ describe('GameComponent', () => {
     postAction: vi.fn(),
     cancelAction: vi.fn(),
     createCharacter: vi.fn(),
+    getCurrentCombat: vi.fn(),
+    getQuests: vi.fn(),
+    getInventory: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -47,6 +50,9 @@ describe('GameComponent', () => {
     apiMock.getActions.mockResolvedValue([]);
     apiMock.getRegions.mockResolvedValue([]);
     apiMock.getRegionHexes.mockResolvedValue([]);
+    apiMock.getCurrentCombat.mockResolvedValue(null);
+    apiMock.getQuests.mockResolvedValue([]);
+    apiMock.getInventory.mockResolvedValue({ items: [], capacity: 30, used: 0 });
     await TestBed.configureTestingModule({
       imports: [GameComponent],
       providers: [provideRouter([]), { provide: ApiClient, useValue: apiMock }, GameStore],

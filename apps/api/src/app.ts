@@ -15,6 +15,9 @@ import { registerAuthRoutes } from './plugins/auth.js';
 import { registerCharacterRoutes } from './modules/characters/routes.js';
 import { registerActionRoutes } from './modules/actions/routes.js';
 import { registerMapRoutes } from './modules/map/routes.js';
+import { registerCombatRoutes } from './modules/combat/routes.js';
+import { registerQuestRoutes } from './modules/quests/routes.js';
+import { registerInventoryRoutes } from './modules/inventory/routes.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -28,6 +31,8 @@ export interface BuildOptions {
   db?: Db;
   /** Injected clock — never `new Date()` inline in services (SPEC-M1). */
   now?: () => Date;
+  /** Injected randomness — every game roll is server-side and testable. */
+  rng?: () => number;
 }
 
 export async function buildApp(env: Env, options: BuildOptions = {}) {
@@ -40,6 +45,7 @@ export async function buildApp(env: Env, options: BuildOptions = {}) {
 
   const db = options.db ?? createDb(env.DATABASE_URL);
   const now = options.now ?? (() => new Date());
+  const rng = options.rng ?? Math.random;
   const auth = createAuth(db, {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
@@ -87,9 +93,12 @@ export async function buildApp(env: Env, options: BuildOptions = {}) {
   app.get('/health', async () => ({ status: 'ok' }));
 
   registerAuthRoutes(app, auth);
-  registerCharacterRoutes(app, auth, now);
-  registerActionRoutes(app, auth, now);
-  registerMapRoutes(app, auth, now);
+  registerCharacterRoutes(app, auth, now, rng);
+  registerActionRoutes(app, auth, now, rng);
+  registerMapRoutes(app, auth, now, rng);
+  registerCombatRoutes(app, auth, now, rng);
+  registerQuestRoutes(app, auth, now, rng);
+  registerInventoryRoutes(app, auth, now);
 
   return app;
 }

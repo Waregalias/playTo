@@ -54,11 +54,16 @@
     <main>
       @switch (tab()) {
         @case ('map') { <app-map-screen /> }
-        @case ('bastion') { <p class="placeholder">{{ t.placeholders.bastion }}</p> }
-        @case ('hero') { <p class="placeholder">{{ t.placeholders.hero }}</p> }
+        @case ('bastion') { <app-bastion-screen /> }
+        @case ('hero') { <app-hero-screen /> }
         @case ('raid') { <p class="placeholder">{{ t.placeholders.raid }}</p> }
       }
     </main>
+
+    <!-- Combat : par-dessus tout, l'état survit à la fermeture (DESIGN §3) -->
+    @if (store.combat()) {
+      <app-combat-overlay />
+    }
 
     <!-- Nav basse (DESIGN §3) -->
     <nav>

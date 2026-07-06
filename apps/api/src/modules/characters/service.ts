@@ -1,6 +1,8 @@
 import { and, eq, or } from 'drizzle-orm';
 import {
   CLASS_BASE_ATTRIBUTES,
+  STARTER_WEAPONS,
+  STARTER_POTIONS,
   maxHp,
   xpForNextLevel,
   computeStamina,
@@ -11,9 +13,10 @@ import {
   type RegenContext,
 } from '@aldenfer/shared';
 import type { Db } from '../../db/client.js';
-import { characters, discoveries, hexes } from '../../db/schema.js';
+import { characters, discoveries, hexes, inventory } from '../../db/schema.js';
 import { SPAWN_POI_TYPE } from '../../db/seed/world-data.js';
 import { AppError } from '../../lib/app-error.js';
+import { getActiveCombat } from '../combat/service.js';
 
 type CharacterRow = typeof characters.$inferSelect;
 type HexRow = typeof hexes.$inferSelect;
@@ -74,6 +77,12 @@ export async function createCharacter(
       .values(initial.map((h) => ({ characterId: inserted.id, hexId: h.id })))
       .onConflictDoNothing();
 
+    // Starter kit (SPEC-M2 décision 1): class weapon equipped + two potions.
+    await tx.insert(inventory).values([
+      { characterId: inserted.id, itemId: STARTER_WEAPONS[input.class], equipped: true },
+      { characterId: inserted.id, itemId: STARTER_POTIONS.itemId, qty: STARTER_POTIONS.qty },
+    ]);
+
     return inserted;
   });
 
@@ -93,6 +102,8 @@ export async function getMyCharacter(
   const hex = await db.query.hexes.findFirst({ where: eq(hexes.id, row.hexId) });
   if (!hex) throw new Error(`Character ${row.id} references missing hex ${row.hexId}`);
 
+  const activeCombat = await getActiveCombat(db, row.id);
+
   const { stamina, staminaUpdatedAt } = computeStamina(
     { stamina: row.stamina, staminaUpdatedAt: row.staminaUpdatedAt },
     now,
@@ -106,7 +117,10 @@ export async function getMyCharacter(
       .where(eq(characters.id, row.id));
   }
 
-  return toCharacterDto({ ...row, stamina, staminaUpdatedAt }, hex, now);
+  return {
+    ...toCharacterDto({ ...row, stamina, staminaUpdatedAt }, hex, now),
+    activeCombatId: activeCombat?.id ?? null,
+  };
 }
 
 export function regenContextFor(hex: Pick<HexRow, 'regionId' | 'terrain'>): RegenContext {

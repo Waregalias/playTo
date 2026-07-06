@@ -23,6 +23,8 @@ export const ERROR_CODES = [
   'CHARACTER_EXISTS',
   'NOT_ON_SHRINE',
   'ACTION_ALREADY_STARTED',
+  'NOT_ON_POI',
+  'NO_ACTIVE_COMBAT',
 ] as const;
 
 export const errorCodeSchema = z.enum(ERROR_CODES);
