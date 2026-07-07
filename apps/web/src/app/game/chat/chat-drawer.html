@@ -1,0 +1,39 @@
+<div class="channels" role="tablist">
+  <button
+    role="tab"
+    [class.on]="store.chatChannel() === 'global'"
+    [disabled]="pending()"
+    (click)="switchChannel('global')"
+  >
+    {{ t.channelGlobal }}
+  </button>
+  <button
+    role="tab"
+    [class.on]="store.chatChannel() === 'region:1'"
+    [disabled]="pending()"
+    (click)="switchChannel('region:1')"
+  >
+    {{ t.channelRegion }}
+  </button>
+</div>
+<div class="messages">
+  @if (store.chatMessages().length === 0) {
+    <p class="muted">{{ t.empty }}</p>
+  }
+  @for (msg of store.chatMessages(); track msg.id) {
+    <div class="msg" [attr.data-testid]="'chat-msg-' + msg.id">
+      <b>{{ msg.characterName }}</b>
+      <span>{{ msg.body }}</span>
+    </div>
+  }
+</div>
+<form class="composer" (submit)="$event.preventDefault(); send()">
+  <input
+    [value]="draft()"
+    (input)="draft.set($any($event.target).value)"
+    [placeholder]="t.placeholder"
+    maxlength="500"
+    [attr.aria-label]="t.placeholder"
+  />
+  <button class="btn primary" type="submit" [disabled]="!draft().trim()">{{ t.send }}</button>
+</form>

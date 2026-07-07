@@ -104,6 +104,23 @@
   .frag b { color: var(--g-ember-glow); }
 }
 
+.chat-toggle {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--g-border);
+  background: var(--g-panel-2);
+  color: var(--g-mist);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+  &:active { transform: scale(0.94); }
+  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+}
+
 /* ── File d'actions ── */
 .queuebar {
   display: flex;

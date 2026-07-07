@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CHARACTER_CLASSES } from '../constants/classes.js';
+import { characterSkillSchema } from './skill.js';
 
 export const characterClassSchema = z.enum(CHARACTER_CLASSES);
 
@@ -46,6 +47,7 @@ export const characterSchema = z.object({
     emberFragments: z.number().int().min(0),
     gloryMarks: z.number().int().min(0),
   }),
+  skills: z.array(characterSkillSchema),
 });
 
 export type CharacterClassInput = z.infer<typeof characterClassSchema>;

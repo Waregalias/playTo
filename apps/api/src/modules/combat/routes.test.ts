@@ -168,6 +168,72 @@ describe('combat turns (US2)', () => {
   });
 });
 
+describe('skill effects in combat (US6)', () => {
+  it('uses an equipped non-starter active (Fente ignores 25 % armour)', async () => {
+    const cookie = await createRavive('blade');
+    const me = await charRow();
+    await db
+      .update(characters)
+      .set({
+        learnedSkills: ['blade.steel.1', 'blade.steel.2'],
+        equippedSkills: { slot1: 'blade.steel.1', slot2: 'blade.steel.2' },
+      })
+      .where(eq(characters.id, me.id));
+    const combatId = await forceCombat(cookie);
+
+    const res = await turn(cookie, combatId, { action: 'skill', skillId: 'blade.steel.2' });
+    expect(res.statusCode).toBe(200);
+    // 22 × 1 × (1 − 3/53) = 20.75 → 21 (Fente: armour 4 → 3)
+    expect(34 - res.json().foe.hp).toBe(21);
+  });
+
+  it('refuses a skill that is not equipped (409 REQUIREMENT_NOT_MET)', async () => {
+    const cookie = await createRavive('blade');
+    const me = await charRow();
+    await db
+      .update(characters)
+      .set({
+        learnedSkills: ['blade.steel.1', 'blade.steel.2'],
+        equippedSkills: { slot1: 'blade.steel.1' },
+      })
+      .where(eq(characters.id, me.id));
+    const combatId = await forceCombat(cookie);
+
+    const res = await turn(cookie, combatId, { action: 'skill', skillId: 'blade.steel.2' });
+    expect(res.statusCode).toBe(409);
+    expect(res.json().error.code).toBe('REQUIREMENT_NOT_MET');
+  });
+
+  it('adds Détrousseur’s +15 % to foe ash crowns', async () => {
+    const cookie = await createRavive('blade');
+    const me = await charRow();
+    await db
+      .update(characters)
+      .set({ learnedSkills: ['blade.steel.1', 'scout.shadow.4'] })
+      .where(eq(characters.id, me.id));
+    const combatId = await forceCombat(cookie);
+
+    await turn(cookie, combatId, { action: 'attack' }); // 34 → 14
+    const second = await turn(cookie, combatId, { action: 'attack' }); // win
+    expect(second.json().status).toBe('won');
+    expect(second.json().rewards.ashCrowns).toBe(8); // round(7 × 1.15)
+  });
+
+  it('scales turn-1 damage with Embuscade (+40 %)', async () => {
+    const cookie = await createRavive('blade');
+    const me = await charRow();
+    await db
+      .update(characters)
+      .set({ learnedSkills: ['blade.steel.1', 'scout.shadow.2'] })
+      .where(eq(characters.id, me.id));
+    const combatId = await forceCombat(cookie);
+
+    const res = await turn(cookie, combatId, { action: 'attack' });
+    // 22 × 1.4 × (1 − 4/54) = 28.52 → 29
+    expect(34 - res.json().foe.hp).toBe(29);
+  });
+});
+
 describe('death & respawn (US3)', () => {
   it('respawns at the Ember Hall with the 2 h penalty and material loss', async () => {
     const cookie = await createRavive('blade');
@@ -195,6 +261,28 @@ describe('death & respawn (US3)', () => {
       where: and(eq(inventory.characterId, me.id), eq(inventory.itemId, 'material.mistborn-hide')),
     });
     expect(hides?.qty).toBe(6); // 8 − floor(8 × 0.25)
+  });
+
+  it('chips the equipped weapon’s durability by 10, floored at 0', async () => {
+    const cookie = await createRavive('blade');
+    const me = await charRow();
+    await db.update(characters).set({ hp: 5 }).where(eq(characters.id, me.id));
+    const weapon = await db.query.inventory.findFirst({
+      where: and(eq(inventory.characterId, me.id), eq(inventory.equipped, true)),
+    });
+    const combatId = await forceCombat(cookie);
+
+    await turn(cookie, combatId, { action: 'attack' }); // lost
+    const afterFirst = await db.query.inventory.findFirst({ where: eq(inventory.id, weapon!.id) });
+    expect(afterFirst!.durability).toBe(90);
+
+    // A near-broken weapon floors at 0, never goes negative.
+    await db.update(inventory).set({ durability: 3 }).where(eq(inventory.id, weapon!.id));
+    await db.update(characters).set({ hp: 5 }).where(eq(characters.id, me.id));
+    const secondCombat = await forceCombat(cookie);
+    await turn(cookie, secondCombat, { action: 'attack' });
+    const afterSecond = await db.query.inventory.findFirst({ where: eq(inventory.id, weapon!.id) });
+    expect(afterSecond!.durability).toBe(0);
   });
 
   it('applies the −20 % penalty to combat damage', async () => {

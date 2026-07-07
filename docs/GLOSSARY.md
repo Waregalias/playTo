@@ -26,6 +26,13 @@ Le code (identifiants, tables, routes, enums, fichiers) est **entièrement en an
 | Brouillard de guerre | Fog of war | table `discoveries` |
 | File d'actions | Action queue | table `action_queue` |
 | Contrat quotidien | Daily contract | `daily_contracts` |
+| Contribution (chantier) | Contribution | table `contributions` |
+| Annonce (marché) | Listing | table `market_listings` |
+| Canal (chat) | Channel | `chat_messages.channel` |
+| Compétence | Skill | ids `{class}.{branch}.{tier}` |
+| Palier (de compétence) | Tier | |
+| Durabilité | Durability | `durability` / `maxDurability` |
+| Réparation | Repair | route `inventory/repair` |
 
 ## Monnaies & ressources
 

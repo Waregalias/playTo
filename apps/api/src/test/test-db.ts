@@ -2,10 +2,11 @@ import postgres from 'postgres';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { sql } from 'drizzle-orm';
 import { createDb, type Db } from '../db/client.js';
-import { regions, hexes, items, quests } from '../db/schema.js';
+import { regions, hexes, items, quests, projects } from '../db/schema.js';
 import { REGION_SEEDS, HEX_SEEDS } from '../db/seed/world-data.js';
 import { ITEM_SEEDS } from '../db/seed/items-data.js';
 import { QUEST_SEEDS } from '../db/seed/quests-data.js';
+import { PROJECT_SEEDS } from '../db/seed/projects-data.js';
 import type { Env } from '../env.js';
 
 const ADMIN_URL = 'postgres://aldenfer:aldenfer@localhost:5432/postgres';
@@ -55,9 +56,19 @@ export async function setupTestDb(): Promise<Db> {
         rarity: i.rarity,
         stats: i.stats ?? null,
         stackable: i.stackable,
+        maxDurability: i.maxDurability ?? null,
       })),
     )
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: items.id,
+      set: {
+        kind: sql`excluded.kind`,
+        rarity: sql`excluded.rarity`,
+        stats: sql`excluded.stats`,
+        stackable: sql`excluded.stackable`,
+        maxDurability: sql`excluded.max_durability`,
+      },
+    });
   await db
     .insert(quests)
     .values(
@@ -68,6 +79,17 @@ export async function setupTestDb(): Promise<Db> {
         steps: q.steps,
         rewards: q.rewards,
         requires: q.requires ?? null,
+      })),
+    )
+    .onConflictDoNothing();
+  await db
+    .insert(projects)
+    .values(
+      PROJECT_SEEDS.map((p) => ({
+        id: p.id,
+        regionId: p.regionId,
+        name: p.name,
+        goals: p.goals,
       })),
     )
     .onConflictDoNothing();

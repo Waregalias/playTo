@@ -9,10 +9,11 @@ import {
   REGION_1_ENCOUNTER_POOL,
   POI_LOOT,
   computeStamina,
+  deriveSkillModifiers,
   effectiveMistLevel,
+  hexesInRange,
   isAdjacent,
   moveCost,
-  neighbours,
   movePayloadSchema,
   restPayloadSchema,
   searchPayloadSchema,
@@ -87,9 +88,14 @@ async function unresolvedQueue(tx: Tx | Db, characterId: string): Promise<Action
     .orderBy(asc(actionQueue.position));
 }
 
-/** Inserts hex + its on-map neighbours into the character's discoveries. */
-async function discoverAround(tx: Tx, characterId: string, hex: HexRow): Promise<string[]> {
-  const coords = [{ q: hex.q, r: hex.r }, ...neighbours({ q: hex.q, r: hex.r })];
+/** Inserts hex + everything within vision range into the character's discoveries. */
+async function discoverAround(
+  tx: Tx,
+  characterId: string,
+  hex: HexRow,
+  visionBonus = 0,
+): Promise<string[]> {
+  const coords = hexesInRange({ q: hex.q, r: hex.r }, 1 + visionBonus);
   const found: HexRow[] = [];
   for (const c of coords) {
     const row = await tx.query.hexes.findFirst({
@@ -137,15 +143,16 @@ export async function resolveAction(
         .set({ hexId: target.id })
         .where(eq(characters.id, claimed.characterId));
 
-      const discoveredHexIds = await discoverAround(tx, claimed.characterId, target);
-
-      // Quest hook (reach), then the Mist rolls its dice (US1).
-      await advanceOnEvent(tx, claimed.characterId, { kind: 'reach', poiType: target.poiType });
       const [character] = await tx
         .select()
         .from(characters)
         .where(eq(characters.id, claimed.characterId))
         .for('update');
+      const visionBonus = deriveSkillModifiers(character!.learnedSkills).visionBonus;
+      const discoveredHexIds = await discoverAround(tx, claimed.characterId, target, visionBonus);
+
+      // Quest hook (reach), then the Mist rolls its dice (US1).
+      await advanceOnEvent(tx, claimed.characterId, { kind: 'reach', poiType: target.poiType });
       const encounter = await maybeStartEncounter(
         tx,
         character!,
@@ -174,12 +181,15 @@ export async function resolveAction(
       if (!character) throw new Error(`Character ${claimed.characterId} missing`);
 
       // XP + loot rolls (server-side randomness, journaled in result).
+      const mods = deriveSkillModifiers(character.learnedSkills);
       const progress = applyXp(character, SEARCH_ACTION.xpReward);
-      const capacity = inventoryCapacity(character.str);
+      const capacity = inventoryCapacity(character.str) + mods.inventoryBonus;
+      // Lecture des runes (arcanist.scholar.1): a better chance on every find.
+      const lootChanceMult = 1 + mods.searchLootPct / 100;
       const loot: Array<{ itemId: string; qty: number }> = [];
       const lootLost: Array<{ itemId: string; qty: number }> = [];
       for (const entry of POI_LOOT[payload.poiType] ?? []) {
-        if (rng() >= entry.chance) continue;
+        if (rng() >= entry.chance * lootChanceMult) continue;
         const qty = entry.qtyMin + Math.floor(rng() * (entry.qtyMax - entry.qtyMin + 1));
         const added = await addItem(tx, character.id, entry.itemId, qty, capacity);
         if (added.added > 0) loot.push({ itemId: entry.itemId, qty: added.added });
@@ -341,6 +351,9 @@ export async function enqueueAction(
 
       const mist = effectiveMistLevel(region.mistLevel, target.mistDelta) as MistLevel;
       const cost = moveCost(target.terrain, mist);
+      // Pas léger (scout.travel.1): faster steps, same stamina.
+      const moveTimerPct = deriveSkillModifiers(character.learnedSkills).moveTimerPct;
+      const durationSeconds = Math.round(cost.durationSeconds * (1 - moveTimerPct / 100));
 
       const currentHex = await tx.query.hexes.findFirst({ where: eq(hexes.id, character.hexId) });
       const computed = computeStamina(
@@ -365,7 +378,7 @@ export async function enqueueAction(
       const payload = movePayloadSchema.parse({
         targetHexId: target.id,
         staminaCost: cost.stamina,
-        durationSeconds: cost.durationSeconds,
+        durationSeconds,
       });
       const [row] = await tx
         .insert(actionQueue)
@@ -375,7 +388,7 @@ export async function enqueueAction(
           payload,
           position: queue.length,
           startsAt,
-          endsAt: new Date(startsAt.getTime() + cost.durationSeconds * 1000),
+          endsAt: new Date(startsAt.getTime() + durationSeconds * 1000),
         })
         .returning();
       return toActionDto(row!);

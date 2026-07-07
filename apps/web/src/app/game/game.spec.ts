@@ -4,6 +4,7 @@ import type { CharacterDto } from '@aldenfer/shared';
 import { GameComponent } from './game';
 import { ApiClient } from '../core/api-client';
 import { GameStore } from '../core/game-store';
+import { RealtimeService } from '../core/realtime';
 
 const CHARACTER: CharacterDto = {
   id: '4dfc1f88-0000-4000-8000-000000000001',
@@ -23,6 +24,7 @@ const CHARACTER: CharacterDto = {
   hexId: '4dfc1f88-0000-4000-8000-000000000002',
   regionId: 0,
   currencies: { ashCrowns: 0, emberFragments: 0, gloryMarks: 0 },
+  skills: [],
 };
 
 async function settle(fixture: { detectChanges(): void }): Promise<void> {
@@ -45,6 +47,13 @@ describe('GameComponent', () => {
     getInventory: vi.fn(),
   };
 
+  const realtimeMock = {
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    connected: () => false,
+    announce: () => null,
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
     apiMock.getActions.mockResolvedValue([]);
@@ -55,7 +64,12 @@ describe('GameComponent', () => {
     apiMock.getInventory.mockResolvedValue({ items: [], capacity: 30, used: 0 });
     await TestBed.configureTestingModule({
       imports: [GameComponent],
-      providers: [provideRouter([]), { provide: ApiClient, useValue: apiMock }, GameStore],
+      providers: [
+        provideRouter([]),
+        { provide: ApiClient, useValue: apiMock },
+        { provide: RealtimeService, useValue: realtimeMock },
+        GameStore,
+      ],
     }).compileComponents();
   });
 
@@ -82,6 +96,17 @@ describe('GameComponent', () => {
       'la flammèche attend',
     );
     expect(el.querySelectorAll('nav button')).toHaveLength(4);
+    expect(realtimeMock.connect).toHaveBeenCalled();
+  });
+
+  it('ne connecte pas le temps réel tant qu’il n’y a pas de personnage', async () => {
+    apiMock.getMe.mockResolvedValue(null);
+    const fixture = TestBed.createComponent(GameComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(realtimeMock.connect).not.toHaveBeenCalled();
   });
 
   it('affiche le compte à rebours de l’action en cours', async () => {

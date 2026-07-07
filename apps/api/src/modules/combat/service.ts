@@ -1,9 +1,11 @@
 import { and, eq } from 'drizzle-orm';
 import {
   FOES,
-  STARTER_SKILLS,
+  SKILLS_BY_ID,
+  deriveSkillModifiers,
   COMBAT_STAMINA_COST,
   DEATH_PENALTY,
+  DEATH_DURABILITY_LOSS,
   maxHp,
   resolveAttack,
   rollInitiative,
@@ -78,6 +80,7 @@ export async function startCombat(
     { str: character.str, dex: character.dex, wil: character.wil, vit: character.vit, fer: character.fer },
     penalty,
   );
+  const mods = deriveSkillModifiers(character.learnedSkills);
 
   let entries = log([], {
     turn: 1,
@@ -91,21 +94,31 @@ export async function startCombat(
   const playerInit = rollInitiative(attrs.dex, rng);
   const foeInit = rollInitiative(foe.dex, rng);
   if (foeInit > playerInit) {
-    const gear = await equippedGear(tx, character.id);
-    const opening = resolveAttack(
-      { attackScore: foe.attack, mitigation: gear.armor, attackerDex: foe.dex, defenderDex: attrs.dex },
-      rng,
-    );
-    playerHp = Math.max(0, playerHp - opening.damage);
-    entries = log(entries, {
-      turn: 1,
-      actor: 'foe',
-      text:
-        opening.outcome === 'dodged'
-          ? `${foeName(foeSlug)} surgit — tu esquives son premier assaut.`
-          : `${foeName(foeSlug)} frappe le premier.`,
-      ...(opening.damage > 0 ? { dmg: opening.damage } : {}),
-    });
+    if (mods.blockFirstAttack) {
+      // Mur de fer (blade.bulwark.3): the opening blow is absorbed.
+      entries = log(entries, {
+        turn: 1,
+        actor: 'foe',
+        text: `${foeName(foeSlug)} frappe le premier — ton Mur de fer absorbe le coup.`,
+      });
+    } else {
+      const gear = await equippedGear(tx, character.id);
+      const mitigation = Math.round(gear.armor * (1 + mods.armorPct / 100));
+      const opening = resolveAttack(
+        { attackScore: foe.attack, mitigation, attackerDex: foe.dex, defenderDex: attrs.dex },
+        rng,
+      );
+      playerHp = Math.max(0, playerHp - opening.damage);
+      entries = log(entries, {
+        turn: 1,
+        actor: 'foe',
+        text:
+          opening.outcome === 'dodged'
+            ? `${foeName(foeSlug)} surgit — tu esquives son premier assaut.`
+            : `${foeName(foeSlug)} frappe le premier.`,
+        ...(opening.damage > 0 ? { dmg: opening.damage } : {}),
+      });
+    }
   }
 
   const [row] = await tx
@@ -172,6 +185,7 @@ export async function playTurn(
       penalty,
     );
     const gear = await equippedGear(tx, characterId);
+    const mods = deriveSkillModifiers(character.learnedSkills);
     const cooldowns = { ...(combat.cooldowns as Record<string, number>) };
 
     let entries = combat.log as CombatLogEntry[];
@@ -184,24 +198,37 @@ export async function playTurn(
     if (input.action === 'attack' || input.action === 'skill') {
       let multiplier = 1;
       let kind = gear.damageKind;
+      let ignoreArmorPct = 0;
       let label = 'Attaque';
 
       if (input.action === 'skill') {
-        const starter = STARTER_SKILLS[character.class];
-        if (input.skillId !== starter.id) throw new AppError('REQUIREMENT_NOT_MET', 409);
-        if ((cooldowns[starter.id] ?? 0) > 0) throw new AppError('REQUIREMENT_NOT_MET', 409);
-        multiplier = starter.multiplier;
-        kind = starter.kind;
-        cooldowns[starter.id] = starter.cooldown + 1; // ticks down at end of this turn
+        const { slot1, slot2 } = character.equippedSkills;
+        if (input.skillId !== slot1 && input.skillId !== slot2) {
+          throw new AppError('REQUIREMENT_NOT_MET', 409);
+        }
+        const def = SKILLS_BY_ID[input.skillId];
+        if (!def || def.kind !== 'active' || !def.wiredInM3 || !def.active) {
+          throw new AppError('REQUIREMENT_NOT_MET', 409);
+        }
+        if ((cooldowns[input.skillId] ?? 0) > 0) throw new AppError('REQUIREMENT_NOT_MET', 409);
+        multiplier = def.active.multiplier ?? 1;
+        kind = def.active.damageKind ?? gear.damageKind;
+        ignoreArmorPct = def.active.ignoreArmorPct ?? 0;
+        cooldowns[input.skillId] = def.active.cooldown + 1; // ticks down at end of this turn
         label = 'Compétence';
+        // TODO(M3+): def.active.bleedTurns — bleed DoT deferred (SPEC-M3 step 7 decision).
       }
+
+      // Embuscade (scout.shadow.2): the opening turn strikes harder.
+      if (turn === 1 && mods.firstTurnDmgPct) multiplier *= 1 + mods.firstTurnDmgPct / 100;
 
       const attackScore =
         kind === 'arcane' ? attrs.wil * 2 + gear.weaponPower : attrs.str * 2 + gear.weaponPower;
+      const baseMitigation = kind === 'arcane' ? foe.resist : foe.armor;
       const hit = resolveAttack(
         {
           attackScore,
-          mitigation: kind === 'arcane' ? foe.resist : foe.armor,
+          mitigation: Math.round(baseMitigation * (1 - ignoreArmorPct / 100)),
           attackerDex: attrs.dex,
           defenderDex: foe.dex,
           multiplier,
@@ -241,8 +268,8 @@ export async function playTurn(
         text: `${ITEMS_FR[entry.itemId]?.name ?? entry.itemId} : +${heal} PV.`,
       });
     } else {
-      // flee
-      if (rng() < fleeChance(attrs.dex, foe.dex)) {
+      // flee — Évasion (scout.shadow.3) makes the escape certain.
+      if (mods.fleeNoPenalty || rng() < fleeChance(attrs.dex, foe.dex)) {
         fled = true;
         entries = log(entries, { turn, actor: 'system', text: 'Tu te fonds dans la Brume. Fuite réussie.' });
       } else {
@@ -293,9 +320,14 @@ export async function playTurn(
       return { combat: updated! };
     }
 
-    // ── Foe riposte
+    // ── Foe riposte (Garde ferme boosts armour mitigation)
     const riposte = resolveAttack(
-      { attackScore: foe.attack, mitigation: gear.armor, attackerDex: foe.dex, defenderDex: attrs.dex },
+      {
+        attackScore: foe.attack,
+        mitigation: Math.round(gear.armor * (1 + mods.armorPct / 100)),
+        attackerDex: foe.dex,
+        defenderDex: attrs.dex,
+      },
       rng,
     );
     playerHp = Math.max(0, playerHp - riposte.damage);
@@ -343,10 +375,13 @@ async function applyVictory(
   rng: Rng,
 ): Promise<CombatRewards> {
   const foe = FOES[foeSlug]!;
-  const crowns = foe.crownsMin + Math.floor(rng() * (foe.crownsMax - foe.crownsMin + 1));
+  const mods = deriveSkillModifiers(character.learnedSkills);
+  const rolledCrowns = foe.crownsMin + Math.floor(rng() * (foe.crownsMax - foe.crownsMin + 1));
+  // Détrousseur (scout.shadow.4): a cut more from every fallen Mistborn.
+  const crowns = Math.round(rolledCrowns * (1 + mods.foeAshCrownsPct / 100));
 
   const progress = applyXp(character, foe.xpReward);
-  const capacity = inventoryCapacity(character.str);
+  const capacity = inventoryCapacity(character.str) + mods.inventoryBonus;
 
   const loot: CombatRewards['loot'] = [];
   const lootLost: NonNullable<CombatRewards['lootLost']> = [];
@@ -392,7 +427,21 @@ async function applyDefeat(
   const spawn = await tx.query.hexes.findFirst({ where: eq(hexes.poiType, SPAWN_POI_TYPE) });
   if (!spawn) throw new Error('Spawn hex missing — run db:seed');
 
-  await loseMaterialsOnDeath(tx, character.id);
+  const lossReductionPct = deriveSkillModifiers(character.learnedSkills).deathMaterialLossPct;
+  await loseMaterialsOnDeath(tx, character.id, lossReductionPct);
+
+  // Equipped weapon & armour lose durability on every death (SPEC-M3 décision 2).
+  const equippedRows = await tx
+    .select({ id: inventory.id, durability: inventory.durability })
+    .from(inventory)
+    .where(and(eq(inventory.characterId, character.id), eq(inventory.equipped, true)));
+  for (const row of equippedRows) {
+    if (row.durability === null) continue;
+    await tx
+      .update(inventory)
+      .set({ durability: Math.max(0, row.durability - DEATH_DURABILITY_LOSS) })
+      .where(eq(inventory.id, row.id));
+  }
 
   await tx
     .update(actionQueue)

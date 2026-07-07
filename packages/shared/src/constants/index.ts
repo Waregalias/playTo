@@ -8,3 +8,5 @@ export * from './foes.js';
 export * from './starter-gear.js';
 export * from './pois.js';
 export * from './quest-data.js';
+export * from './skills.js';
+export * from './resources.js';

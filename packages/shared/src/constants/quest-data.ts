@@ -107,6 +107,18 @@ const RAW_QUESTS: QuestDefinition[] = [
     // `$class` resolves to the character's class server-side.
     rewards: { xp: 200, ashCrowns: 50, items: [{ itemId: 'weapon.$class.t2', qty: 1 }] },
   },
+  {
+    id: 'r1.main.q5',
+    regionId: 1,
+    kind: 'main',
+    requires: { quest: 'r1.main.q4' },
+    // Community chantier: completes when the belfry project reaches 100 %.
+    steps: {
+      start: 's1',
+      steps: [{ id: 's1', kind: 'project', projectId: 'r1.belfry', next: null }],
+    },
+    rewards: { xp: 400, emberFragments: 2 },
+  },
 ];
 
 export const QUEST_DEFINITIONS: QuestDefinition[] = RAW_QUESTS.map((quest) => ({

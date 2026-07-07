@@ -1,0 +1,105 @@
+:host {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 520px;
+  margin: 0 auto;
+  max-height: 60dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--g-panel);
+  border-top: 1px solid var(--g-border);
+  border-radius: 12px 12px 0 0;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  z-index: 20;
+  animation: slideup 0.25s ease;
+}
+
+@keyframes slideup {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+.channels {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+
+  button {
+    flex: 1;
+    padding: 7px 4px;
+    font-size: 0.78rem;
+    border-radius: 7px;
+    border: 1px solid var(--g-border);
+    background: var(--g-panel-2);
+    color: var(--g-mist);
+    cursor: pointer;
+
+    &.on { border-color: var(--g-ember); color: var(--g-ember-glow); background: var(--g-ember-bg); }
+    &:disabled { opacity: 0.6; }
+  }
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 100px;
+}
+
+.muted { color: var(--g-mist); font-size: 0.85rem; }
+
+.msg {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #202d3b;
+  font-size: 0.86rem;
+
+  &:last-child { border-bottom: none; }
+
+  b { color: var(--g-ember-glow); flex-shrink: 0; }
+  span { color: var(--g-bone); }
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+
+  input {
+    flex: 1;
+    min-height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--g-border);
+    background: var(--g-panel-2);
+    color: var(--g-bone);
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+  }
+}
+
+.btn {
+  min-height: 44px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--g-border);
+  background: linear-gradient(180deg, #2a3b4c, #1d2a38);
+  color: var(--g-bone);
+  padding: 8px 14px;
+
+  &:active { transform: scale(0.97); }
+  &:disabled { opacity: 0.45; }
+  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+
+  &.primary {
+    background: linear-gradient(180deg, #e58a2e, #b85f13);
+    border-color: #f0a853;
+    color: #1a0e02;
+    box-shadow: 0 2px 10px rgba(224, 122, 40, 0.35);
+  }
+}

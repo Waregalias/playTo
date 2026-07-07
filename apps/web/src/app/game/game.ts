@@ -3,12 +3,14 @@ import { Router } from '@angular/router';
 import { UI_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
 import { GameStore } from '../core/game-store';
 import { ApiClient, ApiError } from '../core/api-client';
+import { RealtimeService } from '../core/realtime';
 import { ToastService } from '../core/toast';
 import { CharacterCreationComponent } from './character-creation';
 import { MapScreenComponent } from './map/map-screen';
 import { CombatOverlayComponent } from './combat/combat-overlay';
 import { HeroScreenComponent } from './hero/hero-screen';
 import { BastionScreenComponent } from './bastion/bastion-screen';
+import { ChatDrawerComponent } from './chat/chat-drawer';
 
 type Tab = 'map' | 'bastion' | 'hero' | 'raid';
 
@@ -20,6 +22,7 @@ type Tab = 'map' | 'bastion' | 'hero' | 'raid';
     CombatOverlayComponent,
     HeroScreenComponent,
     BastionScreenComponent,
+    ChatDrawerComponent,
   ],
   templateUrl: './game.html',
   styleUrl: './game.scss',
@@ -28,12 +31,14 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly t = UI_FR;
   readonly store = inject(GameStore);
   readonly toast = inject(ToastService);
+  readonly realtime = inject(RealtimeService);
   private readonly api = inject(ApiClient);
 
   private readonly router = inject(Router);
 
   readonly tab = signal<Tab>('map');
   readonly tabs: Tab[] = ['map', 'bastion', 'hero', 'raid'];
+  readonly chatOpen = signal(false);
 
   /** Display clock — ticks every second to recompute countdowns from endsAt (US6). */
   readonly nowMs = signal(Date.now());
@@ -81,6 +86,7 @@ export class GameComponent implements OnInit, OnDestroy {
       }
       this.toast.show(this.t.errors.loadFailed);
     }
+    if (!this.store.needsCharacter()) this.realtime.connect();
     this.store.startPolling();
     this.ticker = setInterval(() => {
       this.nowMs.set(Date.now());
@@ -93,14 +99,24 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.store.stopPolling();
+    this.realtime.disconnect();
     if (this.ticker) clearInterval(this.ticker);
   }
 
   async onCharacterCreated(): Promise<void> {
     try {
       await this.store.load();
+      this.realtime.connect();
     } catch {
       this.toast.show(this.t.errors.loadFailed);
+    }
+  }
+
+  toggleChat(): void {
+    const opening = !this.chatOpen();
+    this.chatOpen.set(opening);
+    if (opening && this.store.chatMessages().length === 0) {
+      void this.store.loadChatHistory(this.store.chatChannel()).catch(() => undefined);
     }
   }
 

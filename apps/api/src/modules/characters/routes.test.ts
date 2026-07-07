@@ -60,6 +60,23 @@ describe('POST /api/v1/characters (US1)', () => {
     expect(body.currencies).toEqual({ ashCrowns: 0, emberFragments: 0, gloryMarks: 0 });
   });
 
+  it('starts with the class starter skill learned and equipped in slot 1', async () => {
+    const cookie = await signUp('rekindled@aldenfer.test');
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/characters',
+      headers: { cookie },
+      payload: { name: 'Serelle', class: 'blade' },
+    });
+
+    expect(response.statusCode).toBe(201);
+    const starter = response
+      .json()
+      .skills.find((s: { skillId: string }) => s.skillId === 'blade.steel.1');
+    expect(starter).toBeDefined();
+    expect(starter.equippedSlot).toBe(1);
+  });
+
   it('rejects a second character for the same account (409 CHARACTER_EXISTS)', async () => {
     const cookie = await signUp('rekindled@aldenfer.test');
     const first = await app.inject({

@@ -4,6 +4,7 @@ import { UI_FR, ITEMS_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr'
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
+import { SkillTreeComponent } from './skill-tree';
 
 const PORTRAITS: Record<CharacterClass, string> = {
   blade: '/assets/Lame.png',
@@ -13,20 +14,25 @@ const PORTRAITS: Record<CharacterClass, string> = {
 };
 
 type AttributeKey = 'str' | 'dex' | 'wil' | 'vit' | 'fer';
+type SubTab = 'personnage' | 'skills';
 
 @Component({
   selector: 'app-hero-screen',
+  imports: [SkillTreeComponent],
   templateUrl: './hero-screen.html',
   styleUrl: './hero-screen.scss',
 })
 export class HeroScreenComponent {
   readonly t = UI_FR.hero;
   readonly tCreation = UI_FR.creation;
+  readonly tRepair = UI_FR.repair;
+  readonly tSkillsTree = UI_FR.skillsTree;
   readonly itemsFr = ITEMS_FR;
   readonly store = inject(GameStore);
   private readonly api = inject(ApiClient);
   private readonly toast = inject(ToastService);
 
+  readonly subTab = signal<SubTab>('personnage');
   readonly attributeKeys: AttributeKey[] = ['str', 'dex', 'wil', 'vit', 'fer'];
   readonly pending = signal(false);
 
@@ -99,6 +105,21 @@ export class HeroScreenComponent {
     try {
       await this.api.useItem(entryId);
       await Promise.all([this.store.refreshInventory(), this.store.refresh()]);
+    } catch (err) {
+      this.toast.show(
+        err instanceof ApiError && err.message ? err.message : ERROR_MESSAGES_FR.VALIDATION_ERROR,
+      );
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  async repair(entryId: string): Promise<void> {
+    if (this.pending()) return;
+    this.pending.set(true);
+    try {
+      await this.api.repairEntry(entryId);
+      await Promise.all([this.store.refreshInventory(), this.store.refresh()]); // écus changed
     } catch (err) {
       this.toast.show(
         err instanceof ApiError && err.message ? err.message : ERROR_MESSAGES_FR.VALIDATION_ERROR,

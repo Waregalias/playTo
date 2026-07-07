@@ -1,0 +1,46 @@
+<div class="card">
+  @if (store.character(); as character) {
+    <p class="muted">
+      {{ t.pointsAvailable(character.skillPoints) }} ·
+      {{ t.fragmentsAvailable(character.currencies.emberFragments) }}
+    </p>
+  }
+  <div class="branchtabs" role="tablist">
+    @for (branch of branches(); track branch) {
+      <button
+        role="tab"
+        [class.on]="(activeBranch() ?? branches()[0]) === branch"
+        (click)="activeBranch.set(branch)"
+      >
+        {{ branchLabel(branch) }}
+      </button>
+    }
+  </div>
+  @for (row of rows(); track row.skill.id) {
+    <div class="skillrow" [class.locked]="!row.learned" [attr.data-testid]="'skill-' + row.skill.id">
+      <div class="rune" [class.equipped]="row.equipped">{{ row.content.name.charAt(0) }}</div>
+      <div class="skillinfo">
+        <b>{{ row.content.name }}</b>
+        <small>{{ row.content.description }}</small>
+      </div>
+      @if (!row.learned) {
+        <span class="cost">
+          {{ t.costPoint }}
+          @if (row.skill.fragmentCost > 0) {
+            {{ t.costFragments(row.skill.fragmentCost) }}
+          }
+        </span>
+        <button class="btn" [disabled]="pending()" (click)="learn(row.skill.id)">{{ t.learn }}</button>
+      } @else if (row.equippable) {
+        @if (row.equipped) {
+          <span class="cost">{{ t.slotLabel(row.equipped) }}</span>
+          <button class="btn" [disabled]="pending()" (click)="unequip(row.skill.id)">
+            {{ t.unequip }}
+          </button>
+        } @else {
+          <button class="btn" [disabled]="pending()" (click)="equip(row.skill.id)">{{ t.equip }}</button>
+        }
+      }
+    </div>
+  }
+</div>

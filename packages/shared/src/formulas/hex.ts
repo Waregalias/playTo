@@ -21,3 +21,16 @@ export function isAdjacent(a: AxialCoord, b: AxialCoord): boolean {
 export function neighbours(c: AxialCoord): AxialCoord[] {
   return AXIAL_DIRECTIONS.map(([dq, dr]) => ({ q: c.q + dq, r: c.r + dr }));
 }
+
+/** All axial coordinates within `radius` steps of `center`, centre included (pointy-top). */
+export function hexesInRange(center: AxialCoord, radius: number): AxialCoord[] {
+  const out: AxialCoord[] = [];
+  for (let dq = -radius; dq <= radius; dq++) {
+    const lo = Math.max(-radius, -dq - radius);
+    const hi = Math.min(radius, -dq + radius);
+    for (let dr = lo; dr <= hi; dr++) {
+      out.push({ q: center.q + dq, r: center.r + dr });
+    }
+  }
+  return out;
+}

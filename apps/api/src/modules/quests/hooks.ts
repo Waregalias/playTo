@@ -40,6 +40,8 @@ function stepMatches(step: QuestStep, event: QuestEvent, questId: string): boole
       );
     case 'choice':
       return false; // choices advance through the advance route, not events
+    case 'project':
+      return false; // project steps complete on project completion, not world events
   }
 }
 

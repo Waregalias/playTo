@@ -3,6 +3,7 @@ import {
   CLASS_BASE_ATTRIBUTES,
   STARTER_WEAPONS,
   STARTER_POTIONS,
+  STARTER_SKILLS,
   maxHp,
   xpForNextLevel,
   computeStamina,
@@ -62,6 +63,8 @@ export async function createCharacter(
         stamina: STAMINA_MAX,
         staminaUpdatedAt: now,
         hexId: spawn.id,
+        learnedSkills: [STARTER_SKILLS[input.class].id],
+        equippedSkills: { slot1: STARTER_SKILLS[input.class].id },
       })
       .returning();
     if (!inserted) throw new Error('Character insert returned no row');
@@ -78,8 +81,14 @@ export async function createCharacter(
       .onConflictDoNothing();
 
     // Starter kit (SPEC-M2 décision 1): class weapon equipped + two potions.
+    // The starter weapon is tier 1 → maxDurability 100 (SPEC-M3 décision 2).
     await tx.insert(inventory).values([
-      { characterId: inserted.id, itemId: STARTER_WEAPONS[input.class], equipped: true },
+      {
+        characterId: inserted.id,
+        itemId: STARTER_WEAPONS[input.class],
+        equipped: true,
+        durability: 100,
+      },
       { characterId: inserted.id, itemId: STARTER_POTIONS.itemId, qty: STARTER_POTIONS.qty },
     ]);
 
@@ -157,5 +166,14 @@ export function toCharacterDto(row: CharacterRow, hex: HexRow, now: Date): Chara
       emberFragments: row.emberFragments,
       gloryMarks: row.gloryMarks,
     },
+    skills: row.learnedSkills.map((skillId) => ({
+      skillId,
+      equippedSlot:
+        row.equippedSkills.slot1 === skillId
+          ? (1 as const)
+          : row.equippedSkills.slot2 === skillId
+            ? (2 as const)
+            : null,
+    })),
   };
 }

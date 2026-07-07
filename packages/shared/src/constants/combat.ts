@@ -32,6 +32,11 @@ export const DEATH_PENALTY = {
 /** Combat stamina cost (GDD §8). */
 export const COMBAT_STAMINA_COST = 15;
 
+/** Durability lost by the equipped weapon and armour on each death (SPEC-M3 décision 2). */
+export const DEATH_DURABILITY_LOSS = 10;
+/** Equipment stats are multiplied by this when durability hits 0. */
+export const BROKEN_GEAR_PENALTY = 0.5;
+
 /** Encounter chance per terrain on move resolution, regions ≥ 1 (SPEC-M2 décision 3). */
 export const ENCOUNTER_CHANCES: Record<string, number> = {
   forest: 0.35,

@@ -18,6 +18,11 @@ import { registerMapRoutes } from './modules/map/routes.js';
 import { registerCombatRoutes } from './modules/combat/routes.js';
 import { registerQuestRoutes } from './modules/quests/routes.js';
 import { registerInventoryRoutes } from './modules/inventory/routes.js';
+import { registerChatRoutes } from './modules/chat/routes.js';
+import { registerProjectRoutes } from './modules/projects/routes.js';
+import { registerMarketRoutes } from './modules/market/routes.js';
+import { registerSkillRoutes } from './modules/skills/routes.js';
+import { registerRealtime } from './realtime/plugin.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -99,6 +104,12 @@ export async function buildApp(env: Env, options: BuildOptions = {}) {
   registerCombatRoutes(app, auth, now, rng);
   registerQuestRoutes(app, auth, now, rng);
   registerInventoryRoutes(app, auth, now);
+  registerChatRoutes(app, auth, now);
+  registerProjectRoutes(app, auth, now);
+  registerMarketRoutes(app, auth, now);
+  registerSkillRoutes(app, auth, now);
+
+  await registerRealtime(app, auth, now);
 
   return app;
 }

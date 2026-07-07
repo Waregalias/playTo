@@ -17,6 +17,7 @@
     "@aldenfer/shared": "workspace:*",
     "@fastify/cors": "^11.0.0",
     "@fastify/rate-limit": "^10.2.0",
+    "@fastify/websocket": "^11.2.0",
     "better-auth": "^1.6.23",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.9.0",
@@ -26,9 +27,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@types/ws": "^8.18.1",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.19.2",
     "typescript": "~6.0.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.8",
+    "ws": "^8.21.0"
   }
 }

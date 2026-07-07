@@ -28,4 +28,10 @@ export const ERROR_MESSAGES_FR: Record<ErrorCode, string> = {
   ACTION_ALREADY_STARTED: 'Cette action est déjà en cours — on n’arrête pas un pas engagé.',
   NOT_ON_POI: 'Rien à fouiller ici — cherche un lieu marqué sur la carte.',
   NO_ACTIVE_COMBAT: 'Aucun Brumeux ne te fait face.',
+  INSUFFICIENT_MATERIALS: 'Il te manque des matériaux pour cela.',
+  SKILL_ALREADY_LEARNED: 'Tu maîtrises déjà cette compétence.',
+  CANNOT_BUY_OWN_LISTING: 'Tu ne peux pas acheter ta propre annonce.',
+  LISTING_UNAVAILABLE: 'Cette annonce n’est plus disponible.',
+  PROJECT_COMPLETED: 'Ce chantier est déjà achevé.',
+  NOTHING_TO_REPAIR: 'Cet équipement est déjà en parfait état.',
 };

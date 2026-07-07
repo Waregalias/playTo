@@ -1,0 +1,39 @@
+@if (store.currentProject(); as project) {
+  <div class="card">
+    <h3>{{ t.title }}</h3>
+    <p class="muted hint">{{ t.hint }}</p>
+    <p class="muted">{{ t.contributorCount(project.contributorCount) }}</p>
+    @for (row of goalRows(); track row.key) {
+      <div class="projbar"><i [style.width.%]="row.pct"></i></div>
+      <div class="goalrow">
+        <span>{{ row.name }}</span>
+        <span>{{ row.progress }} / {{ row.goal }}</span>
+      </div>
+    }
+    @if (project.completedAt) {
+      <p class="done">{{ t.completed }}</p>
+    } @else {
+      <div class="contribform">
+        <select
+          [value]="resource()"
+          (change)="resource.set($any($event.target).value)"
+          [attr.aria-label]="t.title"
+        >
+          @for (row of goalRows(); track row.key) {
+            <option [value]="row.key">{{ row.name }}</option>
+          }
+        </select>
+        <input
+          type="number"
+          min="1"
+          [value]="qty()"
+          (input)="qty.set(+$any($event.target).value)"
+          [attr.aria-label]="t.qtyLabel"
+        />
+      </div>
+      <button class="btn primary full" [disabled]="pending()" (click)="contribute()">
+        {{ t.contribute(itemName(resource() ?? ''), qty()) }}
+      </button>
+    }
+  </div>
+}

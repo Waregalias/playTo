@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { characterSchema } from './character.js';
 
 export const itemKindSchema = z.enum(['weapon', 'armor', 'consumable', 'material', 'quest']);
 export const raritySchema = z.enum(['common', 'rare', 'ember', 'relic']);
@@ -25,6 +26,8 @@ export const inventoryEntrySchema = z.object({
   qty: z.number().int().positive(),
   equipped: z.boolean(),
   stats: itemStatsSchema.nullish(),
+  durability: z.number().int().min(0).nullable(),
+  maxDurability: z.number().int().positive().nullable(),
 });
 
 export const inventoryResponseSchema = z.object({
@@ -46,6 +49,15 @@ export const allocateAttributesSchema = z
     message: 'At least one point must be allocated',
   });
 
+/** `POST /inventory/repair` (US7). */
+export const repairSchema = z.object({ entryId: z.uuid() });
+export const repairResponseSchema = z.object({
+  character: characterSchema,
+  entry: inventoryEntrySchema,
+});
+
 export type ItemStats = z.infer<typeof itemStatsSchema>;
 export type InventoryEntryDto = z.infer<typeof inventoryEntrySchema>;
 export type AllocateAttributesInput = z.infer<typeof allocateAttributesSchema>;
+export type RepairInput = z.infer<typeof repairSchema>;
+export type RepairResponse = z.infer<typeof repairResponseSchema>;

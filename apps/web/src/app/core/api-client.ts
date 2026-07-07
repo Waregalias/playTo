@@ -2,16 +2,28 @@ import { Injectable } from '@angular/core';
 import type {
   ActionDto,
   AllocateAttributesInput,
+  BuyListingResponse,
+  ChatChannel,
+  ChatHistoryDto,
   CharacterDto,
   CharacterQuestDto,
   CombatActionInput,
   CombatStateDto,
+  ContributeInput,
+  ContributeResponse,
   CreateActionInput,
   CreateCharacterInput,
+  CreateListingInput,
+  EquipSkillsInput,
   ErrorCode,
   HexDto,
   InventoryEntryDto,
+  ListingDto,
+  ListingsPageDto,
+  ProjectDetailDto,
+  ProjectDto,
   RegionDto,
+  RepairResponse,
 } from '@aldenfer/shared';
 
 /** Business error carrying the API-SPEC §2 envelope. */
@@ -117,6 +129,62 @@ export class ApiClient {
 
   allocateAttributes(input: AllocateAttributesInput): Promise<CharacterDto> {
     return this.request('POST', '/api/v1/characters/me/attributes', input);
+  }
+
+  // ── Chat (M3)
+  async getChatHistory(channel: ChatChannel, cursor?: string): Promise<ChatHistoryDto> {
+    const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
+    return this.request('GET', `/api/v1/chat/${channel}${qs}`);
+  }
+
+  // ── Projects / chantier (M3)
+  async getProjects(regionId?: number): Promise<ProjectDto[]> {
+    const qs = regionId !== undefined ? `?regionId=${regionId}` : '';
+    const data = await this.request<{ items: ProjectDto[] }>('GET', `/api/v1/projects${qs}`);
+    return data.items;
+  }
+
+  getProjectDetail(id: string): Promise<ProjectDetailDto> {
+    return this.request('GET', `/api/v1/projects/${id}`);
+  }
+
+  contribute(id: string, input: ContributeInput): Promise<ContributeResponse> {
+    return this.request('POST', `/api/v1/projects/${id}/contribute`, input);
+  }
+
+  // ── Market (M3)
+  async getListings(itemId?: string, cursor?: string): Promise<ListingsPageDto> {
+    const params = new URLSearchParams();
+    if (itemId) params.set('itemId', itemId);
+    if (cursor) params.set('cursor', cursor);
+    const qs = params.size ? `?${params}` : '';
+    return this.request('GET', `/api/v1/market/listings${qs}`);
+  }
+
+  createListing(input: CreateListingInput): Promise<ListingDto> {
+    return this.request('POST', '/api/v1/market/listings', input);
+  }
+
+  buyListing(id: string, qty: number): Promise<BuyListingResponse> {
+    return this.request('POST', `/api/v1/market/listings/${id}/buy`, { qty });
+  }
+
+  async cancelListing(id: string): Promise<void> {
+    await this.request('DELETE', `/api/v1/market/listings/${id}`);
+  }
+
+  // ── Skills (M3)
+  learnSkill(skillId: string): Promise<CharacterDto> {
+    return this.request('POST', '/api/v1/characters/me/skills', { skillId });
+  }
+
+  equipSkills(input: EquipSkillsInput): Promise<CharacterDto> {
+    return this.request('PUT', '/api/v1/characters/me/skills/equipped', input);
+  }
+
+  // ── Repair (M3)
+  repairEntry(entryId: string): Promise<RepairResponse> {
+    return this.request('POST', '/api/v1/inventory/repair', { entryId });
   }
 
   private async request<T>(method: string, url: string, body?: unknown): Promise<T> {

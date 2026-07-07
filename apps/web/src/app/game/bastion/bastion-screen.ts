@@ -9,6 +9,10 @@ import { QUESTS_FR, UI_FR, REGION_NAMES_FR, ERROR_MESSAGES_FR } from '@aldenfer/
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
+import { ProjectPanelComponent } from './project-panel';
+import { MarketPanelComponent } from './market-panel';
+
+type SubTab = 'quests' | 'project' | 'market';
 
 interface QuestVm {
   questId: string;
@@ -24,16 +28,20 @@ interface QuestVm {
 
 @Component({
   selector: 'app-bastion-screen',
+  imports: [ProjectPanelComponent, MarketPanelComponent],
   templateUrl: './bastion-screen.html',
   styleUrl: './bastion-screen.scss',
 })
 export class BastionScreenComponent {
   readonly t = UI_FR.quests;
+  readonly tProject = UI_FR.project;
+  readonly tMarket = UI_FR.market;
   readonly regionName = REGION_NAMES_FR['cinderlune'];
   readonly store = inject(GameStore);
   private readonly api = inject(ApiClient);
   private readonly toast = inject(ToastService);
 
+  readonly subTab = signal<SubTab>('quests');
   readonly pending = signal(false);
 
   readonly questVms = computed<QuestVm[]>(() =>

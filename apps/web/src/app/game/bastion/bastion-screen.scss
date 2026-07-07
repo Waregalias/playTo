@@ -24,6 +24,25 @@ h2 {
   margin: 2px 0 12px;
 }
 
+.subnav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+
+  button {
+    flex: 1;
+    padding: 7px 4px;
+    font-size: 0.78rem;
+    border-radius: 7px;
+    border: 1px solid var(--g-border);
+    background: var(--g-panel-2);
+    color: var(--g-mist);
+    cursor: pointer;
+
+    &.on { border-color: var(--g-ember); color: var(--g-ember-glow); background: var(--g-ember-bg); }
+  }
+}
+
 .card {
   background: var(--g-panel);
   border: 1px solid var(--g-border);

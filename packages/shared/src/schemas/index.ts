@@ -5,3 +5,8 @@ export * from './error.js';
 export * from './combat.js';
 export * from './inventory.js';
 export * from './quest.js';
+export * from './skill.js';
+export * from './chat.js';
+export * from './project.js';
+export * from './market.js';
+export * from './ws.js';

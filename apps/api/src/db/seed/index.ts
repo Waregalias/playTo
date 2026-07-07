@@ -1,9 +1,10 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../client.js';
-import { regions, hexes, items, quests } from '../schema.js';
+import { regions, hexes, items, quests, projects } from '../schema.js';
 import { REGION_SEEDS, HEX_SEEDS } from './world-data.js';
 import { ITEM_SEEDS } from './items-data.js';
 import { QUEST_SEEDS } from './quests-data.js';
+import { PROJECT_SEEDS } from './projects-data.js';
 
 const databaseUrl =
   process.env['DATABASE_URL'] ?? 'postgres://aldenfer:aldenfer@localhost:5432/aldenfer';
@@ -53,6 +54,7 @@ async function seed() {
         rarity: i.rarity,
         stats: i.stats ?? null,
         stackable: i.stackable,
+        maxDurability: i.maxDurability ?? null,
       })),
     )
     .onConflictDoUpdate({
@@ -62,6 +64,7 @@ async function seed() {
         rarity: sql`excluded.rarity`,
         stats: sql`excluded.stats`,
         stackable: sql`excluded.stackable`,
+        maxDurability: sql`excluded.max_durability`,
       },
     });
 
@@ -88,13 +91,33 @@ async function seed() {
       },
     });
 
+  // Upsert never overwrites live `progress`/`completed_at` — re-seeding is safe.
+  await db
+    .insert(projects)
+    .values(
+      PROJECT_SEEDS.map((p) => ({
+        id: p.id,
+        regionId: p.regionId,
+        name: p.name,
+        goals: p.goals,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: projects.id,
+      set: {
+        regionId: sql`excluded.region_id`,
+        name: sql`excluded.name`,
+        goals: sql`excluded.goals`,
+      },
+    });
+
   const [{ count }] = (await db.execute(
     sql`SELECT count(*)::int AS count FROM hexes`,
   )) as unknown as [{ count: number }];
 
   console.log(
     `Seed complete: ${REGION_SEEDS.length} regions, ${count} hexes, ` +
-      `${ITEM_SEEDS.length} items, ${QUEST_SEEDS.length} quests.`,
+      `${ITEM_SEEDS.length} items, ${QUEST_SEEDS.length} quests, ${PROJECT_SEEDS.length} projects.`,
   );
   process.exit(0);
 }

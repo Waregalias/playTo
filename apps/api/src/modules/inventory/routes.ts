@@ -8,6 +8,8 @@ import {
   maxHp,
   allocateAttributesSchema,
   characterSchema,
+  repairSchema,
+  repairResponseSchema,
 } from '@aldenfer/shared';
 import type { Auth } from '../../auth.js';
 import { characters, inventory, items } from '../../db/schema.js';
@@ -15,7 +17,7 @@ import { requireCharacter } from '../../lib/require-character.js';
 import { AppError } from '../../lib/app-error.js';
 import { getMyCharacter } from '../characters/service.js';
 import { getActiveCombat } from '../combat/service.js';
-import { inventoryCapacity, usedSlots } from './service.js';
+import { inventoryCapacity, usedSlots, repairEntry, toEntryDto } from './service.js';
 
 export function registerInventoryRoutes(app: FastifyInstance, auth: Auth, now: () => Date): void {
   const typed = app.withTypeProvider<ZodTypeProvider>();
@@ -32,15 +34,7 @@ export function registerInventoryRoutes(app: FastifyInstance, auth: Auth, now: (
         .where(eq(inventory.characterId, character.id));
 
       return {
-        items: rows.map(({ entry, item }) => ({
-          id: entry.id,
-          itemId: entry.itemId,
-          kind: item.kind as 'weapon' | 'armor' | 'consumable' | 'material' | 'quest',
-          rarity: item.rarity,
-          qty: entry.qty,
-          equipped: entry.equipped,
-          stats: item.stats ? itemStatsSchema.parse(item.stats) : null,
-        })),
+        items: rows.map(({ entry, item }) => toEntryDto(entry, item)),
         capacity: inventoryCapacity(character.str),
         used: rows.length,
       };
@@ -169,6 +163,16 @@ export function registerInventoryRoutes(app: FastifyInstance, auth: Auth, now: (
       const dto = await getMyCharacter(app.db, character.userId, now());
       if (!dto) throw new AppError('NOT_FOUND', 404);
       return dto;
+    },
+  );
+
+  // Repair (US7): restore a damaged weapon/armour to full durability for écus.
+  typed.post(
+    '/api/v1/inventory/repair',
+    { schema: { body: repairSchema, response: { 200: repairResponseSchema } } },
+    async (request) => {
+      const character = await requireCharacter(app.db, auth, request);
+      return repairEntry(app.db, character, request.body.entryId, now());
     },
   );
 }

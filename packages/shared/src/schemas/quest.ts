@@ -39,6 +39,8 @@ export const questStepSchema = z.discriminatedUnion('kind', [
     /** The fight can only be started while standing on this POI. */
     atPoiType: z.string(),
   }),
+  // Community project step: completes when the named project reaches 100 % (M3 Q5).
+  z.object({ ...stepBase, kind: z.literal('project'), projectId: z.string() }),
   z.object({
     ...stepBase,
     kind: z.literal('choice'),

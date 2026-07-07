@@ -22,6 +22,13 @@
       "when": 1783282430198,
       "tag": "0002_lonely_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783370893487,
+      "tag": "0003_chemical_karma",
+      "breakpoints": true
     }
   ]
 }

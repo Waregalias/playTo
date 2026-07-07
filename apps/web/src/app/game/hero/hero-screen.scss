@@ -9,6 +9,25 @@
   to { opacity: 1; transform: none; }
 }
 
+.subnav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+
+  button {
+    flex: 1;
+    padding: 7px 4px;
+    font-size: 0.78rem;
+    border-radius: 7px;
+    border: 1px solid var(--g-border);
+    background: var(--g-panel-2);
+    color: var(--g-mist);
+    cursor: pointer;
+
+    &.on { border-color: var(--g-ember); color: var(--g-ember-glow); background: var(--g-ember-bg); }
+  }
+}
+
 .herohead {
   display: flex;
   gap: 14px;
@@ -142,6 +161,14 @@
 
   b { font-size: 0.86rem; display: block; color: var(--g-bone); }
   small { font-size: 0.76rem; color: var(--g-mist); }
+
+  .durability {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    color: var(--g-ember-glow);
+
+    &.broken { color: var(--g-danger); }
+  }
 }
 
 .btn {

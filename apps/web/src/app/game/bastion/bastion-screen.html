@@ -1,6 +1,27 @@
 <span class="eyebrow">{{ regionName }} · dernier feu du royaume</span>
 <h2>{{ regionName }}</h2>
 
+<div class="subnav" role="tablist">
+  <button role="tab" [class.on]="subTab() === 'quests'" (click)="subTab.set('quests')">
+    {{ t.boardTitle }}
+  </button>
+  <button role="tab" [class.on]="subTab() === 'project'" (click)="subTab.set('project')">
+    {{ tProject.title }}
+  </button>
+  <button role="tab" [class.on]="subTab() === 'market'" (click)="subTab.set('market')">
+    {{ tMarket.title }}
+  </button>
+</div>
+
+@switch (subTab()) {
+  @case ('project') {
+    <app-project-panel />
+  }
+  @case ('market') {
+    <app-market-panel />
+  }
+  @default {
+
 <div class="card">
   <h3>{{ t.boardTitle }}</h3>
   <p class="muted hint">{{ t.boardHint }}</p>
@@ -71,3 +92,6 @@
     </div>
   }
 </div>
+
+  }
+}

@@ -27,6 +27,14 @@
         <span class="frag">✦ <b>{{ character.currencies.emberFragments }}</b> {{ t.status.emberFragments }}</span>
         <span>⚑ <b>{{ character.currencies.gloryMarks }}</b> {{ t.status.gloryMarks }}</span>
       </div>
+      <button
+        class="chat-toggle"
+        [attr.aria-label]="t.chat.toggleLabel"
+        data-testid="toggle-chat"
+        (click)="toggleChat()"
+      >
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4V4Z"/></svg>
+      </button>
     </header>
 
     <!-- File d'actions -->
@@ -63,6 +71,10 @@
     <!-- Combat : par-dessus tout, l'état survit à la fermeture (DESIGN §3) -->
     @if (store.combat()) {
       <app-combat-overlay />
+    }
+
+    @if (chatOpen()) {
+      <app-chat-drawer />
     }
 
     <!-- Nav basse (DESIGN §3) -->

@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  animation: fadein 0.25s ease;
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.card {
+  background: var(--g-panel);
+  border: 1px solid var(--g-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.muted { color: var(--g-mist); font-size: 0.85rem; margin: 0 0 10px; }
+
+.branchtabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+
+  button {
+    flex: 1;
+    padding: 7px 4px;
+    font-size: 0.78rem;
+    border-radius: 7px;
+    border: 1px solid var(--g-border);
+    background: var(--g-panel-2);
+    color: var(--g-mist);
+    cursor: pointer;
+
+    &.on { border-color: var(--g-ember); color: var(--g-ember-glow); background: var(--g-ember-bg); }
+  }
+}
+
+.skillrow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid #202d3b;
+
+  &:last-child { border-bottom: none; }
+
+  &.locked {
+    .skillinfo b, .skillinfo small { color: var(--g-mist); }
+  }
+}
+
+.rune {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--g-font-display);
+  font-weight: 700;
+  background: var(--g-panel-2);
+  border: 1px solid var(--g-border);
+  color: var(--g-mist);
+
+  &.equipped {
+    background: var(--g-ember-bg);
+    border-color: var(--g-ember);
+    color: var(--g-ember-glow);
+  }
+}
+
+.skillinfo {
+  flex: 1;
+  min-width: 0;
+
+  b { font-size: 0.86rem; display: block; color: var(--g-bone); }
+  small { font-size: 0.76rem; color: #aeb9a0; }
+}
+
+.cost {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--g-ember-glow);
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.btn {
+  padding: 8px 10px;
+  min-height: 44px;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--g-border);
+  background: linear-gradient(180deg, #2a3b4c, #1d2a38);
+  color: var(--g-bone);
+  flex-shrink: 0;
+
+  &:active { transform: scale(0.97); }
+  &:disabled { opacity: 0.45; }
+  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+}

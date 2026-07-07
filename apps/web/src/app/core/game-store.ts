@@ -1,16 +1,22 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import type {
   ActionDto,
+  ChatChannel,
+  ChatMessageDto,
   CharacterDto,
   CharacterQuestDto,
   CombatStateDto,
   HexDto,
   InventoryEntryDto,
+  ListingsPageDto,
+  ProjectDetailDto,
   RegionDto,
 } from '@aldenfer/shared';
 import { ApiClient } from './api-client';
 
-const POLL_INTERVAL_MS = 30_000; // SPEC-M1: 30 s polling, WebSocket lands in M3
+// SPEC-M1: 30 s polling. M3 adds WS invalidation (RealtimeService) as the primary
+// signal; this stays as a low-frequency fallback net in case a reconnect is missed.
+const POLL_INTERVAL_MS = 30_000;
 
 /** Signal store for the M1 game state — character, action queue, hexes. */
 @Injectable({ providedIn: 'root' })
@@ -30,6 +36,11 @@ export class GameStore {
     capacity: 30,
     used: 0,
   });
+  readonly currentProject = signal<ProjectDetailDto | null>(null);
+  readonly listings = signal<ListingsPageDto>({ items: [], nextCursor: null });
+  readonly chatChannel = signal<ChatChannel>('global');
+  readonly chatMessages = signal<ChatMessageDto[]>([]);
+  readonly chatUnread = signal(false);
 
   readonly currentAction = computed(() => this.actions()[0] ?? null);
   readonly inCombat = computed(() => this.combat()?.status === 'active');
@@ -99,6 +110,26 @@ export class GameStore {
       }
     }
     this.hexes.set([...byId.values()]);
+  }
+
+  async refreshProject(projectId = 'r1.belfry'): Promise<void> {
+    this.currentProject.set(await this.api.getProjectDetail(projectId));
+  }
+
+  async refreshListings(itemId?: string): Promise<void> {
+    this.listings.set(await this.api.getListings(itemId));
+  }
+
+  async loadChatHistory(channel: ChatChannel): Promise<void> {
+    this.chatChannel.set(channel);
+    const history = await this.api.getChatHistory(channel);
+    this.chatMessages.set([...history.items].reverse());
+  }
+
+  /** WS `chat.message` is a direct append, not a REST invalidation (SPEC-M3 US1). */
+  appendChatMessage(msg: ChatMessageDto): void {
+    if (msg.channel !== this.chatChannel()) return; // décision 7: no replay of missed events
+    this.chatMessages.update((list) => [...list, msg]);
   }
 
   startPolling(): void {

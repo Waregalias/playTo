@@ -5,3 +5,4 @@ export * from './ui.js';
 export * from './foes.js';
 export * from './items.js';
 export * from './quests.js';
+export * from './skills.js';

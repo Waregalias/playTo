@@ -90,6 +90,11 @@ export const characters = pgTable(
     fer: integer('fer').notNull(),
     attributePoints: integer('attribute_points').notNull().default(0),
     skillPoints: integer('skill_points').notNull().default(0),
+    learnedSkills: jsonb('learned_skills').$type<string[]>().notNull().default([]),
+    equippedSkills: jsonb('equipped_skills')
+      .$type<{ slot1?: string; slot2?: string }>()
+      .notNull()
+      .default({}),
     hp: integer('hp').notNull(),
     stamina: integer('stamina').notNull().default(100),
     staminaUpdatedAt: timestamp('stamina_updated_at', { withTimezone: true })
@@ -250,4 +255,69 @@ export const actionQueue = pgTable(
       .on(t.characterId, t.position)
       .where(sql`resolved = false`),
   ],
+);
+
+// ─── Community: projects & contributions (M3) ─────────────────────────
+export const projects = pgTable('projects', {
+  id: varchar('id', { length: 40 }).primaryKey(), // "r1.belfry"
+  regionId: integer('region_id')
+    .notNull()
+    .references(() => regions.id),
+  name: varchar('name', { length: 64 }).notNull(),
+  goals: jsonb('goals').$type<Record<string, number>>().notNull(),
+  progress: jsonb('progress').$type<Record<string, number>>().notNull().default({}),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+});
+
+export const contributions = pgTable(
+  'contributions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    projectId: varchar('project_id', { length: 40 })
+      .notNull()
+      .references(() => projects.id),
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id),
+    resource: varchar('resource', { length: 24 }).notNull(),
+    qty: integer('qty').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('contrib_proj_idx').on(t.projectId), check('contrib_qty', sql`${t.qty} > 0`)],
+);
+
+// ─── Market: auction house (M3) ───────────────────────────────────────
+export const marketListings = pgTable(
+  'market_listings',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    sellerId: uuid('seller_id')
+      .notNull()
+      .references(() => characters.id),
+    itemId: varchar('item_id', { length: 40 })
+      .notNull()
+      .references(() => items.id),
+    qty: integer('qty').notNull(),
+    unitPrice: integer('unit_price').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('market_item_idx').on(t.itemId, t.unitPrice),
+    check('listing_positive', sql`${t.qty} > 0 AND ${t.unitPrice} > 0`),
+  ],
+);
+
+// ─── Social: chat (M3 — global + region channels) ─────────────────────
+export const chatMessages = pgTable(
+  'chat_messages',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    channel: varchar('channel', { length: 48 }).notNull(), // global | region:1
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id),
+    body: varchar('body', { length: 500 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('chat_chan_idx').on(t.channel, t.createdAt)],
 );

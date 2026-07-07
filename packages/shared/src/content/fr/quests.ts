@@ -51,4 +51,12 @@ export const QUESTS_FR: Record<string, QuestContentFr> = {
     },
     done: 'La cloche est lourde de vase et de noms oubliés. Brasfer saura la faire sonner à nouveau.',
   },
+  'r1.main.q5': {
+    name: 'Sonner le Glas',
+    hook: 'La cloche est revenue, mais le beffroi du Grand Cairn n’est plus que ruines. Reconstruisons-le tous ensemble — bois d’ombre, minerai, verre de cendre. Quand la cloche sonnera, Maugrith ne pourra plus se cacher.',
+    steps: {
+      s1: 'Livre des matériaux au chantier du beffroi du Grand Cairn.',
+    },
+    done: 'Le beffroi se dresse à nouveau. La première volée déchire la Brume — et quelque chose, au loin, se réveille.',
+  },
 };
