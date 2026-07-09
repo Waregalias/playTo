@@ -58,7 +58,10 @@ export async function acceptQuest(
     if (!quest) throw new AppError('NOT_FOUND', 404);
 
     const existing = await tx.query.characterQuests.findFirst({
-      where: and(eq(characterQuests.characterId, characterId), eq(characterQuests.questId, questId)),
+      where: and(
+        eq(characterQuests.characterId, characterId),
+        eq(characterQuests.questId, questId),
+      ),
     });
     if (existing) throw new AppError('REQUIREMENT_NOT_MET', 409);
 
@@ -124,10 +127,22 @@ export async function advanceQuest(
     const progress = questProgressSchema.parse(cq.progress ?? { counts: {}, choices: {} });
     progress.choices[step.id] = option.id;
 
-    await completeStep(tx, characterId, questId, graph, step, progress, option.next, option.extraRewards);
+    await completeStep(
+      tx,
+      characterId,
+      questId,
+      graph,
+      step,
+      progress,
+      option.next,
+      option.extraRewards,
+    );
 
     const updated = await tx.query.characterQuests.findFirst({
-      where: and(eq(characterQuests.characterId, characterId), eq(characterQuests.questId, questId)),
+      where: and(
+        eq(characterQuests.characterId, characterId),
+        eq(characterQuests.questId, questId),
+      ),
     });
     return {
       questId,

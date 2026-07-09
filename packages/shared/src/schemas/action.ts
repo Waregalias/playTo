@@ -66,9 +66,7 @@ export const restResultSchema = z.object({
 export const searchResultSchema = z.object({
   xp: z.number().int().min(0),
   loot: z.array(z.object({ itemId: z.string(), qty: z.number().int().positive() })),
-  lootLost: z
-    .array(z.object({ itemId: z.string(), qty: z.number().int().positive() }))
-    .optional(),
+  lootLost: z.array(z.object({ itemId: z.string(), qty: z.number().int().positive() })).optional(),
   ...encounterFields,
 });
 

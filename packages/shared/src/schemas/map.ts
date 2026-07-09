@@ -41,10 +41,7 @@ export const fogHexSchema = z.object({
   discovered: z.literal(false),
 });
 
-export const hexSchema = z.discriminatedUnion('discovered', [
-  discoveredHexSchema,
-  fogHexSchema,
-]);
+export const hexSchema = z.discriminatedUnion('discovered', [discoveredHexSchema, fogHexSchema]);
 
 export const hexesResponseSchema = z.object({
   items: z.array(hexSchema),

@@ -13,7 +13,14 @@ import {
   type CharacterDto,
 } from '@aldenfer/shared';
 import type { Db } from '../../db/client.js';
-import { characters, contributions, hexes, projects, characterQuests, quests } from '../../db/schema.js';
+import {
+  characters,
+  contributions,
+  hexes,
+  projects,
+  characterQuests,
+  quests,
+} from '../../db/schema.js';
 import { AppError } from '../../lib/app-error.js';
 import { applyXp } from '../../lib/progression.js';
 import { removeMaterialQty } from '../inventory/service.js';

@@ -38,7 +38,9 @@ describe('deriveSkillModifiers', () => {
 
 describe('skillLearnCheck', () => {
   it('allows a tier-1 skill of the character class with a point', () => {
-    expect(skillLearnCheck('blade.bulwark.1', 'blade', ['blade.steel.1'], 1, 0)).toEqual({ ok: true });
+    expect(skillLearnCheck('blade.bulwark.1', 'blade', ['blade.steel.1'], 1, 0)).toEqual({
+      ok: true,
+    });
   });
   it('rejects a skill of another class', () => {
     expect(skillLearnCheck('arcanist.veil.1', 'blade', [], 5, 5)).toEqual({
@@ -57,7 +59,9 @@ describe('skillLearnCheck', () => {
       ok: false,
       code: 'REQUIREMENT_NOT_MET',
     });
-    expect(skillLearnCheck('blade.bulwark.2', 'blade', ['blade.bulwark.1'], 1, 0)).toEqual({ ok: true });
+    expect(skillLearnCheck('blade.bulwark.2', 'blade', ['blade.bulwark.1'], 1, 0)).toEqual({
+      ok: true,
+    });
   });
   it('requires a skill point', () => {
     expect(skillLearnCheck('blade.bulwark.1', 'blade', [], 0, 0)).toEqual({

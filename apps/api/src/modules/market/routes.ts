@@ -56,7 +56,12 @@ export function registerMarketRoutes(app: FastifyInstance, auth: Auth, now: () =
 
   typed.delete(
     '/api/v1/market/listings/:id',
-    { schema: { params: z.object({ id: z.uuid() }), response: { 200: cancelListingResponseSchema } } },
+    {
+      schema: {
+        params: z.object({ id: z.uuid() }),
+        response: { 200: cancelListingResponseSchema },
+      },
+    },
     async (request) => {
       const character = await requireCharacter(app.db, auth, request);
       return cancelListing(app.db, character, request.params.id);

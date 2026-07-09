@@ -131,7 +131,12 @@ describe('Lecture des runes (arcanist.scholar.1) — search loot', () => {
     await db.update(characters).set({ hexId: shrineHex.id }).where(eq(characters.id, char.id));
 
     // rng 0.55: base 0.5 misses, boosted 0.6 hits.
-    await app.inject({ method: 'POST', url: '/api/v1/actions', headers: { cookie }, payload: { type: 'search' } });
+    await app.inject({
+      method: 'POST',
+      url: '/api/v1/actions',
+      headers: { cookie },
+      payload: { type: 'search' },
+    });
     clock = new Date(T0.getTime() + 30 * 60_000);
     await app.inject({ method: 'GET', url: '/api/v1/characters/me', headers: { cookie } });
 
@@ -147,7 +152,12 @@ describe('Lecture des runes (arcanist.scholar.1) — search loot', () => {
     const shrineHex = await hexAt(2, 2);
     await db.update(characters).set({ hexId: shrineHex.id }).where(eq(characters.id, char.id));
 
-    await app.inject({ method: 'POST', url: '/api/v1/actions', headers: { cookie }, payload: { type: 'search' } });
+    await app.inject({
+      method: 'POST',
+      url: '/api/v1/actions',
+      headers: { cookie },
+      payload: { type: 'search' },
+    });
     clock = new Date(T0.getTime() + 30 * 60_000);
     await app.inject({ method: 'GET', url: '/api/v1/characters/me', headers: { cookie } });
 
@@ -164,11 +174,20 @@ describe('Poche double (scout.shadow.1) — death material loss', () => {
     const cookie = await signUp('ef6@aldenfer.test');
     const char = await makeChar(cookie, 'Hoarder', ['scout.shadow.1']); // deathMaterialLossPct 50
     await db.update(characters).set({ hp: 5 }).where(eq(characters.id, char.id));
-    await db.insert(inventory).values({ characterId: char.id, itemId: 'material.mistborn-hide', qty: 8 });
+    await db
+      .insert(inventory)
+      .values({ characterId: char.id, itemId: 'material.mistborn-hide', qty: 8 });
 
     const [combat] = await db
       .insert(combats)
-      .values({ characterId: char.id, foeSlug: 'soot-wolf', foeHp: 34, foeHpMax: 34, playerHp: 5, log: [] })
+      .values({
+        characterId: char.id,
+        foeSlug: 'soot-wolf',
+        foeHp: 34,
+        foeHpMax: 34,
+        playerHp: 5,
+        log: [],
+      })
       .returning();
     const res = await app.inject({
       method: 'POST',
@@ -179,7 +198,10 @@ describe('Poche double (scout.shadow.1) — death material loss', () => {
     expect(res.json().status).toBe('lost');
 
     const hides = await db.query.inventory.findFirst({
-      where: and(eq(inventory.characterId, char.id), eq(inventory.itemId, 'material.mistborn-hide')),
+      where: and(
+        eq(inventory.characterId, char.id),
+        eq(inventory.itemId, 'material.mistborn-hide'),
+      ),
     });
     expect(hides?.qty).toBe(7); // 8 − floor(8 × 0.25 × 0.5) = 8 − 1
   });

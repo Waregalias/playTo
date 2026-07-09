@@ -36,9 +36,9 @@ src/
 
 ## Routing
 
-| Chemin | Composant | Chargement |
-|---|---|---|
-| `/` | `HomeComponent` | eager |
+| Chemin  | Composant       | Chargement             |
+| ------- | --------------- | ---------------------- |
+| `/`     | `HomeComponent` | eager                  |
 | `/game` | `GameComponent` | lazy (`loadComponent`) |
 
 ---
@@ -54,9 +54,11 @@ Composant standalone, page principale. Contient :
 - **Quote section** : citation centrée en italique grand format, attribution en dessous.
 
 Signals utilisés :
+
 - `isModalOpen = signal(false)` — contrôle l'affichage de la modale
 
 Données des features (tableau readonly) :
+
 ```ts
 {
   title: string;
@@ -76,6 +78,7 @@ Composant standalone, enfant de `HomeComponent`. Affiché via `@if (isModalOpen(
 - Bouton fermeture (×) en coin haut-droit.
 
 Inputs/Outputs :
+
 - `output<void>` : `closed` — émis quand l'utilisateur ferme la modale
 - Pas d'input `isOpen` — la visibilité est contrôlée par `@if (isModalOpen())` dans `HomeComponent`
 
@@ -89,10 +92,10 @@ Placeholder minimal. Affiche un titre "Bienvenue dans le royaume" avec un lien r
 
 ### Typographies (Google Fonts)
 
-| Font | Usage |
-|---|---|
+| Font   | Usage                               |
+| ------ | ----------------------------------- |
 | Cinzel | Titres, logo, small caps de section |
-| Lora | Corps de texte, citations |
+| Lora   | Corps de texte, citations           |
 
 Importées dans `styles.scss` via `@import` Google Fonts.
 
@@ -113,14 +116,14 @@ Tailwind v4 ne nécessite pas de `tailwind.config.js`. Les tokens personnalisés
 }
 ```
 
-| Token | Valeur | Usage |
-|---|---|---|
-| `parchment` | `#f5f0e8` | Fond principal, carte modale |
-| `parchment-dark` | `#ede7d9` | Séparateurs, hover léger |
-| `burgundy` | `#6b2d5e` | Boutons, accents |
-| `burgundy-dark` | `#501f47` | Hover bouton |
-| `gold` | `#c9a84c` | Séparateurs décoratifs, icônes |
-| `stone` | `#9c8fa0` | Textes secondaires |
+| Token            | Valeur    | Usage                          |
+| ---------------- | --------- | ------------------------------ |
+| `parchment`      | `#f5f0e8` | Fond principal, carte modale   |
+| `parchment-dark` | `#ede7d9` | Séparateurs, hover léger       |
+| `burgundy`       | `#6b2d5e` | Boutons, accents               |
+| `burgundy-dark`  | `#501f47` | Hover bouton                   |
+| `gold`           | `#c9a84c` | Séparateurs décoratifs, icônes |
+| `stone`          | `#9c8fa0` | Textes secondaires             |
 
 ### Tailwind
 
@@ -130,15 +133,15 @@ Intégré via `ng add tailwindcss`. Import dans `styles.scss` : `@use 'tailwindc
 
 ## Angular 22 — features utilisées
 
-| Feature | Où |
-|---|---|
-| `signal()` | `isModalOpen`, `token`, données features |
-| `@if` | Affichage conditionnel de la modale |
-| `@for` | Rendu des cartes de features |
-| `@defer` | Chargement différé de la section features |
-| Standalone components | Tous les composants |
-| `loadComponent` | Lazy loading de GameComponent |
-| `Router.navigate()` | Navigation post-soumission token |
+| Feature                | Où                                                |
+| ---------------------- | ------------------------------------------------- |
+| `signal()`             | `isModalOpen`, `token`, données features          |
+| `@if`                  | Affichage conditionnel de la modale               |
+| `@for`                 | Rendu des cartes de features                      |
+| `@defer`               | Chargement différé de la section features         |
+| Standalone components  | Tous les composants                               |
+| `loadComponent`        | Lazy loading de GameComponent                     |
+| `Router.navigate()`    | Navigation post-soumission token                  |
 | `input()` / `output()` | Communication HomeComponent ↔ LoginModalComponent |
 
 ---

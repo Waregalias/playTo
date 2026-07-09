@@ -57,7 +57,10 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await resetTestDb(db);
-  await db.update(projects).set({ progress: {}, completedAt: null }).where(eq(projects.id, 'r1.belfry'));
+  await db
+    .update(projects)
+    .set({ progress: {}, completedAt: null })
+    .where(eq(projects.id, 'r1.belfry'));
 });
 
 describe('POST /api/v1/projects/:id/contribute', () => {
@@ -81,7 +84,10 @@ describe('POST /api/v1/projects/:id/contribute', () => {
   it('clamps to the remaining goal and debits only what is needed', async () => {
     const cookie = await signUp('c2@aldenfer.test');
     const char = await makeChar(cookie, 'Clamper');
-    await db.update(projects).set({ progress: { shadewood: 4990 } }).where(eq(projects.id, 'r1.belfry'));
+    await db
+      .update(projects)
+      .set({ progress: { shadewood: 4990 } })
+      .where(eq(projects.id, 'r1.belfry'));
     await giveMaterial(char.id, 'material.shadewood', 100);
 
     const res = await contribute(cookie, 'shadewood', 100);
@@ -103,7 +109,10 @@ describe('POST /api/v1/projects/:id/contribute', () => {
   it('rejects when stamina is below 5 (409 INSUFFICIENT_STAMINA)', async () => {
     const cookie = await signUp('c4@aldenfer.test');
     const char = await makeChar(cookie, 'Tired');
-    await db.update(characters).set({ stamina: 4, staminaUpdatedAt: NOW }).where(eq(characters.id, char.id));
+    await db
+      .update(characters)
+      .set({ stamina: 4, staminaUpdatedAt: NOW })
+      .where(eq(characters.id, char.id));
     await giveMaterial(char.id, 'material.shadewood', 10);
     const res = await contribute(cookie, 'shadewood', 10);
     expect(res.statusCode).toBe(409);
@@ -135,9 +144,7 @@ describe('POST /api/v1/projects/:id/contribute', () => {
       where: eq(characterQuests.characterId, char.id),
     });
     expect(cq!.state).toBe('done');
-    expect(
-      publishSpy.mock.calls.some((c) => c[0] === 'global' && c[1] === 'announce'),
-    ).toBe(true);
+    expect(publishSpy.mock.calls.some((c) => c[0] === 'global' && c[1] === 'announce')).toBe(true);
     publishSpy.mockRestore();
   });
 

@@ -24,12 +24,15 @@
 ### Task 1: `ConnectionRegistry` (pure in-memory)
 
 **Files:**
+
 - Create: `apps/api/src/realtime/registry.ts`
 - Test: `apps/api/src/realtime/registry.test.ts`
 
 **Interfaces:**
+
 - Consumes: `WsServerEvent` from `@aldenfer/shared` (envelope type).
 - Produces:
+
   ```ts
   export interface RealtimeSocket {
     send(data: string): void;
@@ -45,11 +48,13 @@
     countChannel(channel: string): number;
   }
   ```
+
   A `send` that throws (dead socket) is swallowed so one bad socket never blocks the fan-out.
 
 - [ ] **Step 1: Write the failing test**
 
 `apps/api/src/realtime/registry.test.ts`:
+
 ```ts
 import { describe, it, expect, vi } from 'vitest';
 import { ConnectionRegistry, type RealtimeSocket } from './registry.js';
@@ -94,7 +99,11 @@ describe('ConnectionRegistry', () => {
 
   it('keeps fanning out when one socket throws', () => {
     const reg = new ConnectionRegistry();
-    const bad = { send: vi.fn(() => { throw new Error('dead'); }) } satisfies RealtimeSocket;
+    const bad = {
+      send: vi.fn(() => {
+        throw new Error('dead');
+      }),
+    } satisfies RealtimeSocket;
     const good = fakeSocket();
     reg.add(bad, ['global']);
     reg.add(good, ['global']);
@@ -119,6 +128,7 @@ Expected: FAIL — cannot resolve `./registry.js`.
 - [ ] **Step 3: Implement the registry**
 
 `apps/api/src/realtime/registry.ts`:
+
 ```ts
 import type { WsServerEvent } from '@aldenfer/shared';
 
@@ -199,12 +209,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: `/ws` plugin — auth upgrade, subscription, `app.realtime` decorator
 
 **Files:**
+
 - Create: `apps/api/src/realtime/plugin.ts`
 - Test: `apps/api/src/realtime/plugin.test.ts`
 - Modify: `apps/api/src/app.ts` (register the plugin; declare `app.realtime`)
 - Modify: `apps/api/package.json` (add `ws` + `@types/ws` devDependencies for the test client)
 
 **Interfaces:**
+
 - Consumes: `ConnectionRegistry` (Task 1); `requireUser` from `../plugins/auth.js`; `characters` table; `app.auth`, `app.db`.
 - Produces: `registerRealtime(app, auth): void` which decorates `app.realtime: ConnectionRegistry` and mounts `GET /ws`. A connection with no valid session is closed with code 1008 before any subscription. A valid session subscribes the socket to `global`, `region:{regionId}`, `character:{characterId}`.
 
@@ -216,6 +228,7 @@ Expected: both added under devDependencies.
 - [ ] **Step 2: Write the failing integration test**
 
 `apps/api/src/realtime/plugin.test.ts` (mirrors the auth/signUp pattern from `modules/characters/routes.test.ts` — inspect it for the exact `signUp` helper and env/buildApp setup, and reuse them):
+
 ```ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { WebSocket } from 'ws';
@@ -256,18 +269,25 @@ describe('/ws', () => {
     const cookie = await signUp('ws@aldenfer.test');
     await createCharacter(app, cookie, { name: 'Wsser', class: 'blade' }); // via inject
     const ws = await connect(cookie);
-    const received = new Promise<string>((resolve) => ws.on('message', (d) => resolve(d.toString())));
+    const received = new Promise<string>((resolve) =>
+      ws.on('message', (d) => resolve(d.toString())),
+    );
 
     // give the server a tick to finish subscribing, then publish
     await new Promise((r) => setTimeout(r, 50));
     app.realtime.publish('global', 'announce', { msg: 'La cloche sonne' }, '2026-07-06T00:00:00Z');
 
     const event = JSON.parse(await received);
-    expect(event).toMatchObject({ channel: 'global', type: 'announce', data: { msg: 'La cloche sonne' } });
+    expect(event).toMatchObject({
+      channel: 'global',
+      type: 'announce',
+      data: { msg: 'La cloche sonne' },
+    });
     ws.close();
   });
 });
 ```
+
 (Use `beforeAll`/`afterAll` — NOT `beforeEach` — because listening once per suite is enough. Reuse the project's real test DB/env exactly as the other API suites do.)
 
 - [ ] **Step 3: Run test to verify it fails**
@@ -278,6 +298,7 @@ Expected: FAIL — `app.realtime` undefined / `/ws` route missing (unauth connec
 - [ ] **Step 4: Implement the plugin**
 
 `apps/api/src/realtime/plugin.ts`:
+
 ```ts
 import { eq } from 'drizzle-orm';
 import fastifyWebsocket from '@fastify/websocket';
@@ -319,9 +340,11 @@ export async function registerRealtime(app: FastifyInstance, auth: Auth): Promis
   });
 }
 ```
+
 Note on the `@fastify/websocket` v11 handler signature: the first argument is the raw `WebSocket` (which has `.send`/`.close`/`.on`), the second is the `FastifyRequest`. If the installed version passes `(connection, request)` with `connection.socket`, adapt to `const socket = connection.socket ?? connection;` — verify against `node_modules/@fastify/websocket` types before finalising.
 
 Wire it in `apps/api/src/app.ts`:
+
 - Import: `import { registerRealtime } from './realtime/plugin.js';`
 - Add `realtime` is declared inside the plugin's `declare module`, so no change to the existing `declare module` block in app.ts is needed.
 - After the other `register*Routes(...)` calls, add: `await registerRealtime(app, auth);`
@@ -335,6 +358,7 @@ Expected: PASS (2 tests). If the unauth case hangs, confirm the handler runs `so
 
 Run: `pnpm --filter api test` — Expected: all pass (existing inject suites unaffected by adding a WS route).
 Run: `pnpm --filter api build` — Expected: no errors.
+
 ```bash
 git add apps/api/src/realtime/plugin.ts apps/api/src/realtime/plugin.test.ts apps/api/src/app.ts apps/api/package.json
 git commit -m "feat(api): /ws endpoint — session-authed upgrade, channel subscriptions
@@ -347,6 +371,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage (SPEC-M3 step 3 = api WS):**
+
 - Plugin `@fastify/websocket` → Task 2. ✅
 - `ConnectionRegistry` in-memory → Task 1. ✅
 - Auth at upgrade (401/close for unauth) → Task 2 (1008 close). ✅

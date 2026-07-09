@@ -24,15 +24,18 @@
 ### Task 1: Drizzle schema — M3 tables + skill columns + migration
 
 **Files:**
+
 - Modify: `apps/api/src/db/schema.ts` (add two columns to `characters`; add four tables)
 - Generated: `apps/api/src/db/migrations/0003_*.sql` (+ snapshot/journal) via drizzle-kit
 
 **Interfaces:**
+
 - Produces: Drizzle tables `projects`, `contributions`, `marketListings`, `chatMessages`; columns `characters.learnedSkills: string[]`, `characters.equippedSkills: { slot1?: string; slot2?: string }`.
 
 - [ ] **Step 1: Add the skill columns to `characters`**
 
 In `apps/api/src/db/schema.ts`, inside the `characters` table object, after the `skillPoints` line:
+
 ```ts
     skillPoints: integer('skill_points').notNull().default(0),
     learnedSkills: jsonb('learned_skills').$type<string[]>().notNull().default([]),
@@ -45,6 +48,7 @@ In `apps/api/src/db/schema.ts`, inside the `characters` table object, after the 
 - [ ] **Step 2: Add the four M3 tables**
 
 Append to `apps/api/src/db/schema.ts` (after `actionQueue`), mirroring DATA-MODEL §Community/Market/Social:
+
 ```ts
 // ─── Community: projects & contributions (M3) ─────────────────────────
 export const projects = pgTable('projects', {
@@ -111,6 +115,7 @@ export const chatMessages = pgTable(
   (t) => [index('chat_chan_idx').on(t.channel, t.createdAt)],
 );
 ```
+
 (Note: DATA-MODEL's `projects` has no `name` column, but the API `projectSchema` returns `name`; we store it here rather than duplicating a content lookup. This is an intentional, documented addition.)
 
 - [ ] **Step 3: Generate the migration**
@@ -140,16 +145,19 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: Character DTO emits `skills[]` (restore API green)
 
 **Files:**
+
 - Modify: `apps/api/src/modules/characters/service.ts`
 - Test: `apps/api/src/modules/characters/routes.test.ts` (add a skills assertion)
 
 **Interfaces:**
+
 - Consumes: `STARTER_SKILLS` from `@aldenfer/shared`; `characters.learnedSkills`, `characters.equippedSkills` (Task 1).
 - Produces: `toCharacterDto` returns `skills: CharacterSkillDto[]`; new characters start with the class starter skill learned and equipped in slot 1.
 
 - [ ] **Step 1: Write the failing test**
 
 Add to `apps/api/src/modules/characters/routes.test.ts` (inside the existing suite; mirror how other tests create a character and read `GET /characters/me`). Use the existing test helpers — inspect the file for the auth/character-creation helper names before writing. The assertion:
+
 ```ts
 it('starts a character with the class starter skill equipped in slot 1', async () => {
   const { agent } = await createTestCharacter(app, { class: 'blade' }); // use existing helper
@@ -160,6 +168,7 @@ it('starts a character with the class starter skill equipped in slot 1', async (
   expect(starter.equippedSlot).toBe(1);
 });
 ```
+
 If the existing test file uses a different helper/signature, adapt the call while keeping the two assertions (starter present, `equippedSlot === 1`).
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -170,8 +179,10 @@ Expected: FAIL — `res.json().skills` is undefined (or the API doesn't compile 
 - [ ] **Step 3: Populate skills at creation and in the DTO**
 
 In `apps/api/src/modules/characters/service.ts`:
+
 - Add `STARTER_SKILLS` to the `@aldenfer/shared` import.
 - In `createCharacter`, set the columns on insert:
+
 ```ts
       .values({
         userId,
@@ -186,7 +197,9 @@ In `apps/api/src/modules/characters/service.ts`:
         equippedSkills: { slot1: STARTER_SKILLS[input.class].id },
       })
 ```
+
 - In `toCharacterDto`, add the `skills` field to the returned object:
+
 ```ts
     currencies: {
       ashCrowns: row.ashCrowns,
@@ -213,6 +226,7 @@ Expected: PASS. Then run the full API suite: `pnpm --filter api test` — Expect
 - [ ] **Step 5: Typecheck & commit**
 
 Run: `pnpm --filter api build` — Expected: no errors (API is green again).
+
 ```bash
 git add apps/api/src/modules/characters/service.ts apps/api/src/modules/characters/routes.test.ts
 git commit -m "feat(api): project character skills into the DTO; equip starter in slot 1
@@ -225,16 +239,19 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Seed the belfry project `r1.belfry`
 
 **Files:**
+
 - Create: `apps/api/src/db/seed/projects-data.ts`
 - Modify: `apps/api/src/db/seed/index.ts` (import + upsert projects)
 
 **Interfaces:**
+
 - Consumes: `projects` table (Task 1), `RESOURCE_KEYS` (shared, for goal keys).
 - Produces: `PROJECT_SEEDS` — the `r1.belfry` community project with GDD §10.2 goals.
 
 - [ ] **Step 1: Write the seed data**
 
 `apps/api/src/db/seed/projects-data.ts`:
+
 ```ts
 export interface ProjectSeed {
   id: string;
@@ -257,28 +274,31 @@ export const PROJECT_SEEDS: ProjectSeed[] = [
 - [ ] **Step 2: Upsert projects in the seed script**
 
 In `apps/api/src/db/seed/index.ts`:
+
 - Add `projects` to the `../schema.js` import and `PROJECT_SEEDS` to the imports.
 - Before the final `count` query, add:
+
 ```ts
-  await db
-    .insert(projects)
-    .values(
-      PROJECT_SEEDS.map((p) => ({
-        id: p.id,
-        regionId: p.regionId,
-        name: p.name,
-        goals: p.goals,
-      })),
-    )
-    .onConflictDoUpdate({
-      target: projects.id,
-      set: {
-        regionId: sql`excluded.region_id`,
-        name: sql`excluded.name`,
-        goals: sql`excluded.goals`,
-      },
-    });
+await db
+  .insert(projects)
+  .values(
+    PROJECT_SEEDS.map((p) => ({
+      id: p.id,
+      regionId: p.regionId,
+      name: p.name,
+      goals: p.goals,
+    })),
+  )
+  .onConflictDoUpdate({
+    target: projects.id,
+    set: {
+      regionId: sql`excluded.region_id`,
+      name: sql`excluded.name`,
+      goals: sql`excluded.goals`,
+    },
+  });
 ```
+
 - Extend the final `console.log` to include `${PROJECT_SEEDS.length} projects`.
 
 Note: `onConflictDoUpdate` deliberately does **not** overwrite `progress` or `completed_at`, so re-seeding never resets live community progress.
@@ -306,6 +326,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage (SPEC-M3 step 2 = db):**
+
 - `learned_skills`/`equipped_skills` columns → Task 1. ✅
 - Activate `projects`/`contributions`/`market_listings`/`chat_messages` → Task 1. ✅
 - Migration idempotent → Task 1 Step 4. ✅

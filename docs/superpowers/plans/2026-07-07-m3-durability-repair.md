@@ -24,6 +24,7 @@
 ### Task 1: shared — item tier parsing, gear-stat reduction, repair response schema
 
 **Files:**
+
 - Modify: `packages/shared/src/formulas/economy.ts` (add `itemTierFromId`) — same file as `repairCost`, both consumed together by the repair route.
 - Modify: `packages/shared/src/formulas/economy.test.ts` (cases)
 - Create: `packages/shared/src/formulas/gear.ts` (`deriveGearStats`)
@@ -32,6 +33,7 @@
 - Modify: `packages/shared/src/schemas/inventory.ts` (add `durability`/`maxDurability` to `inventoryEntrySchema`; add `repairSchema` + `repairResponseSchema`)
 
 **Interfaces:**
+
 ```ts
 // economy.ts
 /** Tier parsed from an item id's `.t{N}` suffix (e.g. "weapon.blade.t2" → 2); defaults to 1. */
@@ -51,6 +53,7 @@ export const repairResponseSchema = z.object({ character: characterSchema, entry
 - [ ] **Step 1: Failing tests**
 
 `economy.test.ts` additions:
+
 ```ts
 describe('itemTierFromId', () => {
   it('parses the trailing tier', () => {
@@ -64,6 +67,7 @@ describe('itemTierFromId', () => {
 ```
 
 `gear.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { deriveGearStats } from './gear.js';
@@ -81,11 +85,13 @@ describe('deriveGearStats', () => {
   });
 });
 ```
+
 Run both suites → FAIL (functions missing).
 
 - [ ] **Step 2: Implement**
 
 `economy.ts`:
+
 ```ts
 /** Tier parsed from an item id's `.t{N}` suffix (e.g. "weapon.blade.t2" → 2); defaults to 1. */
 export function itemTierFromId(itemId: string): number {
@@ -95,6 +101,7 @@ export function itemTierFromId(itemId: string): number {
 ```
 
 `gear.ts`:
+
 ```ts
 import { BROKEN_GEAR_PENALTY } from '../constants/combat.js';
 import type { ItemStats } from '../schemas/inventory.js';
@@ -113,9 +120,11 @@ export function deriveGearStats(
   };
 }
 ```
+
 Add `export * from './gear.js';` to `formulas/index.ts`.
 
 Schema additions in `inventory.ts` — import `characterSchema` from `./character.js`:
+
 ```ts
 export const inventoryEntrySchema = z.object({
   id: z.uuid(),
@@ -130,12 +139,16 @@ export const inventoryEntrySchema = z.object({
 });
 // …
 export const repairSchema = z.object({ entryId: z.uuid() });
-export const repairResponseSchema = z.object({ character: characterSchema, entry: inventoryEntrySchema });
+export const repairResponseSchema = z.object({
+  character: characterSchema,
+  entry: inventoryEntrySchema,
+});
 export type RepairInput = z.infer<typeof repairSchema>;
 export type RepairResponse = z.infer<typeof repairResponseSchema>;
 ```
 
 - [ ] **Step 3: Verify & commit**
+
 ```bash
 pnpm --filter @aldenfer/shared test && pnpm --filter @aldenfer/shared build
 git add packages/shared/src/formulas/economy.ts packages/shared/src/formulas/economy.test.ts packages/shared/src/formulas/gear.ts packages/shared/src/formulas/gear.test.ts packages/shared/src/formulas/index.ts packages/shared/src/schemas/inventory.ts
@@ -147,6 +160,7 @@ git commit -m "feat(shared): item tier parsing, gear-stat reduction at 0 durabil
 ### Task 2: api — seed maxDurability, populate durability on acquisition, apply at read-time
 
 **Files:**
+
 - Modify: `apps/api/src/db/seed/items-data.ts` (weapons/armors get `maxDurability: 100`)
 - Modify: `apps/api/src/modules/inventory/service.ts` (`addItem` sets `durability` on new non-stackable rows; `equippedGear` applies `deriveGearStats`)
 - Modify: `apps/api/src/modules/characters/service.ts` (starter weapon insert sets `durability: 100`)
@@ -165,6 +179,7 @@ git commit -m "feat(shared): item tier parsing, gear-stat reduction at 0 durabil
 - [ ] **Step 6: Verify** — `pnpm --filter api test` (all existing suites must stay green: starter kit test, combat tests, quest Q4 weapon reward test). `pnpm --filter api build`.
 
 - [ ] **Step 7: Commit**
+
 ```bash
 git add apps/api/src/db/seed/items-data.ts apps/api/src/modules/inventory/service.ts apps/api/src/modules/characters/service.ts apps/api/src/modules/inventory/routes.ts
 git commit -m "feat(api): seed gear durability + apply the 0-durability stat penalty at read time"
@@ -175,6 +190,7 @@ git commit -m "feat(api): seed gear durability + apply the 0-durability stat pen
 ### Task 3: api — durability loss on death + repair endpoint
 
 **Files:**
+
 - Modify: `apps/api/src/modules/combat/service.ts` (`applyDefeat` decrements durability)
 - Create: `apps/api/src/modules/inventory/repair.test.ts` (or extend `routes.test.ts` if one exists — check first)
 - Modify: `apps/api/src/modules/inventory/routes.ts` (`POST /inventory/repair`)
@@ -194,6 +210,7 @@ git commit -m "feat(api): seed gear durability + apply the 0-durability stat pen
   - `409 NOT_FOUND` / ownership: repairing someone else's entry id → `NOT_FOUND`.
 
 - [ ] **Step 5: Implement the route** — in `inventory/routes.ts`:
+
 ```ts
 typed.post(
   '/api/v1/inventory/repair',
@@ -204,9 +221,16 @@ typed.post(
   },
 );
 ```
+
 Add `repairEntry` to `inventory/service.ts`:
+
 ```ts
-export async function repairEntry(db: Db, character: CharacterRow, entryId: string, now: Date): Promise<RepairResponse> {
+export async function repairEntry(
+  db: Db,
+  character: CharacterRow,
+  entryId: string,
+  now: Date,
+): Promise<RepairResponse> {
   return db.transaction(async (tx) => {
     const found = await tx
       .select({ entry: inventory, item: items })
@@ -221,10 +245,17 @@ export async function repairEntry(db: Db, character: CharacterRow, entryId: stri
     if (missing <= 0) throw new AppError('NOTHING_TO_REPAIR', 409);
 
     const cost = repairCost(missing, itemTierFromId(row.item.id));
-    const [charRow] = await tx.select().from(characters).where(eq(characters.id, character.id)).for('update');
+    const [charRow] = await tx
+      .select()
+      .from(characters)
+      .where(eq(characters.id, character.id))
+      .for('update');
     if (!charRow || charRow.ashCrowns < cost) throw new AppError('INSUFFICIENT_FUNDS', 409);
 
-    await tx.update(characters).set({ ashCrowns: charRow.ashCrowns - cost }).where(eq(characters.id, character.id));
+    await tx
+      .update(characters)
+      .set({ ashCrowns: charRow.ashCrowns - cost })
+      .where(eq(characters.id, character.id));
     const [updatedEntry] = await tx
       .update(inventory)
       .set({ durability: row.item.maxDurability })
@@ -236,18 +267,25 @@ export async function repairEntry(db: Db, character: CharacterRow, entryId: stri
     return {
       character: toCharacterDto(freshChar!, hex!, now),
       entry: {
-        id: updatedEntry!.id, itemId: updatedEntry!.itemId, kind: row.item.kind as InventoryEntryDto['kind'],
-        rarity: row.item.rarity, qty: updatedEntry!.qty, equipped: updatedEntry!.equipped,
+        id: updatedEntry!.id,
+        itemId: updatedEntry!.itemId,
+        kind: row.item.kind as InventoryEntryDto['kind'],
+        rarity: row.item.rarity,
+        qty: updatedEntry!.qty,
+        equipped: updatedEntry!.equipped,
         stats: row.item.stats ? itemStatsSchema.parse(row.item.stats) : null,
-        durability: updatedEntry!.durability, maxDurability: row.item.maxDurability,
+        durability: updatedEntry!.durability,
+        maxDurability: row.item.maxDurability,
       },
     };
   });
 }
 ```
+
 (Match whatever the actual `toInventoryEntryDto`-style mapping already used in the `GET /inventory` route — extract a small shared mapper if that reduces duplication; keep it a surgical addition otherwise.)
 
 - [ ] **Step 6: Verify & commit**
+
 ```bash
 pnpm --filter api test && pnpm --filter api build
 git add apps/api/src/modules/combat/service.ts apps/api/src/modules/combat/routes.test.ts apps/api/src/modules/inventory/
@@ -259,6 +297,7 @@ git commit -m "feat(api): equipment durability loss on death + repair endpoint"
 ## Self-Review
 
 **Spec coverage (SPEC-M3 step 8 = durability + repair, US7):**
+
 - Death decrements equipped weapon + armour durability by 10, floored at 0 → Task 3. ✅
 - Durability 0 → stats halved via `deriveGearStats`, applied in `equippedGear` (combat-visible) → Tasks 1 + 2. ✅
 - `POST /inventory/repair` — `NOTHING_TO_REPAIR`, cost = `repairCost(missing, itemTier)`, `INSUFFICIENT_FUNDS`, transaction, durability restored → Task 3. ✅
@@ -268,5 +307,6 @@ git commit -m "feat(api): equipment durability loss on death + repair endpoint"
 **Documented simplification:** durability is not exposed on `characterSchema`/the Hero screen directly in this milestone's API — the web plan (step 9) reads it from `GET /inventory` for the equipped rows, matching where the repair button lives per SPEC-M3 §Web ("durabilité + bouton réparer dans l'inventaire").
 
 ## Notes for the web plan (step 9)
+
 - Inventory entries now carry `durability`/`maxDurability` (null for non-gear). Render a bar/badge on weapon/armor rows; a "Réparer" button posts `entryId` and refetches `GET /inventory` + `GET /characters/me` (funds changed).
 - No realtime signal for repair/death durability — same pattern as the market (step 6): refetch after the mutating call.

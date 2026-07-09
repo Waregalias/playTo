@@ -100,7 +100,10 @@ export const UI_FR = {
     } as Record<string, string>,
   },
   hero: {
-    statLabels: { str: 'FOR', dex: 'ADR', wil: 'VOL', vit: 'VIT', fer: 'FER' } as Record<string, string>,
+    statLabels: { str: 'FOR', dex: 'ADR', wil: 'VOL', vit: 'VIT', fer: 'FER' } as Record<
+      string,
+      string
+    >,
     pointsToAllocate: (n: number) => `${n} point${n > 1 ? 's' : ''} d’attribut à répartir`,
     penaltyLabel: 'Flammèche vacillante',
     penaltyHint: 'Tes stats sont réduites de 20 % encore',

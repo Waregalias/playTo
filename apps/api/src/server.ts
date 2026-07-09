@@ -6,7 +6,11 @@ const env = loadEnv();
 
 const app = await buildApp(env);
 
-const stopResolver = startResolver(app.db, () => new Date(), (err) => app.log.error(err));
+const stopResolver = startResolver(
+  app.db,
+  () => new Date(),
+  (err) => app.log.error(err),
+);
 app.addHook('onClose', async () => stopResolver());
 
 try {

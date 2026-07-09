@@ -71,22 +71,22 @@ Règle de dépendance : `web → shared ← api`. Jamais `web → api`. `shared`
 
 ## 3. Stack (versions à figer au bootstrap)
 
-| Couche | Choix | Notes |
-|---|---|---|
-| Front | Angular 22, standalone components, signals, nouvelle syntaxe de contrôle de flux (`@if/@for`) | Pas de NgModules. Zoneless si stable dans la version installée — vérifier au bootstrap. |
-| State | Signals + services injectables (`CharacterStore`, `MapStore`, `RaidStore`) | Pas de NgRx : inutile à cette échelle. |
-| PWA | `@angular/pwa` (service worker) + Web Push | Notifications « expédition arrivée », « le Gardien riposte ». |
-| API | Fastify 5, `fastify-type-provider-zod` | Validation systématique entrée/sortie. |
-| Auth | better-auth (sessions cookie httpOnly) | Plugin Fastify ; le front ne voit jamais de token. |
-| DB | PostgreSQL 16, Drizzle ORM + drizzle-kit | Migrations versionnées, seed idempotent. |
-| Temps réel | `@fastify/websocket` | Un seul process au MVP (voir §6). |
-| Jobs | Worker in-process (`setInterval` 5 s) au MVP | Extractible vers BullMQ + Redis si besoin — ne pas l'introduire avant. |
-| Tests | Vitest (api + shared), Angular testing (web) | Les formules et la résolution d'actions sont testées en priorité. |
-| Qualité | ESLint + Prettier config racine | |
+| Couche     | Choix                                                                                         | Notes                                                                                   |
+| ---------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Front      | Angular 22, standalone components, signals, nouvelle syntaxe de contrôle de flux (`@if/@for`) | Pas de NgModules. Zoneless si stable dans la version installée — vérifier au bootstrap. |
+| State      | Signals + services injectables (`CharacterStore`, `MapStore`, `RaidStore`)                    | Pas de NgRx : inutile à cette échelle.                                                  |
+| PWA        | `@angular/pwa` (service worker) + Web Push                                                    | Notifications « expédition arrivée », « le Gardien riposte ».                           |
+| API        | Fastify 5, `fastify-type-provider-zod`                                                        | Validation systématique entrée/sortie.                                                  |
+| Auth       | better-auth (sessions cookie httpOnly)                                                        | Plugin Fastify ; le front ne voit jamais de token.                                      |
+| DB         | PostgreSQL 16, Drizzle ORM + drizzle-kit                                                      | Migrations versionnées, seed idempotent.                                                |
+| Temps réel | `@fastify/websocket`                                                                          | Un seul process au MVP (voir §6).                                                       |
+| Jobs       | Worker in-process (`setInterval` 5 s) au MVP                                                  | Extractible vers BullMQ + Redis si besoin — ne pas l'introduire avant.                  |
+| Tests      | Vitest (api + shared), Angular testing (web)                                                  | Les formules et la résolution d'actions sont testées en priorité.                       |
+| Qualité    | ESLint + Prettier config racine                                                               |                                                                                         |
 
 ## 4. Principes runtime (non négociables)
 
-1. **Le serveur fait autorité.** Le client n'envoie que des *intentions* (`POST /actions`, `POST /combat/:id/turn`…). Le serveur valide : coûts, adjacence, prérequis, fenêtres temporelles. Toute donnée affichée vient du serveur.
+1. **Le serveur fait autorité.** Le client n'envoie que des _intentions_ (`POST /actions`, `POST /combat/:id/turn`…). Le serveur valide : coûts, adjacence, prérequis, fenêtres temporelles. Toute donnée affichée vient du serveur.
 2. **Aucun tick par joueur.** L'endurance est stockée `(valeur, updatedAt)` et recalculée à la lecture (`computeStamina()` dans `shared/formulas`). Les actions ont `startsAt/endsAt`.
 3. **Résolution paresseuse + worker.** Toute lecture de l'état d'un personnage résout d'abord ses actions échues (dans une transaction). Le worker balaie en plus `action_queue WHERE resolved = false AND ends_at <= now()` toutes les 5 s pour les joueurs hors-ligne (notifications push, effets de monde). Les deux chemins passent par la même fonction `resolveAction()` — idempotente, protégée par `UPDATE … WHERE resolved = false RETURNING` (verrou optimiste).
 4. **Le hasard est serveur.** Tout aléa (dégâts, butin, fuite) est tiré côté serveur et journalisé dans les logs de combat (rejouables).

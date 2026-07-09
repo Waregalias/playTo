@@ -55,7 +55,11 @@ describe('GET /api/v1/chat/:channel', () => {
     await postChatMessage(db, char, 'global', 'premier');
     await postChatMessage(db, char, 'global', 'second');
 
-    const res = await app.inject({ method: 'GET', url: '/api/v1/chat/global', headers: { cookie } });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/chat/global',
+      headers: { cookie },
+    });
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.items).toHaveLength(2);

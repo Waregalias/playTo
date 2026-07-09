@@ -55,8 +55,7 @@ async function maybeStartEncounter(
   if (hex.regionId === 0 || baseChance <= 0) return {};
   if (await getActiveCombat(tx, character.id)) return {}; // one fight at a time
   if (rng() >= baseChance) return {};
-  const foeSlug =
-    REGION_1_ENCOUNTER_POOL[Math.floor(rng() * REGION_1_ENCOUNTER_POOL.length)]!;
+  const foeSlug = REGION_1_ENCOUNTER_POOL[Math.floor(rng() * REGION_1_ENCOUNTER_POOL.length)]!;
   const combatId = await startCombat(tx, character, foeSlug, now, rng);
   return { encounterFoeSlug: foeSlug, combatId };
 }
@@ -293,11 +292,13 @@ export async function resolveDueActions(
 }
 
 /** Where the character will stand once the current queue has run. */
-async function virtualHex(tx: Tx | Db, character: CharacterRow, queue: ActionRow[]): Promise<HexRow> {
+async function virtualHex(
+  tx: Tx | Db,
+  character: CharacterRow,
+  queue: ActionRow[],
+): Promise<HexRow> {
   const lastMove = [...queue].reverse().find((a) => a.type === 'move');
-  const hexId = lastMove
-    ? movePayloadSchema.parse(lastMove.payload).targetHexId
-    : character.hexId;
+  const hexId = lastMove ? movePayloadSchema.parse(lastMove.payload).targetHexId : character.hexId;
   const hex = await tx.query.hexes.findFirst({ where: eq(hexes.id, hexId) });
   if (!hex) throw new Error(`Hex ${hexId} missing`);
   return hex;

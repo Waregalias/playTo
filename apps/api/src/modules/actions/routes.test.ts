@@ -329,7 +329,12 @@ describe('rest (US5)', () => {
       .set({ stamina: 60, staminaUpdatedAt: clock })
       .where(eq(characters.name, 'Serelle'));
 
-    await app.inject({ method: 'POST', url: '/api/v1/actions', headers: { cookie }, payload: { type: 'rest' } });
+    await app.inject({
+      method: 'POST',
+      url: '/api/v1/actions',
+      headers: { cookie },
+      payload: { type: 'rest' },
+    });
     clock = new Date(T0.getTime() + 1_800_000);
     expect(await myStamina(cookie)).toBe(100);
   });

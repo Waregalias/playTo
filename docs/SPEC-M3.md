@@ -15,7 +15,7 @@ Critère de sortie global (GDD §17) : **Q5 achevée par ≥ 10 joueurs** — di
 - **DB** : migration ajoutant `learnedSkills` (JSONB `string[]`) et `equippedSkills` (JSONB `{slot1?,slot2?}`) sur `characters` ; activation des tables déjà conçues (`projects`, `contributions`, `market_listings`, `chat_messages`) ; contraintes (index chat par canal, `listing_positive`, `contrib_qty`). Seed : projet `r1.belfry` (`goals:{ shadewood:5000, sootOre:3000, ashGlass:500 }`) + quête `r1.main.q5` (`kind:'main'`, requiert `r1.main.q4`).
 - **API WS `/ws`** : plugin `@fastify/websocket` + `ConnectionRegistry` en mémoire (Map `characterId → Set<socket>`, index par canal `global` / `region:{id}` / `character:{id}`). Auth à l'upgrade via la session better-auth (`401` sinon). Émission post-commit ; `project.progress` throttlé 10 s (état coalescé).
 - **API chat** : `GET /chat/:channel?cursor=` (50 derniers) ; envoi **uniquement via WS** `chat.send` (jamais REST) — Zod, rate-limit **10 msg/min/perso** (dépassement → event `chat.throttled`), persistance + broadcast `chat.message` au canal. Canaux `global` + `region:1`.
-- **API projets/contributions** : `GET /projects?regionId=`, `GET /projects/:id` (détail étendu, *ajout M3*), `POST /projects/:id/contribute { resource, qty }` (⚡5, transaction : débit inventaire, insert `contributions`, incrément `progress` clampé au restant, XP + écus au contributeur, broadcast throttlé). Hook de complétion Q5 (voir US4).
+- **API projets/contributions** : `GET /projects?regionId=`, `GET /projects/:id` (détail étendu, _ajout M3_), `POST /projects/:id/contribute { resource, qty }` (⚡5, transaction : débit inventaire, insert `contributions`, incrément `progress` clampé au restant, XP + écus au contributeur, broadcast throttlé). Hook de complétion Q5 (voir US4).
 - **API marché** : `GET /market/listings?itemId=&cursor=`, `POST /market/listings { itemId, qty, unitPrice }` (retire de l'inventaire, txn), `POST /market/listings/:id/buy { qty }` (txn : taxe 5 % → sink, transfert écus, item→acheteur, achat partiel), `DELETE /market/listings/:id` (vendeur seul, retour des items).
 - **API compétences** : `POST /characters/me/skills { skillId }` (coût 1 point + fragments pour paliers 4–5, prérequis palier N−1 de la même branche), `PUT /characters/me/skills/equipped { slot1?, slot2? }` (2 slots de combat, skill apprise + `kind:'active'`). Intégration des effets câblables au combat / à la fouille / au déplacement / à la vision / aux pertes à la mort / à la contribution.
 - **API usure/réparation** : perte de durabilité de l'arme + l'armure équipées à la mort (transaction de défaite existante), stats d'équipement réduites à 0 durabilité, `POST /inventory/repair { entryId }` (coût écus proportionnel, sink).
@@ -29,6 +29,7 @@ Raid Maugrith et sa création à la complétion de Q5 (M4), Q6, cérémonie de r
 
 **US1 — Se parler en temps réel.**
 Je me connecte, une socket s'ouvre ; j'écris dans le canal global ou région et les autres joueurs présents voient mon message aussitôt.
+
 - ✓ Upgrade `/ws` authentifié par la session ; connexion non authentifiée refusée (`401`).
 - ✓ `chat.send` valide Zod (≤ 500 car.), rate-limité 10/min (11ᵉ → `chat.throttled`, pas de persistance).
 - ✓ Message persisté puis diffusé `chat.message` à tous les abonnés du canal ; `GET /chat/:channel` renvoie l'historique paginé.
@@ -36,12 +37,14 @@ Je me connecte, une socket s'ouvre ; j'écris dans le canal global ou région et
 
 **US2 — Être notifié sans rafraîchir.**
 Quand une de mes actions se résout, mon endurance se remplit, une quête avance ou je monte de niveau, l'UI se met à jour sans polling.
+
 - ✓ Les événements `character:{id}` (`action.resolved`, `stamina.full`, `quest.updated`, `level.up`) déclenchent le refetch de la ressource REST concernée (source de vérité unique).
 - ✓ Le worker de résolution (5 s) et les services émettent **après commit**.
 - ✓ Perte de connexion → reconnexion automatique ; à la reconnexion, l'app refait un `GET /characters/me` (rattrape l'état manqué).
 
 **US3 — Contribuer au beffroi.**
 Au Grand Cairn, je livre du bois d'ombre, du minerai et du verre ; la barre communautaire monte pour tous.
+
 - ✓ `POST /projects/:id/contribute` : `409 INSUFFICIENT_STAMINA` (< 5), `409 INSUFFICIENT_MATERIALS` si l'inventaire ne couvre pas `qty`, `409 PROJECT_COMPLETED` si le chantier est terminé.
 - ✓ Transaction : débit inventaire + insert `contributions` + incrément `progress` **clampé au restant** (surplus non débité, non erreur) + XP + écus.
 - ✓ Multiplicateur Offrande (`cantor.ember.1`) ×1,4 appliqué à la quantité **créditée** (les matériaux réellement débités restent `qty`).
@@ -49,55 +52,59 @@ Au Grand Cairn, je livre du bois d'ombre, du minerai et du verre ; la barre comm
 
 **US4 — Achever Q5 ensemble.**
 Quand le beffroi atteint 100 %, tous ceux qui ont posé au moins une pierre voient « Sonner le Glas » accomplie et reçoivent la récompense.
+
 - ✓ Complétion idempotente (`UPDATE projects SET completed_at=now() WHERE id=? AND completed_at IS NULL RETURNING`).
 - ✓ À la complétion : Q5 passe `completed` pour **tout personnage ayant ≥ 1 contribution**, récompenses de quête distribuées en transaction, `announce` diffusé en `global`.
 - ✓ Q5 exige Q4 (`409 REQUIREMENT_NOT_MET` à l'acceptation sinon) ; la création du raid Maugrith est **hors périmètre (M4)**.
 
 **US5 — Vendre et acheter à l'hôtel des ventes.**
 Je mets en vente un surplus, un autre joueur l'achète ; l'écart d'écus tient compte de la taxe.
+
 - ✓ Mise en vente : items retirés de l'inventaire en transaction (`409 INSUFFICIENT_MATERIALS`).
 - ✓ Achat : `409 INSUFFICIENT_FUNDS`, `409 CANNOT_BUY_OWN_LISTING`, `409 LISTING_UNAVAILABLE` (annonce disparue / quantité insuffisante) ; taxe 5 % prélevée sur le paiement vendeur (sink), item transféré, achat partiel décrémente la pile ; le tout en une transaction.
 - ✓ Annulation par le vendeur uniquement (`403` sinon) → items rendus.
 
 **US6 — Dépenser mes points de compétence.**
 J'ouvre mon arbre de classe, j'apprends une compétence dont je remplis le prérequis, j'en équipe jusqu'à deux actives pour le combat.
+
 - ✓ `POST /characters/me/skills` : `409 REQUIREMENT_NOT_MET` (points/fragments insuffisants ou palier N−1 manquant), `409 SKILL_ALREADY_LEARNED`. Paliers 4–5 coûtent des fragments de braise (GDD §9.1).
 - ✓ `PUT /characters/me/skills/equipped` : refuse une compétence non apprise ou `kind:'passive'` (`409 REQUIREMENT_NOT_MET`) ; ≤ 2 slots ; `null` déséquipe.
 - ✓ Les passifs câblables modifient les formules via `deriveSkillModifiers` (testé) ; les actifs équipés sont utilisables en combat (`{action:'skill', skillId}`).
 
 **US7 — Entretenir mon équipement.**
 Chaque mort abîme mon arme et mon armure ; à l'atelier je paie pour les remettre en état.
+
 - ✓ À la mort (même transaction que la défaite M2) : `durability -= N` sur l'arme et l'armure équipées (borné à 0).
 - ✓ Durabilité 0 → stats d'équipement réduites (via `deriveGearStats`), visible sur l'écran Héros.
 - ✓ `POST /inventory/repair` : `409 NOTHING_TO_REPAIR` si pleine, coût = `repairCost(...)` en écus, `409 INSUFFICIENT_FUNDS`, transaction, durabilité restaurée à `maxDurability`.
 
 ## Compétences : effets câblés vs inertes en M3
 
-Les 60 effets sont **définis en data** (sourcés GDD §5). Un effet est *câblé* si le système qu'il touche existe en M3, sinon il est *inerte* (présent, non appliqué) et sera réactivé à son jalon. `deriveSkillModifiers` n'agrège que les passifs câblables ; les actifs inertes ne sont pas équipables tant qu'ils ne servent à rien (ou équipables sans effet — voir décision 5).
+Les 60 effets sont **définis en data** (sourcés GDD §5). Un effet est _câblé_ si le système qu'il touche existe en M3, sinon il est _inerte_ (présent, non appliqué) et sera réactivé à son jalon. `deriveSkillModifiers` n'agrège que les passifs câblables ; les actifs inertes ne sont pas équipables tant qu'ils ne servent à rien (ou équipables sans effet — voir décision 5).
 
-| Système touché | Statut M3 | Exemples (GDD §5) |
-|---|---|---|
-| Combat — actif (slot) | **câblé** | Frappe lourde, Fente, Trait de cendre, Tir précis, Semonce… |
-| Combat — passif | **câblé** | Garde ferme (+armure %), Mur de fer, Embuscade, Miroir de brume… |
-| Fouille (butin) | **câblé** | Lecture des runes (+20 % butin) |
-| Déplacement / vision | **câblé** | Pas léger (−10 % timers), Longue-Vue (+1 vision), Cartographe |
-| Pertes à la mort | **câblé** | Poche double (−50 % pertes de matériaux) |
-| Contribution | **câblé** | Offrande (×1,4) |
-| Inventaire | **câblé** | Porteur (+10 emplacements) |
-| Groupe / expédition | **inerte** | Provocation, Meneur, Cadence, Chant vivifiant… |
-| Raid / Gardien | **inerte** | Œil des Archives, Verbe d'extinction |
-| Craft / transmutation | **inerte** | Alchimie, Transmutation |
-| Téléport autel / PNJ marchand | **inerte** | Chemins de traverse, Légende de Cendrelune |
+| Système touché                | Statut M3  | Exemples (GDD §5)                                                |
+| ----------------------------- | ---------- | ---------------------------------------------------------------- |
+| Combat — actif (slot)         | **câblé**  | Frappe lourde, Fente, Trait de cendre, Tir précis, Semonce…      |
+| Combat — passif               | **câblé**  | Garde ferme (+armure %), Mur de fer, Embuscade, Miroir de brume… |
+| Fouille (butin)               | **câblé**  | Lecture des runes (+20 % butin)                                  |
+| Déplacement / vision          | **câblé**  | Pas léger (−10 % timers), Longue-Vue (+1 vision), Cartographe    |
+| Pertes à la mort              | **câblé**  | Poche double (−50 % pertes de matériaux)                         |
+| Contribution                  | **câblé**  | Offrande (×1,4)                                                  |
+| Inventaire                    | **câblé**  | Porteur (+10 emplacements)                                       |
+| Groupe / expédition           | **inerte** | Provocation, Meneur, Cadence, Chant vivifiant…                   |
+| Raid / Gardien                | **inerte** | Œil des Archives, Verbe d'extinction                             |
+| Craft / transmutation         | **inerte** | Alchimie, Transmutation                                          |
+| Téléport autel / PNJ marchand | **inerte** | Chemins de traverse, Légende de Cendrelune                       |
 
 La spec d'implémentation (étape 1) fige la table complète des 60 avec `effect` et `wiredInM3:boolean`.
 
 ## WebSocket — canaux & événements (rappel API-SPEC §4)
 
-| Canal | Événements serveur→client (M3) |
-|---|---|
+| Canal            | Événements serveur→client (M3)                                 |
+| ---------------- | -------------------------------------------------------------- |
 | `character:{id}` | `action.resolved`, `stamina.full`, `quest.updated`, `level.up` |
-| `region:{id}` | `chat.message`, `project.progress` (throttle 10 s) |
-| `global` | `chat.message`, `announce` |
+| `region:{id}`    | `chat.message`, `project.progress` (throttle 10 s)             |
+| `global`         | `chat.message`, `announce`                                     |
 
 Client→serveur : `chat.send` uniquement. `mist.changed` / `warden.sighted` / `raid.*` / `ember.rekindled` : hors périmètre (M4+).
 
@@ -107,15 +114,15 @@ Client→serveur : `chat.send` uniquement. `mist.changed` / `warden.sighted` / `
 
 ## Glossaire à compléter (avant tout code — CLAUDE.md §5)
 
-| FR (affichage) | EN (code) |
-|---|---|
-| Compétence | `skill` |
-| Palier | `tier` |
-| Durabilité | `durability` |
-| Réparation | `repair` |
-| Annonce (marché) | `listing` |
-| Contribution | `contribution` |
-| Canal (chat) | `channel` |
+| FR (affichage)   | EN (code)      |
+| ---------------- | -------------- |
+| Compétence       | `skill`        |
+| Palier           | `tier`         |
+| Durabilité       | `durability`   |
+| Réparation       | `repair`       |
+| Annonce (marché) | `listing`      |
+| Contribution     | `contribution` |
+| Canal (chat)     | `channel`      |
 
 ## Ordre d'implémentation (avec vérifications)
 

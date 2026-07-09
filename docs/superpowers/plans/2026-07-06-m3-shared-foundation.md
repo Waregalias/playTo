@@ -24,39 +24,41 @@
 ### Task 1: Skill catalog — types, effect model & data
 
 **Files:**
+
 - Create: `packages/shared/src/constants/skills.ts`
 - Test: `packages/shared/src/constants/skills.test.ts`
 - Modify: `packages/shared/src/constants/index.ts` (add `export * from './skills.js';`)
 
 **Interfaces:**
+
 - Consumes: `CharacterClass` from `./classes.js`.
 - Produces:
   - `SkillBranch` (string union of the 12 branch codes).
   - `SkillModifiers` — flat aggregate of the M3-wired passive effects:
     ```ts
     export interface SkillModifiers {
-      armorPct: number;          // +% armour (Garde ferme)
-      dodgePct: number;          // +% dodge (Miroir de brume)
-      searchLootPct: number;     // +% search loot (Lecture des runes)
-      moveTimerPct: number;      // −% move timer, stored positive (Pas léger)
-      visionBonus: number;       // +hex vision radius (Longue-Vue, Cartographe)
-      inventoryBonus: number;    // +inventory slots (Porteur)
+      armorPct: number; // +% armour (Garde ferme)
+      dodgePct: number; // +% dodge (Miroir de brume)
+      searchLootPct: number; // +% search loot (Lecture des runes)
+      moveTimerPct: number; // −% move timer, stored positive (Pas léger)
+      visionBonus: number; // +hex vision radius (Longue-Vue, Cartographe)
+      inventoryBonus: number; // +inventory slots (Porteur)
       deathMaterialLossPct: number; // −% material loss on death, positive (Poche double)
-      contributionMult: number;  // ×contribution credit (Offrande) — default 1
-      firstTurnDmgPct: number;   // +% damage on turn 1 (Embuscade)
-      foeAshCrownsPct: number;   // +% ash crowns from foes (Détrousseur)
+      contributionMult: number; // ×contribution credit (Offrande) — default 1
+      firstTurnDmgPct: number; // +% damage on turn 1 (Embuscade)
+      foeAshCrownsPct: number; // +% ash crowns from foes (Détrousseur)
       blockFirstAttack: boolean; // Mur de fer
-      fleeNoPenalty: boolean;    // Évasion
+      fleeNoPenalty: boolean; // Évasion
     }
     ```
   - `ActiveSkillParams`:
     ```ts
     export interface ActiveSkillParams {
-      multiplier?: number;          // damage vs class attack score
-      cooldown: number;             // turns
+      multiplier?: number; // damage vs class attack score
+      cooldown: number; // turns
       damageKind?: 'physical' | 'arcane';
-      ignoreArmorPct?: number;      // Fente
-      bleedTurns?: number;          // Flèche barbelée
+      ignoreArmorPct?: number; // Fente
+      bleedTurns?: number; // Flèche barbelée
     }
     ```
   - `SkillDef`:
@@ -67,10 +69,10 @@
       branch: SkillBranch;
       tier: 1 | 2 | 3 | 4 | 5;
       kind: 'active' | 'passive';
-      wiredInM3: boolean;           // effect applied this milestone
-      fragmentCost: number;         // emberFragments cost (0 for tiers 1–3)
+      wiredInM3: boolean; // effect applied this milestone
+      fragmentCost: number; // emberFragments cost (0 for tiers 1–3)
       modifiers?: Partial<SkillModifiers>; // passive contribution
-      active?: ActiveSkillParams;   // present iff kind === 'active'
+      active?: ActiveSkillParams; // present iff kind === 'active'
     }
     ```
   - `SKILLS: readonly SkillDef[]` (60 entries).
@@ -80,6 +82,7 @@
 - [ ] **Step 1: Write the failing invariant test**
 
 `packages/shared/src/constants/skills.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { CHARACTER_CLASSES } from './classes.js';
@@ -147,6 +150,7 @@ Expected: FAIL — cannot resolve `./skills.js`.
 - [ ] **Step 3: Write `skills.ts` — types + `EMPTY_MODIFIERS` + full catalog**
 
 Create `packages/shared/src/constants/skills.ts`. Define the interfaces from the Interfaces block above, then `EMPTY_MODIFIERS`, then the `SKILLS` array transcribing **GDD §5.1–5.4 verbatim** into `SkillDef`s. Rules for transcription:
+
 - `tier` = position in the branch (1–5). `id` = `${class}.${branch}.${tier}`.
 - `kind`: `'active'` for abilities used as the combat turn action (e.g. Frappe lourde, Fente, Tourbillon, Brise-garde, Exécution, all arcanist ashlight/veil damage/control spells, all scout hunt shots, cantor verse abilities); `'passive'` for stat/utility modifiers (Garde ferme, Endurci, Porteur, Pas léger, Longue-Vue, Poche double, Offrande, Veilleur…).
 - `wiredInM3`: `true` when the effect touches combat / search / movement / vision / inventory / death-loss / contribution (see SPEC-M3 compatibility table); `false` for group / raid / craft / teleport / merchant effects (Provocation, Meneur, Chœur des Premiers, Alchimie, Transmutation, Œil des Archives, Chemins de traverse, Légende de Cendrelune, Écho de la Flamme, Pèlerin, Rallumeur, Cadence, Chant vivifiant, Répons, Hymne de fer, Verbe d'extinction, Injonction, Prison de verre if group-only, etc.).
@@ -190,6 +194,7 @@ Create `packages/shared/src/constants/skills.ts`. Define the interfaces from the
   For active skills whose gimmick needs an unbuilt system (Tourbillon = AoE, Provocation), set `wiredInM3: false` and give minimal `active` params (`{ multiplier: 1, cooldown: 1 }`) — they stay learnable but non-equippable (Task in the skills API enforces `wiredInM3 && kind==='active'` to equip).
 
 Then:
+
 ```ts
 export const SKILLS_BY_ID: Record<string, SkillDef> = Object.fromEntries(
   SKILLS.map((s) => [s.id, s]),
@@ -198,6 +203,7 @@ export function getSkill(id: string): SkillDef | undefined {
   return SKILLS_BY_ID[id];
 }
 ```
+
 Keep `STARTER_SKILLS` in `starter-gear.ts` consistent: `blade.steel.1`, `arcanist.ashlight.1`, `scout.hunt.1` must exist as active tier-1; `cantor.verse.2` (starter) must exist as active. Verify these five ids are in `SKILLS`.
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -208,6 +214,7 @@ Expected: PASS (6 tests).
 - [ ] **Step 5: Wire the barrel export**
 
 Add to `packages/shared/src/constants/index.ts`:
+
 ```ts
 export * from './skills.js';
 ```
@@ -215,6 +222,7 @@ export * from './skills.js';
 - [ ] **Step 6: Typecheck & commit**
 
 Run: `pnpm --filter @aldenfer/shared build` (or `tsc --noEmit`) — Expected: no errors.
+
 ```bash
 git add packages/shared/src/constants/skills.ts packages/shared/src/constants/skills.test.ts packages/shared/src/constants/index.ts
 git commit -m "feat(shared): add M3 skill catalog (60 skills, GDD §5)
@@ -227,17 +235,20 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: `deriveSkillModifiers` reducer
 
 **Files:**
+
 - Create: `packages/shared/src/formulas/skills.ts`
 - Test: `packages/shared/src/formulas/skills.test.ts`
 - Modify: `packages/shared/src/formulas/index.ts` (add `export * from './skills.js';`)
 
 **Interfaces:**
+
 - Consumes: `SKILLS_BY_ID`, `EMPTY_MODIFIERS`, `SkillModifiers` from `../constants/skills.js`.
 - Produces: `deriveSkillModifiers(learnedSkillIds: readonly string[]): SkillModifiers` — folds every learned **passive, `wiredInM3`** skill's `modifiers` onto `EMPTY_MODIFIERS`. Numeric fields add; `contributionMult` **multiplies** (product of all, base 1); booleans OR. Unknown ids and active skills are ignored.
 
 - [ ] **Step 1: Write the failing test**
 
 `packages/shared/src/formulas/skills.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { deriveSkillModifiers } from './skills.js';
@@ -252,7 +263,7 @@ describe('deriveSkillModifiers', () => {
 
   it('adds numeric passive modifiers', () => {
     const m = deriveSkillModifiers(['blade.bulwark.1', 'blade.veteran.2']);
-    expect(m.armorPct).toBe(10);      // Garde ferme
+    expect(m.armorPct).toBe(10); // Garde ferme
     expect(m.inventoryBonus).toBe(10); // Porteur
   });
 
@@ -263,7 +274,7 @@ describe('deriveSkillModifiers', () => {
 
   it('ignores unknown ids and active skills', () => {
     const m = deriveSkillModifiers(['does.not.exist', 'blade.steel.1']);
-    expect(m.armorPct).toBe(0);       // steel.1 is active → no passive modifier
+    expect(m.armorPct).toBe(0); // steel.1 is active → no passive modifier
   });
 
   it('sets deathMaterialLossPct from Poche double', () => {
@@ -280,6 +291,7 @@ Expected: FAIL — cannot resolve `./skills.js`.
 - [ ] **Step 3: Implement the reducer**
 
 `packages/shared/src/formulas/skills.ts`:
+
 ```ts
 import { EMPTY_MODIFIERS, SKILLS_BY_ID, type SkillModifiers } from '../constants/skills.js';
 
@@ -315,6 +327,7 @@ Expected: PASS (5 tests).
 - [ ] **Step 5: Wire the barrel export & commit**
 
 Add `export * from './skills.js';` to `packages/shared/src/formulas/index.ts`.
+
 ```bash
 git add packages/shared/src/formulas/skills.ts packages/shared/src/formulas/skills.test.ts packages/shared/src/formulas/index.ts
 git commit -m "feat(shared): derive passive skill modifiers
@@ -327,12 +340,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Economy formulas — `repairCost` & `contributionCredit`
 
 **Files:**
+
 - Create: `packages/shared/src/formulas/economy.ts`
 - Test: `packages/shared/src/formulas/economy.test.ts`
 - Modify: `packages/shared/src/formulas/index.ts` (add `export * from './economy.js';`)
 - Modify: `packages/shared/src/constants/combat.ts` (add `DEATH_DURABILITY_LOSS = 10`, `BROKEN_GEAR_PENALTY = 0.5`) — verify these names aren't already taken.
 
 **Interfaces:**
+
 - Produces:
   - `repairCost(missingDurability: number, itemTier: number): number` — `ceil(missingDurability * REPAIR_COST_PER_POINT * tierFactor)`, where `REPAIR_COST_PER_POINT = 1` and `tierFactor = 1 + 0.5 * (itemTier - 1)` (t1 = ×1, t2 = ×1.5). Returns `0` when `missingDurability <= 0`.
   - `contributionCredit(qty: number, contributionMult: number): number` — `Math.floor(qty * contributionMult)`. The **debited** material stays `qty`; only the credited amount grows.
@@ -341,6 +356,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - [ ] **Step 1: Write the failing test**
 
 `packages/shared/src/formulas/economy.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { repairCost, contributionCredit } from './economy.js';
@@ -357,7 +373,7 @@ describe('repairCost', () => {
     expect(repairCost(40, 2)).toBe(60); // ×1.5
   });
   it('rounds up', () => {
-    expect(repairCost(3, 2)).toBe(5);   // 3 × 1.5 = 4.5 → 5
+    expect(repairCost(3, 2)).toBe(5); // 3 × 1.5 = 4.5 → 5
   });
 });
 
@@ -380,6 +396,7 @@ Expected: FAIL — cannot resolve `./economy.js`.
 - [ ] **Step 3: Implement the formulas & constants**
 
 `packages/shared/src/formulas/economy.ts`:
+
 ```ts
 export const REPAIR_COST_PER_POINT = 1;
 
@@ -395,7 +412,9 @@ export function contributionCredit(qty: number, contributionMult: number): numbe
   return Math.floor(qty * contributionMult);
 }
 ```
+
 Add to `packages/shared/src/constants/combat.ts`:
+
 ```ts
 /** Durability lost by the equipped weapon and armour on each death (SPEC-M3 décision 2). */
 export const DEATH_DURABILITY_LOSS = 10;
@@ -411,6 +430,7 @@ Expected: PASS (6 tests).
 - [ ] **Step 5: Wire the barrel export & commit**
 
 Add `export * from './economy.js';` to `packages/shared/src/formulas/index.ts`.
+
 ```bash
 git add packages/shared/src/formulas/economy.ts packages/shared/src/formulas/economy.test.ts packages/shared/src/formulas/index.ts packages/shared/src/constants/combat.ts
 git commit -m "feat(shared): repairCost & contributionCredit formulas + durability constants
@@ -423,6 +443,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Zod contracts — skills, chat, projects, market, WS envelope
 
 **Files:**
+
 - Create: `packages/shared/src/schemas/skill.ts`
 - Create: `packages/shared/src/schemas/chat.ts`
 - Create: `packages/shared/src/schemas/project.ts`
@@ -433,6 +454,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Modify: `packages/shared/src/schemas/index.ts` (export the five new modules)
 
 **Interfaces:**
+
 - Consumes: `SKILLS` ids indirectly (validation is structural, not enum-locked, to keep schemas decoupled from the 60-entry list).
 - Produces (types via `z.infer`):
   - `equipSkillsSchema = z.object({ slot1: z.string().nullish(), slot2: z.string().nullish() })`.
@@ -448,6 +470,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - [ ] **Step 1: Write the failing contract test**
 
 `packages/shared/src/schemas/m3-contracts.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { equipSkillsSchema, learnSkillSchema } from './skill.js';
@@ -458,9 +481,16 @@ import { wsServerEventSchema } from './ws.js';
 
 describe('M3 contracts', () => {
   it('accepts a valid chat.send and rejects a >500 char body', () => {
-    expect(chatSendSchema.safeParse({ type: 'chat.send', channel: 'global', body: 'salut' }).success).toBe(true);
-    expect(chatSendSchema.safeParse({ type: 'chat.send', channel: 'region:1', body: 'x'.repeat(501) }).success).toBe(false);
-    expect(chatSendSchema.safeParse({ type: 'chat.send', channel: 'region:9', body: 'y' }).success).toBe(false);
+    expect(
+      chatSendSchema.safeParse({ type: 'chat.send', channel: 'global', body: 'salut' }).success,
+    ).toBe(true);
+    expect(
+      chatSendSchema.safeParse({ type: 'chat.send', channel: 'region:1', body: 'x'.repeat(501) })
+        .success,
+    ).toBe(false);
+    expect(
+      chatSendSchema.safeParse({ type: 'chat.send', channel: 'region:9', body: 'y' }).success,
+    ).toBe(false);
   });
   it('validates contribution resource & positive qty', () => {
     expect(contributeSchema.safeParse({ resource: 'shadewood', qty: 10 }).success).toBe(true);
@@ -468,8 +498,12 @@ describe('M3 contracts', () => {
     expect(contributeSchema.safeParse({ resource: 'shadewood', qty: 0 }).success).toBe(false);
   });
   it('validates market listing bodies', () => {
-    expect(createListingSchema.safeParse({ itemId: 'weapon.blade.t1', qty: 1, unitPrice: 50 }).success).toBe(true);
-    expect(createListingSchema.safeParse({ itemId: 'x', qty: 1, unitPrice: 0 }).success).toBe(false);
+    expect(
+      createListingSchema.safeParse({ itemId: 'weapon.blade.t1', qty: 1, unitPrice: 50 }).success,
+    ).toBe(true);
+    expect(createListingSchema.safeParse({ itemId: 'x', qty: 1, unitPrice: 0 }).success).toBe(
+      false,
+    );
     expect(buyListingSchema.safeParse({ qty: 2 }).success).toBe(true);
   });
   it('allows null equip slots (unequip)', () => {
@@ -477,7 +511,14 @@ describe('M3 contracts', () => {
     expect(learnSkillSchema.safeParse({ skillId: 'blade.bulwark.2' }).success).toBe(true);
   });
   it('accepts a server event envelope', () => {
-    expect(wsServerEventSchema.safeParse({ channel: 'region:1', type: 'project.progress', data: {}, at: '2026-07-06T00:00:00Z' }).success).toBe(true);
+    expect(
+      wsServerEventSchema.safeParse({
+        channel: 'region:1',
+        type: 'project.progress',
+        data: {},
+        at: '2026-07-06T00:00:00Z',
+      }).success,
+    ).toBe(true);
   });
 });
 ```
@@ -490,14 +531,25 @@ Expected: FAIL — cannot resolve the new modules.
 - [ ] **Step 3: Write the five schema modules**
 
 Create each file per the Interfaces block. `packages/shared/src/schemas/project.ts` (holds resource enum + project + contribute):
+
 ```ts
 import { z } from 'zod';
 
-export const RESOURCE_KEYS = ['shadewood', 'sootOre', 'moorHerbs', 'mistbornHide', 'ashGlass', 'mistEssence'] as const;
+export const RESOURCE_KEYS = [
+  'shadewood',
+  'sootOre',
+  'moorHerbs',
+  'mistbornHide',
+  'ashGlass',
+  'mistEssence',
+] as const;
 export const resourceSchema = z.enum(RESOURCE_KEYS);
 export type ResourceKey = z.infer<typeof resourceSchema>;
 
-export const contributeSchema = z.object({ resource: resourceSchema, qty: z.number().int().positive() });
+export const contributeSchema = z.object({
+  resource: resourceSchema,
+  qty: z.number().int().positive(),
+});
 
 const goalRecord = z.record(resourceSchema, z.number().int().nonnegative());
 export const projectSchema = z.object({
@@ -515,26 +567,37 @@ export type ProjectDto = z.infer<typeof projectSchema>;
 export type ProjectDetailDto = z.infer<typeof projectDetailSchema>;
 export type ContributeInput = z.infer<typeof contributeSchema>;
 ```
+
 `chat.ts`:
+
 ```ts
 import { z } from 'zod';
 export const chatChannelSchema = z.enum(['global', 'region:1']);
 export const chatMessageSchema = z.object({
-  id: z.uuid(), channel: chatChannelSchema, characterId: z.uuid(),
-  characterName: z.string(), body: z.string().min(1).max(500), at: z.iso.datetime(),
+  id: z.uuid(),
+  channel: chatChannelSchema,
+  characterId: z.uuid(),
+  characterName: z.string(),
+  body: z.string().min(1).max(500),
+  at: z.iso.datetime(),
 });
 export const chatSendSchema = z.object({
-  type: z.literal('chat.send'), channel: chatChannelSchema, body: z.string().min(1).max(500),
+  type: z.literal('chat.send'),
+  channel: chatChannelSchema,
+  body: z.string().min(1).max(500),
 });
 export type ChatMessageDto = z.infer<typeof chatMessageSchema>;
 export type ChatSendInput = z.infer<typeof chatSendSchema>;
 ```
+
 `skill.ts`:
+
 ```ts
 import { z } from 'zod';
 export const learnSkillSchema = z.object({ skillId: z.string() });
 export const equipSkillsSchema = z.object({
-  slot1: z.string().nullish(), slot2: z.string().nullish(),
+  slot1: z.string().nullish(),
+  slot2: z.string().nullish(),
 });
 export const characterSkillSchema = z.object({
   skillId: z.string(),
@@ -544,37 +607,53 @@ export type LearnSkillInput = z.infer<typeof learnSkillSchema>;
 export type EquipSkillsInput = z.infer<typeof equipSkillsSchema>;
 export type CharacterSkillDto = z.infer<typeof characterSkillSchema>;
 ```
+
 `market.ts`:
+
 ```ts
 import { z } from 'zod';
 export const createListingSchema = z.object({
-  itemId: z.string(), qty: z.number().int().positive(), unitPrice: z.number().int().positive(),
+  itemId: z.string(),
+  qty: z.number().int().positive(),
+  unitPrice: z.number().int().positive(),
 });
 export const buyListingSchema = z.object({ qty: z.number().int().positive() });
 export const listingSchema = z.object({
-  id: z.uuid(), sellerId: z.uuid(), sellerName: z.string(),
-  itemId: z.string(), qty: z.number().int().positive(), unitPrice: z.number().int().positive(),
+  id: z.uuid(),
+  sellerId: z.uuid(),
+  sellerName: z.string(),
+  itemId: z.string(),
+  qty: z.number().int().positive(),
+  unitPrice: z.number().int().positive(),
   at: z.iso.datetime(),
 });
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type BuyListingInput = z.infer<typeof buyListingSchema>;
 export type ListingDto = z.infer<typeof listingSchema>;
 ```
+
 `ws.ts`:
+
 ```ts
 import { z } from 'zod';
 import { chatSendSchema } from './chat.js';
 export const wsClientMessageSchema = chatSendSchema; // only chat.send in M3
 export const wsServerEventSchema = z.object({
-  channel: z.string(), type: z.string(), data: z.unknown(), at: z.string(),
+  channel: z.string(),
+  type: z.string(),
+  data: z.unknown(),
+  at: z.string(),
 });
 export type WsClientMessage = z.infer<typeof wsClientMessageSchema>;
 export type WsServerEvent = z.infer<typeof wsServerEventSchema>;
 ```
+
 Extend `characterSchema` in `character.ts` — import `characterSkillSchema` and add before the closing `})`:
+
 ```ts
   skills: z.array(characterSkillSchema),
 ```
+
 (add `import { characterSkillSchema } from './skill.js';` at top).
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -585,6 +664,7 @@ Expected: PASS (5 tests).
 - [ ] **Step 5: Wire barrel exports, typecheck & commit**
 
 Add to `packages/shared/src/schemas/index.ts`:
+
 ```ts
 export * from './skill.js';
 export * from './chat.js';
@@ -592,7 +672,9 @@ export * from './project.js';
 export * from './market.js';
 export * from './ws.js';
 ```
+
 Run: `pnpm --filter @aldenfer/shared build` — Expected: no type errors (note: adding `skills` to `characterSchema` may surface API build errors later; those are handled in the DB/API tasks of the next plan).
+
 ```bash
 git add packages/shared/src/schemas/
 git commit -m "feat(shared): M3 Zod contracts (skills, chat, projects, market, WS)
@@ -605,6 +687,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 5: French content — skill names/descriptions & new error messages
 
 **Files:**
+
 - Create: `packages/shared/src/content/fr/skills.ts`
 - Test: `packages/shared/src/content/fr/skills.test.ts`
 - Modify: `packages/shared/src/schemas/error.ts` (add the 6 new codes to the `ERROR_CODES` array — **required first**, since `ERROR_MESSAGES_FR` is typed `Record<ErrorCode, string>` and won't compile otherwise)
@@ -612,12 +695,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Modify: `packages/shared/src/content/fr/index.ts` (add `export * from './skills.js';`)
 
 **Interfaces:**
+
 - Consumes: `SKILLS` from `../../constants/skills.js`.
 - Produces: `SKILL_CONTENT_FR: Record<string, { name: string; description: string }>` keyed by skill id (60 entries), names/descriptions from GDD §5 in the game's voice (tutoiement). Error messages for `INSUFFICIENT_MATERIALS`, `SKILL_ALREADY_LEARNED`, `CANNOT_BUY_OWN_LISTING`, `LISTING_UNAVAILABLE`, `PROJECT_COMPLETED`, `NOTHING_TO_REPAIR`.
 
 - [ ] **Step 1: Write the failing test**
 
 `packages/shared/src/content/fr/skills.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { SKILLS } from '../../constants/skills.js';
@@ -647,17 +732,29 @@ Expected: FAIL — cannot resolve `./skills.js`.
 - [ ] **Step 3: Write the content**
 
 `packages/shared/src/content/fr/skills.ts` — transcribe GDD §5 names, write one-line descriptions in the game's voice. Examples:
+
 ```ts
 export const SKILL_CONTENT_FR: Record<string, { name: string; description: string }> = {
   'blade.bulwark.1': { name: 'Garde ferme', description: 'Ton armure gagne 10 %. Tiens bon.' },
-  'blade.steel.1': { name: 'Frappe lourde', description: 'Un coup à 130 % des dégâts. Recharge 2 tours.' },
+  'blade.steel.1': {
+    name: 'Frappe lourde',
+    description: 'Un coup à 130 % des dégâts. Recharge 2 tours.',
+  },
   'blade.steel.2': { name: 'Fente', description: 'Ta lame ignore 25 % de l’armure adverse.' },
-  'scout.shadow.1': { name: 'Poche double', description: 'Tu ne perds plus que la moitié de tes matériaux en mourant.' },
-  'cantor.ember.1': { name: 'Offrande', description: 'Tes contributions aux chantiers comptent pour 1,4×.' },
+  'scout.shadow.1': {
+    name: 'Poche double',
+    description: 'Tu ne perds plus que la moitié de tes matériaux en mourant.',
+  },
+  'cantor.ember.1': {
+    name: 'Offrande',
+    description: 'Tes contributions aux chantiers comptent pour 1,4×.',
+  },
   // … 60 entries total, one per skill in SKILLS
 };
 ```
+
 First add the six codes to the `ERROR_CODES` array in `packages/shared/src/schemas/error.ts` (after `NO_ACTIVE_COMBAT`):
+
 ```ts
   'INSUFFICIENT_MATERIALS',
   'SKILL_ALREADY_LEARNED',
@@ -666,7 +763,9 @@ First add the six codes to the `ERROR_CODES` array in `packages/shared/src/schem
   'PROJECT_COMPLETED',
   'NOTHING_TO_REPAIR',
 ```
+
 Then add the six matching strings to `ERROR_MESSAGES_FR` in `errors.ts`:
+
 ```ts
 INSUFFICIENT_MATERIALS: 'Il te manque des matériaux pour cela.',
 SKILL_ALREADY_LEARNED: 'Tu maîtrises déjà cette compétence.',
@@ -686,6 +785,7 @@ Expected: PASS (2 tests).
 Add `export * from './skills.js';` to `packages/shared/src/content/fr/index.ts`.
 Run: `pnpm --filter @aldenfer/shared test` — Expected: all tests pass (M1/M2 + new M3).
 Run: `pnpm --filter @aldenfer/shared build` — Expected: no errors.
+
 ```bash
 git add packages/shared/src/content/fr/ packages/shared/src/schemas/error.ts
 git commit -m "feat(shared): French skill content + M3 error messages
@@ -698,6 +798,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage (SPEC-M3 step 1 = shared foundation):**
+
 - 60-skill catalog → Task 1. `deriveSkillModifiers` → Task 2. `repairCost`, `contributionCredit` → Task 3. Zod contracts (chat/project/market/skills/WS) → Task 4. FR content (skills, errors) → Task 5. ✅ Every step-1 deliverable is covered.
 - `effect↔wiredInM3` compatibility table → encoded as `SkillDef.wiredInM3` (Task 1). ✅
 - Durability constants (`DEATH_DURABILITY_LOSS`, `BROKEN_GEAR_PENALTY`) → Task 3, consumed by the API durability task in the next plan. ✅
@@ -711,12 +812,4 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ## Notes for subsequent M3 plans (not part of this slice)
 
-Ordered per SPEC-M3 §Ordre d'implémentation, one plan each:
-2. DB migration (`learnedSkills`, `equippedSkills` on `characters`) + activate `projects`/`contributions`/`market_listings`/`chat_messages` + seed `r1.belfry` & Q5.
-3. WS plugin + `ConnectionRegistry` + auth upgrade + emit-after-commit.
-4. Chat API (history + `chat.send` + rate-limit) + wire existing `character`/`region` emissions.
-5. Projects/contributions + Q5 completion hook + rewards.
-6. Market API.
-7. Skills API (learn/equip) + combat/search/movement/death effect integration.
-8. Durability on death + repair.
-9. Web: `RealtimeService` + chat + chantier + market + skill tree + repair.
+Ordered per SPEC-M3 §Ordre d'implémentation, one plan each: 2. DB migration (`learnedSkills`, `equippedSkills` on `characters`) + activate `projects`/`contributions`/`market_listings`/`chat_messages` + seed `r1.belfry` & Q5. 3. WS plugin + `ConnectionRegistry` + auth upgrade + emit-after-commit. 4. Chat API (history + `chat.send` + rate-limit) + wire existing `character`/`region` emissions. 5. Projects/contributions + Q5 completion hook + rewards. 6. Market API. 7. Skills API (learn/equip) + combat/search/movement/death effect integration. 8. Durability on death + repair. 9. Web: `RealtimeService` + chat + chantier + market + skill tree + repair.

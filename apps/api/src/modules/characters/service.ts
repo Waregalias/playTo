@@ -120,10 +120,7 @@ export async function getMyCharacter(
   );
 
   if (stamina !== row.stamina) {
-    await db
-      .update(characters)
-      .set({ stamina, staminaUpdatedAt })
-      .where(eq(characters.id, row.id));
+    await db.update(characters).set({ stamina, staminaUpdatedAt }).where(eq(characters.id, row.id));
   }
 
   return {

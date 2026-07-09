@@ -62,7 +62,12 @@ export async function createListing(
     if (!removed) throw new AppError('INSUFFICIENT_MATERIALS', 409);
     const [row] = await tx
       .insert(marketListings)
-      .values({ sellerId: seller.id, itemId: input.itemId, qty: input.qty, unitPrice: input.unitPrice })
+      .values({
+        sellerId: seller.id,
+        itemId: input.itemId,
+        qty: input.qty,
+        unitPrice: input.unitPrice,
+      })
       .returning();
     if (!row) throw new Error('listing insert returned no row');
     return toListingDto(row, seller.name);
@@ -75,7 +80,10 @@ export async function buyListing(
   listingId: string,
   qty: number,
   now: Date,
-): Promise<{ character: CharacterDto; purchased: { itemId: string; qty: number; totalPaid: number } }> {
+): Promise<{
+  character: CharacterDto;
+  purchased: { itemId: string; qty: number; totalPaid: number };
+}> {
   return db.transaction(async (tx) => {
     const [listing] = await tx
       .select()
@@ -147,7 +155,13 @@ export async function cancelListing(
     if (!listing) throw new AppError('LISTING_UNAVAILABLE', 409);
     if (listing.sellerId !== character.id) throw new AppError('FORBIDDEN', 403);
 
-    const added = await addItem(tx, character.id, listing.itemId, listing.qty, inventoryCapacity(character.str));
+    const added = await addItem(
+      tx,
+      character.id,
+      listing.itemId,
+      listing.qty,
+      inventoryCapacity(character.str),
+    );
     if (added.lost > 0) throw new AppError('INVENTORY_FULL', 409);
     await tx.delete(marketListings).where(eq(marketListings.id, listing.id));
     return { id: listing.id };

@@ -44,7 +44,12 @@ async function giveCrowns(characterId: string, ashCrowns: number) {
 }
 
 function createListing(cookie: string, body: CreateListingInput) {
-  return app.inject({ method: 'POST', url: '/api/v1/market/listings', headers: { cookie }, payload: body });
+  return app.inject({
+    method: 'POST',
+    url: '/api/v1/market/listings',
+    headers: { cookie },
+    payload: body,
+  });
 }
 
 beforeAll(async () => {
@@ -65,7 +70,11 @@ describe('POST /api/v1/market/listings', () => {
     const seller = await makeChar(cookie, 'Seller');
     await giveMaterial(seller.id, 'material.shadewood', 100);
 
-    const res = await createListing(cookie, { itemId: 'material.shadewood', qty: 40, unitPrice: 10 });
+    const res = await createListing(cookie, {
+      itemId: 'material.shadewood',
+      qty: 40,
+      unitPrice: 10,
+    });
     expect(res.statusCode).toBe(200);
     expect(res.json().qty).toBe(40);
 
@@ -86,7 +95,11 @@ describe('POST /api/v1/market/listings', () => {
   it('rejects listing items the seller lacks (409 INSUFFICIENT_MATERIALS)', async () => {
     const cookie = await signUp('m2@aldenfer.test');
     await makeChar(cookie, 'Broke');
-    const res = await createListing(cookie, { itemId: 'material.shadewood', qty: 10, unitPrice: 5 });
+    const res = await createListing(cookie, {
+      itemId: 'material.shadewood',
+      qty: 10,
+      unitPrice: 5,
+    });
     expect(res.statusCode).toBe(409);
     expect(res.json().error.code).toBe('INSUFFICIENT_MATERIALS');
   });
@@ -117,11 +130,15 @@ describe('POST /api/v1/market/listings/:id/buy', () => {
     expect(body.character.currencies.ashCrowns).toBe(600);
 
     // seller netted 400 - 5% = 380
-    const freshSeller = await db.query.characters.findFirst({ where: eq(characters.id, seller.id) });
+    const freshSeller = await db.query.characters.findFirst({
+      where: eq(characters.id, seller.id),
+    });
     expect(freshSeller!.ashCrowns).toBe(380);
 
     // listing decremented to 60
-    const freshListing = await db.query.marketListings.findFirst({ where: eq(marketListings.id, listing.id) });
+    const freshListing = await db.query.marketListings.findFirst({
+      where: eq(marketListings.id, listing.id),
+    });
     expect(freshListing!.qty).toBe(60);
 
     // buyer received 40
@@ -149,7 +166,9 @@ describe('POST /api/v1/market/listings/:id/buy', () => {
       payload: { qty: 20 },
     });
     expect(res.statusCode).toBe(200);
-    const gone = await db.query.marketListings.findFirst({ where: eq(marketListings.id, listing.id) });
+    const gone = await db.query.marketListings.findFirst({
+      where: eq(marketListings.id, listing.id),
+    });
     expect(gone).toBeUndefined();
   });
 
@@ -230,7 +249,9 @@ describe('DELETE /api/v1/market/listings/:id', () => {
     expect(res.statusCode).toBe(200);
     expect(res.json().id).toBe(listing.id);
 
-    const gone = await db.query.marketListings.findFirst({ where: eq(marketListings.id, listing.id) });
+    const gone = await db.query.marketListings.findFirst({
+      where: eq(marketListings.id, listing.id),
+    });
     expect(gone).toBeUndefined();
     const inv = await db.query.inventory.findFirst({
       where: and(eq(inventory.characterId, seller.id), eq(inventory.itemId, 'material.shadewood')),

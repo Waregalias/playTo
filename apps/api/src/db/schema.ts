@@ -183,11 +183,7 @@ export const combats = pgTable(
     questId: varchar('quest_id', { length: 40 }), // scripted quest fight
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex('combat_active_uq')
-      .on(t.characterId)
-      .where(sql`status = 'active'`),
-  ],
+  (t) => [uniqueIndex('combat_active_uq').on(t.characterId).where(sql`status = 'active'`)],
 );
 
 // ─── Quests ───────────────────────────────────────────────────────────
@@ -251,9 +247,7 @@ export const actionQueue = pgTable(
   },
   (t) => [
     index('aq_due_idx').on(t.resolved, t.endsAt),
-    uniqueIndex('aq_slot_uq')
-      .on(t.characterId, t.position)
-      .where(sql`resolved = false`),
+    uniqueIndex('aq_slot_uq').on(t.characterId, t.position).where(sql`resolved = false`),
   ],
 );
 

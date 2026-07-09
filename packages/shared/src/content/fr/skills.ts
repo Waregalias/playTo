@@ -135,7 +135,10 @@ export const SKILL_CONTENT_FR: Record<string, { name: string; description: strin
     description: 'Un tir puissant qui révèle aussi l’invisible.',
   },
   // ── L'Éclaireur — Voyage ──
-  'scout.travel.1': { name: 'Pas léger', description: 'Tes timers de déplacement baissent de 10 %.' },
+  'scout.travel.1': {
+    name: 'Pas léger',
+    description: 'Tes timers de déplacement baissent de 10 %.',
+  },
   'scout.travel.2': { name: 'Longue-Vue', description: 'Ta vision porte un hexagone plus loin.' },
   'scout.travel.3': {
     name: 'Pisteur',

@@ -116,12 +116,8 @@
           "name": "action_queue_character_id_characters_id_fk",
           "tableFrom": "action_queue",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -287,12 +283,8 @@
           "name": "characters_hex_id_hexes_id_fk",
           "tableFrom": "characters",
           "tableTo": "hexes",
-          "columnsFrom": [
-            "hex_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hex_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -302,16 +294,12 @@
         "characters_user_id_unique": {
           "name": "characters_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "characters_name_unique": {
           "name": "characters_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -364,12 +352,8 @@
           "name": "discoveries_character_id_characters_id_fk",
           "tableFrom": "discoveries",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -377,12 +361,8 @@
           "name": "discoveries_hex_id_hexes_id_fk",
           "tableFrom": "discoveries",
           "tableTo": "hexes",
-          "columnsFrom": [
-            "hex_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hex_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -390,10 +370,7 @@
       "compositePrimaryKeys": {
         "discoveries_character_id_hex_id_pk": {
           "name": "discoveries_character_id_hex_id_pk",
-          "columns": [
-            "character_id",
-            "hex_id"
-          ]
+          "columns": ["character_id", "hex_id"]
         }
       },
       "uniqueConstraints": {},
@@ -485,12 +462,8 @@
           "name": "hexes_region_id_regions_id_fk",
           "tableFrom": "hexes",
           "tableTo": "regions",
-          "columnsFrom": [
-            "region_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["region_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -546,9 +519,7 @@
         "regions_slug_unique": {
           "name": "regions_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -565,38 +536,17 @@
     "public.action_type": {
       "name": "action_type",
       "schema": "public",
-      "values": [
-        "move",
-        "search",
-        "rest",
-        "craft",
-        "raid_assault",
-        "expedition_leg"
-      ]
+      "values": ["move", "search", "rest", "craft", "raid_assault", "expedition_leg"]
     },
     "public.class": {
       "name": "class",
       "schema": "public",
-      "values": [
-        "blade",
-        "arcanist",
-        "scout",
-        "cantor"
-      ]
+      "values": ["blade", "arcanist", "scout", "cantor"]
     },
     "public.terrain": {
       "name": "terrain",
       "schema": "public",
-      "values": [
-        "plain",
-        "forest",
-        "hill",
-        "marsh",
-        "ruins",
-        "ash_road",
-        "ford",
-        "shrine"
-      ]
+      "values": ["plain", "forest", "hill", "marsh", "ruins", "ash_road", "ford", "shrine"]
     }
   },
   "schemas": {},

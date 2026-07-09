@@ -7,6 +7,7 @@ Critère de sortie global : 5 testeurs traversent les Landes depuis leur télép
 ## Périmètre
 
 ### Inclus
+
 - Bootstrap monorepo complet (pnpm workspaces, lint/format/test/CI locale).
 - Auth better-auth (email + mot de passe), création de personnage (nom + classe), écran de connexion/création.
 - Schéma DB : `regions`, `hexes`, `characters`, `discoveries`, `action_queue` + migrations + seed régions 0–1.
@@ -16,37 +17,44 @@ Critère de sortie global : 5 testeurs traversent les Landes depuis leur télép
 - PWA de base : manifest + service worker (installable ; le push attendra M5).
 
 ### Exclu (ne pas implémenter, même « tant qu'on y est »)
+
 Combat, POI/fouille, inventaire, quêtes, chat/WS (le front peut poller `GET /actions` toutes les 30 s en M1), monnaies (affichées à 0), compétences.
 
 ## User stories & critères d'acceptation
 
 **US1 — Créer son Ravivé.**
 Étant nouveau, je m'inscris, je choisis un nom (3–24 chars, unique) et une classe, et j'apparais à la Salle des Cendres (hex de spawn, région 0).
+
 - ✓ `POST /characters` refuse un 2ᵉ personnage (`409`), un nom pris (`409`), un nom invalide (`400`).
 - ✓ Les stats de départ correspondent au GDD §4 selon la classe.
 
 **US2 — Voir le monde à ma mesure.**
 Je ne vois que les hexagones découverts + leurs adjacents en silhouette ; le spawn et ses adjacents sont découverts d'office.
+
 - ✓ `GET /map/regions/:id/hexes` n'expose ni terrain ni POI des hexes non découverts.
 - ✓ La carte SVG affiche brouillard animé (brume dérivante) et hexes découverts selon DESIGN §4 ; `prefers-reduced-motion` coupe la dérive.
 
 **US3 — Me déplacer avec un coût.**
 Je sélectionne un hex adjacent, je vois coût (⚡) et durée (⏳) — multiplicateur de Brume inclus — je confirme, mon endurance est débitée, un timer démarre.
+
 - ✓ `POST /actions {move}` : `409 NOT_ADJACENT` si non adjacent (en tenant compte de la file : l'adjacence s'évalue depuis la destination de la dernière action en file), `409 INSUFFICIENT_STAMINA`, `409 QUEUE_FULL` au-delà de 3, `409 HEX_LOCKED` vers une région verrouillée.
 - ✓ Coûts exacts : table GDD §3.1 × multiplicateur de Brume (×1/1.25/1.5/2) — testés unitairement dans `shared`.
 - ✓ À échéance : position mise à jour, hex + adjacents découverts, `result` rempli.
 
 **US4 — Empiler jusqu'à 3 actions.**
 Je programme un itinéraire de 3 cases ; je peux annuler une action non commencée (remboursement stamina).
+
 - ✓ `DELETE /actions/:id` : `204` + remboursement si `position > 0` ; `409` si l'action est en cours (position 0 et `startsAt` passé).
 
 **US5 — Reprendre des forces.**
 Sur un hex `shrine`, je lance `rest` (30 min → +75 stamina, cap 100). Ma stamina se régénère aussi passivement (1/6 min, ×2 en région 0).
+
 - ✓ `computeStamina()` testée : régén passive, cap, multiplicateurs bastion/shrine.
 - ✓ Le front affiche l'endurance recalculée localement entre deux réponses serveur (même formule de `shared` — mais la valeur serveur écrase toujours).
 
 **US6 — Jouer au pouce.**
 Toute l'expérience M1 fonctionne sur un écran 360px, installable en PWA.
+
 - ✓ Zones tactiles ≥ 44px, `100dvh`, safe-area sur la nav.
 - ✓ Fermer/rouvrir l'app en plein timer restaure l'état exact (le timer d'affichage se recale sur `endsAt`).
 

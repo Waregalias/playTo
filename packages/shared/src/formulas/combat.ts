@@ -31,8 +31,7 @@ export function resolveAttack(input: AttackInput, rng: Rng): AttackResult {
 
   const crit = rng() < input.attackerDex * COMBAT.critPerDex;
   const variance = COMBAT.varianceMin + rng() * COMBAT.varianceSpan;
-  const mitigated =
-    1 - input.mitigation / (input.mitigation + COMBAT.mitigationScale);
+  const mitigated = 1 - input.mitigation / (input.mitigation + COMBAT.mitigationScale);
 
   const raw =
     input.attackScore *

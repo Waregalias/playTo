@@ -34,9 +34,7 @@ function stepMatches(step: QuestStep, event: QuestEvent, questId: string): boole
       return event.kind === 'kill' && event.foeSlug === step.foeSlug;
     case 'combat':
       return (
-        event.kind === 'combat-won' &&
-        event.questId === questId &&
-        event.foeSlug === step.foeSlug
+        event.kind === 'combat-won' && event.questId === questId && event.foeSlug === step.foeSlug
       );
     case 'choice':
       return false; // choices advance through the advance route, not events
@@ -78,7 +76,10 @@ export async function advanceOnEvent(
           .update(characterQuests)
           .set({ progress })
           .where(
-            and(eq(characterQuests.characterId, characterId), eq(characterQuests.questId, quest.id)),
+            and(
+              eq(characterQuests.characterId, characterId),
+              eq(characterQuests.questId, quest.id),
+            ),
           );
         continue;
       }
@@ -115,7 +116,9 @@ export async function completeStep(
     await tx
       .update(characterQuests)
       .set({ state: 'done', progress })
-      .where(and(eq(characterQuests.characterId, characterId), eq(characterQuests.questId, questId)));
+      .where(
+        and(eq(characterQuests.characterId, characterId), eq(characterQuests.questId, questId)),
+      );
     return;
   }
 

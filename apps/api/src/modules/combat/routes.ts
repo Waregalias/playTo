@@ -1,7 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { combatActionSchema, combatStateSchema, createCombatSchema, maxHp, type Rng } from '@aldenfer/shared';
+import {
+  combatActionSchema,
+  combatStateSchema,
+  createCombatSchema,
+  maxHp,
+  type Rng,
+} from '@aldenfer/shared';
 import type { Auth } from '../../auth.js';
 import { requireCharacter } from '../../lib/require-character.js';
 import { AppError } from '../../lib/app-error.js';
@@ -31,7 +37,13 @@ export function registerCombatRoutes(
     { schema: { body: createCombatSchema, response: { 201: combatStateSchema } } },
     async (request, reply) => {
       const character = await requireCharacter(app.db, auth, request);
-      const combatId = await startQuestCombat(app.db, character.id, request.body.questId, now(), rng);
+      const combatId = await startQuestCombat(
+        app.db,
+        character.id,
+        request.body.questId,
+        now(),
+        rng,
+      );
       const combat = await getActiveCombat(app.db, character.id);
       if (!combat || combat.id !== combatId) {
         // The opening blow can end a fight instantly — return it anyway.

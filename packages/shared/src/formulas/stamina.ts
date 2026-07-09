@@ -44,8 +44,7 @@ export function computeStamina(
   now: Date,
   context: RegenContext = 'field',
 ): ComputedStamina {
-  const intervalMs =
-    (STAMINA_REGEN_MINUTES_PER_POINT * 60_000) / regenMultiplier(context);
+  const intervalMs = (STAMINA_REGEN_MINUTES_PER_POINT * 60_000) / regenMultiplier(context);
   const elapsedMs = now.getTime() - state.staminaUpdatedAt.getTime();
 
   if (elapsedMs <= 0 || state.stamina >= STAMINA_MAX) {

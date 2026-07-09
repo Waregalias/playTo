@@ -24,6 +24,7 @@
 ### Task 1: shared — contribution maths & constants
 
 **Files:**
+
 - Create: `packages/shared/src/formulas/contribution.ts`
 - Test: `packages/shared/src/formulas/contribution.test.ts`
 - Modify: `packages/shared/src/formulas/index.ts` (export)
@@ -31,9 +32,14 @@
 - Modify: `packages/shared/src/constants/index.ts` (export)
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
-  export interface ContributionPlan { creditGiven: number; rawNeeded: number; }
+  export interface ContributionPlan {
+    creditGiven: number;
+    rawNeeded: number;
+  }
   export function planContribution(qty: number, mult: number, remaining: number): ContributionPlan;
   export function contributionReward(credit: number): { xp: number; ashCrowns: number };
   // constants/resources.ts
@@ -44,6 +50,7 @@
 - [ ] **Step 1: Write the failing tests**
 
 `packages/shared/src/formulas/contribution.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { planContribution, contributionReward } from './contribution.js';
@@ -80,6 +87,7 @@ describe('contributionReward', () => {
 - [ ] **Step 3: Implement**
 
 `packages/shared/src/formulas/contribution.ts`:
+
 ```ts
 export interface ContributionPlan {
   /** Amount added to the project progress for this resource. */
@@ -102,7 +110,9 @@ export function contributionReward(credit: number): { xp: number; ashCrowns: num
   return { xp: credit, ashCrowns: Math.floor(credit / 5) };
 }
 ```
+
 `packages/shared/src/constants/resources.ts`:
+
 ```ts
 /** Endurance cost of one contribution (GDD §8). */
 export const CONTRIBUTION_STAMINA_COST = 5;
@@ -117,11 +127,13 @@ export const RESOURCE_ITEM_IDS: Record<string, string> = {
   mistEssence: 'material.mist-essence',
 };
 ```
+
 Add exports: `export * from './contribution.js';` to `formulas/index.ts`; `export * from './resources.js';` to `constants/index.ts`.
 
 - [ ] **Step 4: Run to verify it passes** — `pnpm --filter @aldenfer/shared test contribution` → PASS. Then `pnpm --filter @aldenfer/shared build` → clean.
 
 - [ ] **Step 5: Commit**
+
 ```bash
 git add packages/shared/src/formulas/contribution.ts packages/shared/src/formulas/contribution.test.ts packages/shared/src/formulas/index.ts packages/shared/src/constants/resources.ts packages/shared/src/constants/index.ts
 git commit -m "feat(shared): contribution clamp/credit maths + resource map"
@@ -132,6 +144,7 @@ git commit -m "feat(shared): contribution clamp/credit maths + resource map"
 ### Task 2: shared — `project` quest step, Q5 data, contribute response schema & FR
 
 **Files:**
+
 - Modify: `packages/shared/src/schemas/quest.ts` (add `project` step kind + handle in types)
 - Modify: `packages/shared/src/schemas/project.ts` (add `contributeResponseSchema`)
 - Modify: `packages/shared/src/constants/quest-data.ts` (add Q5)
@@ -139,11 +152,13 @@ git commit -m "feat(shared): contribution clamp/credit maths + resource map"
 - Test: `packages/shared/src/constants/quest-data.test.ts` (create or extend — verify Q5 present & graph valid)
 
 **Interfaces:**
+
 - Produces: quest step `{ kind:'project', projectId: string, next: string | null }`; `QUEST_DEFINITIONS` includes `r1.main.q5` (kind main, requires `r1.main.q4`, one project step → next null); `contributeResponseSchema = z.object({ project: projectDetailSchema, character: characterSchema })`.
 
 - [ ] **Step 1: Add the `project` step kind (write failing shared test first)**
 
 Create `packages/shared/src/constants/quest-data.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { QUEST_DEFINITIONS } from './quest-data.js';
@@ -160,7 +175,9 @@ describe('Q5 community project quest', () => {
   });
 });
 ```
+
 Run `pnpm --filter @aldenfer/shared test quest-data` → FAIL. Then in `packages/shared/src/schemas/quest.ts`, add to the `questStepSchema` discriminated union (after the `combat` member):
+
 ```ts
   z.object({ ...stepBase, kind: z.literal('project'), projectId: z.string() }),
 ```
@@ -168,6 +185,7 @@ Run `pnpm --filter @aldenfer/shared test quest-data` → FAIL. Then in `packages
 - [ ] **Step 2: Add the `contributeResponseSchema`**
 
 In `packages/shared/src/schemas/project.ts`, add (imports `characterSchema` from `./character.js`):
+
 ```ts
 import { characterSchema } from './character.js';
 // …
@@ -181,6 +199,7 @@ export type ContributeResponse = z.infer<typeof contributeResponseSchema>;
 - [ ] **Step 3: Add Q5 to the quest data**
 
 Inspect `packages/shared/src/constants/quest-data.ts` for the `RAW_QUESTS` array shape (see q4 at the end), then append a Q5 entry mirroring that shape:
+
 ```ts
   {
     id: 'r1.main.q5',
@@ -194,6 +213,7 @@ Inspect `packages/shared/src/constants/quest-data.ts` for the `RAW_QUESTS` array
     },
   },
 ```
+
 (Match the exact field names/nesting the file uses — e.g. if steps are stored as `{ start, steps }` per q4, follow that; the `requires`/`rewards` keys are per `QuestDefinition`.)
 
 - [ ] **Step 4: FR content for Q5**
@@ -203,6 +223,7 @@ Inspect `packages/shared/src/content/fr/quests.ts` and add the Q5 entry in the s
 - [ ] **Step 5: Run tests, typecheck & commit**
 
 Run `pnpm --filter @aldenfer/shared test` → all pass (quest-data + existing). Run `pnpm --filter @aldenfer/shared build` → clean.
+
 ```bash
 git add packages/shared/src/schemas/quest.ts packages/shared/src/schemas/project.ts packages/shared/src/constants/quest-data.ts packages/shared/src/constants/quest-data.test.ts packages/shared/src/content/fr/quests.ts
 git commit -m "feat(shared): project quest step + Q5 « Sonner le Glas » + contribute response"
@@ -213,6 +234,7 @@ git commit -m "feat(shared): project quest step + Q5 « Sonner le Glas » + cont
 ### Task 3: api — inventory debit, project service, routes, broadcast & completion
 
 **Files:**
+
 - Modify: `apps/api/src/modules/inventory/service.ts` (add `removeMaterialQty`)
 - Modify: `apps/api/src/modules/quests/hooks.ts` (handle `project` kind in `stepMatches`)
 - Create: `apps/api/src/modules/projects/service.ts`
@@ -222,22 +244,44 @@ git commit -m "feat(shared): project quest step + Q5 « Sonner le Glas » + cont
 - Modify: `apps/api/src/test/test-db.ts` (seed `projects` so `r1.belfry` exists in tests)
 
 **Interfaces:**
+
 - Consumes: `planContribution`, `contributionReward`, `CONTRIBUTION_STAMINA_COST`, `RESOURCE_ITEM_IDS`, `computeStamina`, `applyXp`, `completeStep`, `app.realtime`.
 - Produces:
+
   ```ts
   // inventory/service.ts
-  export async function removeMaterialQty(tx: Tx, characterId: string, itemId: string, qty: number): Promise<boolean>;
+  export async function removeMaterialQty(
+    tx: Tx,
+    characterId: string,
+    itemId: string,
+    qty: number,
+  ): Promise<boolean>;
   // projects/service.ts
   export async function listProjects(db: Db, regionId?: number): Promise<{ items: ProjectDto[] }>;
-  export async function getProjectDetail(db: Db, projectId: string, characterId: string): Promise<ProjectDetailDto>;
+  export async function getProjectDetail(
+    db: Db,
+    projectId: string,
+    characterId: string,
+  ): Promise<ProjectDetailDto>;
   export async function contribute(
-    db: Db, character: CharacterRow, projectId: string, input: { resource: string; qty: number }, now: Date,
-  ): Promise<{ detail: ProjectDetailDto; character: CharacterDto; completed: boolean; credited: boolean; regionId: number }>;
+    db: Db,
+    character: CharacterRow,
+    projectId: string,
+    input: { resource: string; qty: number },
+    now: Date,
+  ): Promise<{
+    detail: ProjectDetailDto;
+    character: CharacterDto;
+    completed: boolean;
+    credited: boolean;
+    regionId: number;
+  }>;
   ```
 
 - [ ] **Step 1: `removeMaterialQty` (write failing test first)**
 
 Add to `apps/api/src/modules/inventory/service.ts`:
+
 ```ts
 /** Debits `qty` of a stackable material; returns false (no change) if the stack is too small. */
 export async function removeMaterialQty(
@@ -253,16 +297,21 @@ export async function removeMaterialQty(
   if (row.qty === qty) {
     await tx.delete(inventory).where(eq(inventory.id, row.id));
   } else {
-    await tx.update(inventory).set({ qty: row.qty - qty }).where(eq(inventory.id, row.id));
+    await tx
+      .update(inventory)
+      .set({ qty: row.qty - qty })
+      .where(eq(inventory.id, row.id));
   }
   return true;
 }
 ```
+
 (Its behaviour is covered by the contribution tests in Step 6 — no separate unit test needed since it has no branching logic beyond the guard, which the `INSUFFICIENT_MATERIALS` case exercises.)
 
 - [ ] **Step 2: Handle `project` in `stepMatches`**
 
 In `apps/api/src/modules/quests/hooks.ts`, add a case so the discriminated union stays exhaustive (project steps never advance on world events — only on project completion):
+
 ```ts
     case 'project':
       return false;
@@ -271,16 +320,20 @@ In `apps/api/src/modules/quests/hooks.ts`, add a case so the discriminated union
 - [ ] **Step 3: Seed the project in the test DB**
 
 In `apps/api/src/test/test-db.ts`: import `projects` from schema and `PROJECT_SEEDS` from `../db/seed/projects-data.js`, and after the quests insert add:
+
 ```ts
-  await db
-    .insert(projects)
-    .values(PROJECT_SEEDS.map((p) => ({ id: p.id, regionId: p.regionId, name: p.name, goals: p.goals })))
-    .onConflictDoNothing();
+await db
+  .insert(projects)
+  .values(
+    PROJECT_SEEDS.map((p) => ({ id: p.id, regionId: p.regionId, name: p.name, goals: p.goals })),
+  )
+  .onConflictDoNothing();
 ```
 
 - [ ] **Step 4: Write the failing API test**
 
 `apps/api/src/modules/projects/routes.test.ts` (reuse `signUp` + setup pattern; add a materials-granting helper and a direct `characters`/`inventory`/`projects` writer via `db`). Cover: happy contribute, clamp, INSUFFICIENT_STAMINA, INSUFFICIENT_MATERIALS, PROJECT_COMPLETED, completion → Q5 done + `announce` published, and `project.progress` published. Key cases:
+
 ```ts
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 import { eq } from 'drizzle-orm';
@@ -290,24 +343,39 @@ import { setupTestDb, resetTestDb, TEST_ENV } from '../../test/test-db.js';
 import { characters, inventory, projects, characterQuests } from '../../db/schema.js';
 import type { Db } from '../../db/client.js';
 
-let app: FastifyInstance; let db: Db;
+let app: FastifyInstance;
+let db: Db;
 const NOW = new Date('2026-07-04T12:00:00Z');
 // signUp copied from characters/routes.test.ts
 
 async function makeChar(cookie: string, name: string, cls = 'blade') {
-  await app.inject({ method: 'POST', url: '/api/v1/characters', headers: { cookie }, payload: { name, class: cls } });
+  await app.inject({
+    method: 'POST',
+    url: '/api/v1/characters',
+    headers: { cookie },
+    payload: { name, class: cls },
+  });
   return (await db.query.characters.findFirst({ where: eq(characters.name, name) }))!;
 }
 async function giveMaterial(characterId: string, itemId: string, qty: number) {
   await db.insert(inventory).values({ characterId, itemId, qty });
 }
 
-beforeAll(async () => { db = await setupTestDb(); app = await buildApp(TEST_ENV, { db, now: () => NOW }); await app.ready(); });
-afterAll(async () => { await app.close(); });
+beforeAll(async () => {
+  db = await setupTestDb();
+  app = await buildApp(TEST_ENV, { db, now: () => NOW });
+  await app.ready();
+});
+afterAll(async () => {
+  await app.close();
+});
 beforeEach(async () => {
   await resetTestDb(db);
   // reset live project progress between tests
-  await db.update(projects).set({ progress: {}, completedAt: null }).where(eq(projects.id, 'r1.belfry'));
+  await db
+    .update(projects)
+    .set({ progress: {}, completedAt: null })
+    .where(eq(projects.id, 'r1.belfry'));
 });
 
 describe('POST /api/v1/projects/:id/contribute', () => {
@@ -316,7 +384,12 @@ describe('POST /api/v1/projects/:id/contribute', () => {
     const char = await makeChar(cookie, 'Giver');
     await giveMaterial(char.id, 'material.shadewood', 100);
 
-    const res = await app.inject({ method: 'POST', url: '/api/v1/projects/r1.belfry/contribute', headers: { cookie }, payload: { resource: 'shadewood', qty: 50 } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects/r1.belfry/contribute',
+      headers: { cookie },
+      payload: { resource: 'shadewood', qty: 50 },
+    });
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.project.progress.shadewood).toBe(50);
@@ -329,10 +402,18 @@ describe('POST /api/v1/projects/:id/contribute', () => {
   it('clamps to the remaining goal and debits only what is needed', async () => {
     const cookie = await signUp('c2@aldenfer.test');
     const char = await makeChar(cookie, 'Clamper');
-    await db.update(projects).set({ progress: { shadewood: 4990 } }).where(eq(projects.id, 'r1.belfry'));
+    await db
+      .update(projects)
+      .set({ progress: { shadewood: 4990 } })
+      .where(eq(projects.id, 'r1.belfry'));
     await giveMaterial(char.id, 'material.shadewood', 100);
 
-    const res = await app.inject({ method: 'POST', url: '/api/v1/projects/r1.belfry/contribute', headers: { cookie }, payload: { resource: 'shadewood', qty: 100 } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects/r1.belfry/contribute',
+      headers: { cookie },
+      payload: { resource: 'shadewood', qty: 100 },
+    });
     expect(res.json().project.progress.shadewood).toBe(5000);
     const inv = await db.query.inventory.findFirst({ where: eq(inventory.characterId, char.id) });
     expect(inv!.qty).toBe(90); // only 10 debited
@@ -341,7 +422,12 @@ describe('POST /api/v1/projects/:id/contribute', () => {
   it('rejects when the material is missing (409 INSUFFICIENT_MATERIALS)', async () => {
     const cookie = await signUp('c3@aldenfer.test');
     await makeChar(cookie, 'Empty');
-    const res = await app.inject({ method: 'POST', url: '/api/v1/projects/r1.belfry/contribute', headers: { cookie }, payload: { resource: 'shadewood', qty: 10 } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects/r1.belfry/contribute',
+      headers: { cookie },
+      payload: { resource: 'shadewood', qty: 10 },
+    });
     expect(res.statusCode).toBe(409);
     expect(res.json().error.code).toBe('INSUFFICIENT_MATERIALS');
   });
@@ -349,9 +435,17 @@ describe('POST /api/v1/projects/:id/contribute', () => {
   it('rejects when stamina is below 5 (409 INSUFFICIENT_STAMINA)', async () => {
     const cookie = await signUp('c4@aldenfer.test');
     const char = await makeChar(cookie, 'Tired');
-    await db.update(characters).set({ stamina: 4, staminaUpdatedAt: NOW }).where(eq(characters.id, char.id));
+    await db
+      .update(characters)
+      .set({ stamina: 4, staminaUpdatedAt: NOW })
+      .where(eq(characters.id, char.id));
     await giveMaterial(char.id, 'material.shadewood', 10);
-    const res = await app.inject({ method: 'POST', url: '/api/v1/projects/r1.belfry/contribute', headers: { cookie }, payload: { resource: 'shadewood', qty: 10 } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects/r1.belfry/contribute',
+      headers: { cookie },
+      payload: { resource: 'shadewood', qty: 10 },
+    });
     expect(res.statusCode).toBe(409);
     expect(res.json().error.code).toBe('INSUFFICIENT_STAMINA');
   });
@@ -360,17 +454,35 @@ describe('POST /api/v1/projects/:id/contribute', () => {
     const cookie = await signUp('c5@aldenfer.test');
     const char = await makeChar(cookie, 'Finisher');
     // near-complete, only 1 ash glass missing
-    await db.update(projects).set({ progress: { shadewood: 5000, sootOre: 3000, ashGlass: 499 } }).where(eq(projects.id, 'r1.belfry'));
+    await db
+      .update(projects)
+      .set({ progress: { shadewood: 5000, sootOre: 3000, ashGlass: 499 } })
+      .where(eq(projects.id, 'r1.belfry'));
     await giveMaterial(char.id, 'material.ash-glass', 1);
     // contributor has Q5 active on the project step
-    await db.insert(characterQuests).values({ characterId: char.id, questId: 'r1.main.q5', state: 'active', stepId: 's1', progress: { counts: {}, choices: {} } });
+    await db
+      .insert(characterQuests)
+      .values({
+        characterId: char.id,
+        questId: 'r1.main.q5',
+        state: 'active',
+        stepId: 's1',
+        progress: { counts: {}, choices: {} },
+      });
 
     const publishSpy = vi.spyOn(app.realtime, 'publish');
-    const res = await app.inject({ method: 'POST', url: '/api/v1/projects/r1.belfry/contribute', headers: { cookie }, payload: { resource: 'ashGlass', qty: 1 } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects/r1.belfry/contribute',
+      headers: { cookie },
+      payload: { resource: 'ashGlass', qty: 1 },
+    });
     expect(res.statusCode).toBe(200);
     expect(res.json().project.completedAt).not.toBeNull();
 
-    const cq = await db.query.characterQuests.findFirst({ where: eq(characterQuests.characterId, char.id) });
+    const cq = await db.query.characterQuests.findFirst({
+      where: eq(characterQuests.characterId, char.id),
+    });
     expect(cq!.state).toBe('done');
     expect(publishSpy.mock.calls.some((c) => c[0] === 'global' && c[1] === 'announce')).toBe(true);
     publishSpy.mockRestore();
@@ -381,7 +493,12 @@ describe('POST /api/v1/projects/:id/contribute', () => {
     const char = await makeChar(cookie, 'Late');
     await db.update(projects).set({ completedAt: NOW }).where(eq(projects.id, 'r1.belfry'));
     await giveMaterial(char.id, 'material.shadewood', 10);
-    const res = await app.inject({ method: 'POST', url: '/api/v1/projects/r1.belfry/contribute', headers: { cookie }, payload: { resource: 'shadewood', qty: 10 } });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects/r1.belfry/contribute',
+      headers: { cookie },
+      payload: { resource: 'shadewood', qty: 10 },
+    });
     expect(res.statusCode).toBe(409);
     expect(res.json().error.code).toBe('PROJECT_COMPLETED');
   });
@@ -393,6 +510,7 @@ describe('POST /api/v1/projects/:id/contribute', () => {
 - [ ] **Step 6: Implement the service**
 
 `apps/api/src/modules/projects/service.ts`:
+
 ```ts
 import { and, eq, sql } from 'drizzle-orm';
 import {
@@ -410,7 +528,14 @@ import {
   type CharacterDto,
 } from '@aldenfer/shared';
 import type { Db } from '../../db/client.js';
-import { characters, contributions, hexes, projects, characterQuests, quests } from '../../db/schema.js';
+import {
+  characters,
+  contributions,
+  hexes,
+  projects,
+  characterQuests,
+  quests,
+} from '../../db/schema.js';
 import { AppError } from '../../lib/app-error.js';
 import { applyXp } from '../../lib/progression.js';
 import { removeMaterialQty } from '../inventory/service.js';
@@ -431,15 +556,20 @@ function toProjectDto(row: typeof projects.$inferSelect): ProjectDto {
 }
 
 export async function listProjects(db: Db, regionId?: number): Promise<{ items: ProjectDto[] }> {
-  const rows = regionId === undefined
-    ? await db.select().from(projects)
-    : await db.select().from(projects).where(eq(projects.regionId, regionId));
+  const rows =
+    regionId === undefined
+      ? await db.select().from(projects)
+      : await db.select().from(projects).where(eq(projects.regionId, regionId));
   return { items: rows.map(toProjectDto) };
 }
 
 async function contributionSummary(tx: Tx | Db, projectId: string, characterId: string) {
   const rows = await tx
-    .select({ characterId: contributions.characterId, resource: contributions.resource, qty: contributions.qty })
+    .select({
+      characterId: contributions.characterId,
+      resource: contributions.resource,
+      qty: contributions.qty,
+    })
     .from(contributions)
     .where(eq(contributions.projectId, projectId));
   const mine: Record<string, number> = {};
@@ -451,7 +581,11 @@ async function contributionSummary(tx: Tx | Db, projectId: string, characterId: 
   return { myContribution: mine, contributorCount: contributors.size };
 }
 
-export async function getProjectDetail(db: Db, projectId: string, characterId: string): Promise<ProjectDetailDto> {
+export async function getProjectDetail(
+  db: Db,
+  projectId: string,
+  characterId: string,
+): Promise<ProjectDetailDto> {
   const row = await db.query.projects.findFirst({ where: eq(projects.id, projectId) });
   if (!row) throw new AppError('NOT_FOUND', 404);
   const summary = await contributionSummary(db, projectId, characterId);
@@ -469,7 +603,9 @@ async function completeProjectQuests(tx: Tx, projectId: string): Promise<void> {
       .select({ cq: characterQuests, quest: quests })
       .from(characterQuests)
       .innerJoin(quests, eq(characterQuests.questId, quests.id))
-      .where(and(eq(characterQuests.characterId, characterId), eq(characterQuests.state, 'active')));
+      .where(
+        and(eq(characterQuests.characterId, characterId), eq(characterQuests.state, 'active')),
+      );
     for (const { cq, quest } of active) {
       const graph = questGraphSchema.parse(quest.steps);
       const step = graph.steps.find((s) => s.id === cq.stepId);
@@ -486,7 +622,13 @@ export async function contribute(
   projectId: string,
   input: { resource: string; qty: number },
   now: Date,
-): Promise<{ detail: ProjectDetailDto; character: CharacterDto; completed: boolean; credited: boolean; regionId: number }> {
+): Promise<{
+  detail: ProjectDetailDto;
+  character: CharacterDto;
+  completed: boolean;
+  credited: boolean;
+  regionId: number;
+}> {
   const itemId = RESOURCE_ITEM_IDS[input.resource];
   if (!itemId) throw new AppError('VALIDATION_ERROR', 400);
 
@@ -499,7 +641,11 @@ export async function contribute(
     const current = proj.progress[input.resource] ?? 0;
     const remaining = goal - current;
 
-    const [charRow] = await tx.select().from(characters).where(eq(characters.id, character.id)).for('update');
+    const [charRow] = await tx
+      .select()
+      .from(characters)
+      .where(eq(characters.id, character.id))
+      .for('update');
     if (!charRow) throw new Error('character vanished');
     const hex = await tx.query.hexes.findFirst({ where: eq(hexes.id, charRow.hexId) });
     const staminaNow = computeStamina(
@@ -524,7 +670,14 @@ export async function contribute(
 
       const newProgress = { ...proj.progress, [input.resource]: current + plan.creditGiven };
       await tx.update(projects).set({ progress: newProgress }).where(eq(projects.id, projectId));
-      await tx.insert(contributions).values({ projectId, characterId: character.id, resource: input.resource, qty: plan.rawNeeded });
+      await tx
+        .insert(contributions)
+        .values({
+          projectId,
+          characterId: character.id,
+          resource: input.resource,
+          qty: plan.rawNeeded,
+        });
 
       const reward = contributionReward(plan.creditGiven);
       const xp = applyXp(charRow, reward.xp);
@@ -556,7 +709,9 @@ export async function contribute(
       }
     }
 
-    const freshChar = (await tx.select().from(characters).where(eq(characters.id, character.id)))[0]!;
+    const freshChar = (
+      await tx.select().from(characters).where(eq(characters.id, character.id))
+    )[0]!;
     const freshHex = await tx.query.hexes.findFirst({ where: eq(hexes.id, freshChar.hexId) });
     const detail = await (async () => {
       const p = (await tx.select().from(projects).where(eq(projects.id, projectId)))[0]!;
@@ -580,6 +735,7 @@ export async function contribute(
 - [ ] **Step 7: Implement the routes (with broadcast)**
 
 `apps/api/src/modules/projects/routes.ts`:
+
 ```ts
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
@@ -601,7 +757,12 @@ export function registerProjectRoutes(app: FastifyInstance, auth: Auth, now: () 
 
   typed.get(
     '/api/v1/projects',
-    { schema: { querystring: z.object({ regionId: z.coerce.number().int().optional() }), response: { 200: z.object({ items: z.array(projectSchema) }) } } },
+    {
+      schema: {
+        querystring: z.object({ regionId: z.coerce.number().int().optional() }),
+        response: { 200: z.object({ items: z.array(projectSchema) }) },
+      },
+    },
     async (request) => {
       await requireCharacter(app.db, auth, request);
       return listProjects(app.db, request.query.regionId);
@@ -619,21 +780,40 @@ export function registerProjectRoutes(app: FastifyInstance, auth: Auth, now: () 
 
   typed.post(
     '/api/v1/projects/:id/contribute',
-    { schema: { params: z.object({ id: z.string() }), body: contributeSchema, response: { 200: contributeResponseSchema } } },
+    {
+      schema: {
+        params: z.object({ id: z.string() }),
+        body: contributeSchema,
+        response: { 200: contributeResponseSchema },
+      },
+    },
     async (request) => {
       const character = await requireCharacter(app.db, auth, request);
       const out = await contribute(app.db, character, request.params.id, request.body, now());
       if (out.credited) {
         const at = now().toISOString();
         if (out.completed || progressThrottle.tryConsume(request.params.id, now().getTime())) {
-          app.realtime.publish(`region:${out.regionId}`, 'project.progress', {
-            projectId: request.params.id, progress: out.detail.progress, goals: out.detail.goals,
-          }, at);
+          app.realtime.publish(
+            `region:${out.regionId}`,
+            'project.progress',
+            {
+              projectId: request.params.id,
+              progress: out.detail.progress,
+              goals: out.detail.goals,
+            },
+            at,
+          );
         }
         if (out.completed) {
-          app.realtime.publish('global', 'announce', {
-            kind: 'project.completed', projectId: request.params.id,
-          }, at);
+          app.realtime.publish(
+            'global',
+            'announce',
+            {
+              kind: 'project.completed',
+              projectId: request.params.id,
+            },
+            at,
+          );
         }
       }
       return { project: out.detail, character: out.character };
@@ -641,11 +821,13 @@ export function registerProjectRoutes(app: FastifyInstance, auth: Auth, now: () 
   );
 }
 ```
+
 Wire in `apps/api/src/app.ts`: import `registerProjectRoutes` and call `registerProjectRoutes(app, auth, now);` alongside the others (before `registerRealtime`).
 
 - [ ] **Step 8: Run tests, typecheck & commit**
 
 Run `pnpm --filter api test projects` → PASS (6 tests). Run `pnpm --filter api test` → all pass. Run `pnpm --filter api build` → clean.
+
 ```bash
 git add apps/api/src/modules/inventory/service.ts apps/api/src/modules/quests/hooks.ts apps/api/src/modules/projects/ apps/api/src/app.ts apps/api/src/test/test-db.ts
 git commit -m "feat(api): community project contributions + Q5 completion + progress broadcast"
@@ -656,6 +838,7 @@ git commit -m "feat(api): community project contributions + Q5 completion + prog
 ## Self-Review
 
 **Spec coverage (SPEC-M3 step 5 = projects/contributions + Q5):**
+
 - `GET /projects`, `GET /projects/:id` (detail), `POST /projects/:id/contribute` → Task 3. ✅
 - ⚡5, transaction, clamp, Offrande ×1,4, XP + écus → Tasks 1 (maths) + 3 (service). ✅
 - Errors INSUFFICIENT_STAMINA / INSUFFICIENT_MATERIALS / PROJECT_COMPLETED → Task 3 tests. ✅
@@ -668,5 +851,6 @@ git commit -m "feat(api): community project contributions + Q5 completion + prog
 **Type consistency:** `planContribution(qty,mult,remaining)→{creditGiven,rawNeeded}` (Task 1) consumed verbatim by the service (Task 3). `contributeResponseSchema = {project: projectDetailSchema, character: characterSchema}` (Task 2) is the route's 200 and matches the `{project, character}` return. `RESOURCE_ITEM_IDS` keys match `RESOURCE_KEYS` (shared). `completeStep(tx, characterId, questId, graph, step, progress, next)` signature matches hooks.ts (M2). `project` step added to both the schema union (Task 2) and `stepMatches` (Task 3) — exhaustive. ✅
 
 ## Notes for subsequent M3 plans
+
 - Interpretation of "Q5 achieved by a contributor": a contributor whose Q5 is **active** on the `project` step at completion time flips to `done`. Contributing without having accepted Q5 still counts materials but grants no quest completion — coherent with the quest engine (accept requires Q4). Documented for the web plan (chantier UI must let players accept Q5 then contribute).
 - Web plan: `project.progress` and `announce` are **invalidation signals** (refetch `GET /projects/:id`), unlike `chat.message`.

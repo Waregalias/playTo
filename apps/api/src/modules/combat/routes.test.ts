@@ -131,7 +131,10 @@ describe('combat turns (US2)', () => {
     await db.update(characters).set({ hp: 40 }).where(eq(characters.id, me.id));
     const combatId = await forceCombat(cookie);
 
-    const result = await turn(cookie, combatId, { action: 'item', itemId: 'consumable.ash-potion' });
+    const result = await turn(cookie, combatId, {
+      action: 'item',
+      itemId: 'consumable.ash-potion',
+    });
     const state = result.json();
     // +30 PV puis riposte 11
     expect(state.playerHp).toBe(40 + 30 - 11);
@@ -323,10 +326,18 @@ describe('encounters on resolution (US1)', () => {
     rngFn = () => 0.01;
     clock = new Date(T0.getTime() + 3_600_000);
 
-    const me = await app.inject({ method: 'GET', url: '/api/v1/characters/me', headers: { cookie } });
+    const me = await app.inject({
+      method: 'GET',
+      url: '/api/v1/characters/me',
+      headers: { cookie },
+    });
     expect(me.json().activeCombatId).toBeTruthy();
 
-    const current = await app.inject({ method: 'GET', url: '/api/v1/combat/current', headers: { cookie } });
+    const current = await app.inject({
+      method: 'GET',
+      url: '/api/v1/combat/current',
+      headers: { cookie },
+    });
     expect(current.json().combat.foe.slug).toBe('soot-wolf');
     // le combat a coûté 15 ⚡ en plus des déplacements
     const row = await charRow();
@@ -353,7 +364,11 @@ describe('encounters on resolution (US1)', () => {
       });
     }
     clock = new Date(T0.getTime() + 3_600_000);
-    const me = await app.inject({ method: 'GET', url: '/api/v1/characters/me', headers: { cookie } });
+    const me = await app.inject({
+      method: 'GET',
+      url: '/api/v1/characters/me',
+      headers: { cookie },
+    });
     expect(me.json().activeCombatId).toBeFalsy();
   });
 });

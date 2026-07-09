@@ -26,7 +26,12 @@ import { characters, combats, hexes, inventory, items, actionQueue } from '../..
 import { SPAWN_POI_TYPE } from '../../db/seed/world-data.js';
 import { AppError } from '../../lib/app-error.js';
 import { applyXp } from '../../lib/progression.js';
-import { addItem, equippedGear, inventoryCapacity, loseMaterialsOnDeath } from '../inventory/service.js';
+import {
+  addItem,
+  equippedGear,
+  inventoryCapacity,
+  loseMaterialsOnDeath,
+} from '../inventory/service.js';
 import { advanceOnEvent } from '../quests/hooks.js';
 
 type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
@@ -77,7 +82,13 @@ export async function startCombat(
 
   const penalty = !!character.deathPenaltyUntil && character.deathPenaltyUntil > now;
   const attrs = effectiveAttributes(
-    { str: character.str, dex: character.dex, wil: character.wil, vit: character.vit, fer: character.fer },
+    {
+      str: character.str,
+      dex: character.dex,
+      wil: character.wil,
+      vit: character.vit,
+      fer: character.fer,
+    },
     penalty,
   );
   const mods = deriveSkillModifiers(character.learnedSkills);
@@ -181,7 +192,13 @@ export async function playTurn(
 
     const penalty = !!character.deathPenaltyUntil && character.deathPenaltyUntil > now;
     const attrs = effectiveAttributes(
-      { str: character.str, dex: character.dex, wil: character.wil, vit: character.vit, fer: character.fer },
+      {
+        str: character.str,
+        dex: character.dex,
+        wil: character.wil,
+        vit: character.vit,
+        fer: character.fer,
+      },
       penalty,
     );
     const gear = await equippedGear(tx, characterId);
@@ -258,7 +275,10 @@ export async function playTurn(
 
       playerHp = Math.min(maxHp(attrs.vit), playerHp + heal);
       if (entry.qty > 1) {
-        await tx.update(inventory).set({ qty: entry.qty - 1 }).where(eq(inventory.id, entry.id));
+        await tx
+          .update(inventory)
+          .set({ qty: entry.qty - 1 })
+          .where(eq(inventory.id, entry.id));
       } else {
         await tx.delete(inventory).where(eq(inventory.id, entry.id));
       }
@@ -271,9 +291,17 @@ export async function playTurn(
       // flee — Évasion (scout.shadow.3) makes the escape certain.
       if (mods.fleeNoPenalty || rng() < fleeChance(attrs.dex, foe.dex)) {
         fled = true;
-        entries = log(entries, { turn, actor: 'system', text: 'Tu te fonds dans la Brume. Fuite réussie.' });
+        entries = log(entries, {
+          turn,
+          actor: 'system',
+          text: 'Tu te fonds dans la Brume. Fuite réussie.',
+        });
       } else {
-        entries = log(entries, { turn, actor: 'system', text: 'Fuite manquée — la Brume te rejette.' });
+        entries = log(entries, {
+          turn,
+          actor: 'system',
+          text: 'Fuite manquée — la Brume te rejette.',
+        });
       }
     }
 

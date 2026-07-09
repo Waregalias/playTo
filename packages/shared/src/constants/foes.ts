@@ -91,4 +91,9 @@ export const FOES: Record<string, FoeSpec> = {
 };
 
 /** Random-encounter pool for region 1 (Q4's Hollow Knight is quest-only). */
-export const REGION_1_ENCOUNTER_POOL = ['soot-wolf', 'soot-wolf', 'spectral-shepherd', 'heather-reaper'];
+export const REGION_1_ENCOUNTER_POOL = [
+  'soot-wolf',
+  'soot-wolf',
+  'spectral-shepherd',
+  'heather-reaper',
+];

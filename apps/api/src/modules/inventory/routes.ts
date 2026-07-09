@@ -72,7 +72,10 @@ export function registerInventoryRoutes(app: FastifyInstance, auth: Auth, now: (
           .where(and(eq(inventory.characterId, character.id), eq(inventory.equipped, true)));
         for (const other of equippedRows) {
           if (other.item.kind === row.item.kind) {
-            await tx.update(inventory).set({ equipped: false }).where(eq(inventory.id, other.entry.id));
+            await tx
+              .update(inventory)
+              .set({ equipped: false })
+              .where(eq(inventory.id, other.entry.id));
           }
         }
         await tx.update(inventory).set({ equipped: true }).where(eq(inventory.id, row.entry.id));
@@ -89,7 +92,9 @@ export function registerInventoryRoutes(app: FastifyInstance, auth: Auth, now: (
       const [row] = await app.db
         .update(inventory)
         .set({ equipped: false })
-        .where(and(eq(inventory.id, request.params.entryId), eq(inventory.characterId, character.id)))
+        .where(
+          and(eq(inventory.id, request.params.entryId), eq(inventory.characterId, character.id)),
+        )
         .returning();
       if (!row) throw new AppError('NOT_FOUND', 404);
       return reply.status(204).send();
@@ -125,7 +130,10 @@ export function registerInventoryRoutes(app: FastifyInstance, auth: Auth, now: (
           .set({ hp: Math.min(maxHp(character.vit), character.hp + stats.heal) })
           .where(eq(characters.id, character.id));
         if (row.entry.qty > 1) {
-          await tx.update(inventory).set({ qty: row.entry.qty - 1 }).where(eq(inventory.id, row.entry.id));
+          await tx
+            .update(inventory)
+            .set({ qty: row.entry.qty - 1 })
+            .where(eq(inventory.id, row.entry.id));
         } else {
           await tx.delete(inventory).where(eq(inventory.id, row.entry.id));
         }

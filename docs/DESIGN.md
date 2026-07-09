@@ -21,25 +21,25 @@ Corollaires pratiques :
 ```css
 :root {
   /* Gamme nuit (fonds) */
-  --color-night:    #0C1219;  /* fond app */
-  --color-abyss:    #060A0F;  /* fond hors-app, overlays */
-  --color-panel:    #17212C;  /* cartes, panneaux */
-  --color-panel-2:  #1E2A38;  /* éléments imbriqués */
-  --color-border:   #2C3B4B;  /* tous les liserés */
+  --color-night: #0c1219; /* fond app */
+  --color-abyss: #060a0f; /* fond hors-app, overlays */
+  --color-panel: #17212c; /* cartes, panneaux */
+  --color-panel-2: #1e2a38; /* éléments imbriqués */
+  --color-border: #2c3b4b; /* tous les liserés */
 
   /* Gamme brume (contenus froids) */
-  --color-mist:     #7E93A6;  /* texte secondaire, icônes inactives */
-  --color-bone:     #E9DFC9;  /* texte principal (os/parchemin) */
+  --color-mist: #7e93a6; /* texte secondaire, icônes inactives */
+  --color-bone: #e9dfc9; /* texte principal (os/parchemin) */
 
   /* Gamme braise (rare, signifiante) */
-  --color-ember:      #E07A28;  /* accent principal, CTA */
-  --color-ember-glow: #FFC46B;  /* highlights, valeurs, focus */
-  --color-ember-deep: #B85F13;  /* dégradés de CTA */
-  --color-ember-bg:   #241C11;  /* fonds d'éléments "braise" (onglet actif, rune) */
+  --color-ember: #e07a28; /* accent principal, CTA */
+  --color-ember-glow: #ffc46b; /* highlights, valeurs, focus */
+  --color-ember-deep: #b85f13; /* dégradés de CTA */
+  --color-ember-bg: #241c11; /* fonds d'éléments "braise" (onglet actif, rune) */
 
   /* Sémantiques */
-  --color-danger:   #C05248;  /* PV, boss, échec — rouge éteint */
-  --color-success:  #7FA98C;  /* validation — vert-de-gris */
+  --color-danger: #c05248; /* PV, boss, échec — rouge éteint */
+  --color-success: #7fa98c; /* validation — vert-de-gris */
 }
 ```
 
@@ -47,11 +47,11 @@ Interdits : blanc pur `#FFF` (sauf texte sur jauge avec text-shadow), noir pur, 
 
 ### 2.2 Typographie
 
-| Rôle | Police | Usage |
-|---|---|---|
-| Display | **Cinzel** (500/700) | Titres d'écran, noms propres (Gardiens, régions), runes de compétences, initiales d'avatars. Avec retenue : jamais en corps de texte. `letter-spacing: .04em`. |
-| Corps | **Alegreya Sans** (400/500/700) | Tout le reste. Italique pour les citations de PNJ. |
-| Eyebrow | Alegreya Sans 400 | `.68rem`, `letter-spacing: .22em`, uppercase, `--color-mist`. Contexte au-dessus des titres (« Région 1 · Brume niveau 2 »). |
+| Rôle    | Police                          | Usage                                                                                                                                                          |
+| ------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Display | **Cinzel** (500/700)            | Titres d'écran, noms propres (Gardiens, régions), runes de compétences, initiales d'avatars. Avec retenue : jamais en corps de texte. `letter-spacing: .04em`. |
+| Corps   | **Alegreya Sans** (400/500/700) | Tout le reste. Italique pour les citations de PNJ.                                                                                                             |
+| Eyebrow | Alegreya Sans 400               | `.68rem`, `letter-spacing: .22em`, uppercase, `--color-mist`. Contexte au-dessus des titres (« Région 1 · Brume niveau 2 »).                                   |
 
 Échelle : 16px base · titres d'écran 1.25rem · titres de carte .92rem · corps .85–.9rem · métadonnées .72–.8rem. Chiffres de jauges/timers : `font-variant-numeric: tabular-nums`.
 
@@ -67,17 +67,17 @@ Chargement : Google Fonts avec `display=swap`, fallbacks `serif` / `system-ui, s
 
 Tous existent dans la maquette ; les répliquer, pas les réinventer.
 
-| Composant | Règles clés |
-|---|---|
-| **Barre de statut** (persistante, haut) | Avatar cerclé de braise, jauges PV (danger) + endurance (braise), bourse 3 monnaies alignée à droite. Toujours visible : c'est le tableau de bord du joueur. |
-| **Barre de file d'actions** (sous statut) | Une ligne : point pulsant braise + libellé + compte à rebours en `--color-ember-glow`. État vide : « Aucune action en cours — la flammèche attend. » |
-| **Carte (card)** | `--color-panel`, liseré, rayon 10, padding 12–14px. Titre .92rem + contenu. |
-| **Bouton** | Secondaire : dégradé panel, liseré. Primaire : dégradé braise, texte quasi-noir `#1A0E02`, lueur orange. Coût d'action toujours affiché dans le libellé : « Lancer un assaut (⚡25) ». `disabled` = opacité .45. `transform: scale(.97)` au press. |
-| **Jauges** | Fond `#0A1016` + liseré, remplissage en dégradé de la gamme sémantique, label centré avec text-shadow. Transition `width .5–.6s ease`. |
-| **Nav basse** (4 onglets) | Carte · Bastion · Héros · Raid. Icônes SVG trait 1.7, actif = `--color-ember-glow` + drop-shadow. `padding-bottom: env(safe-area-inset-bottom)`. |
-| **Toast** | Pilule `--color-ember-bg` + liseré braise, bas d'écran au-dessus de la nav, 2.4s. Une seule à la fois. |
-| **Rangée PNJ / compétence** | Face ou rune 38–44px à gauche (initiale Cinzel), nom + description, action ou coût à droite. Séparateur 1px `#202D3B`. Compétence acquise : rune fond `--color-ember-bg` liseré braise ; verrouillée : gamme froide. |
-| **Overlay combat** | Plein écran au-dessus de tout. Ennemi centré, jauges au-dessus/en dessous, log 88px scrollable, **grille 2×2 de gros boutons** (min 44px de haut, sous-libellé d'info). Aucune contrainte de temps. |
+| Composant                                 | Règles clés                                                                                                                                                                                                                                        |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Barre de statut** (persistante, haut)   | Avatar cerclé de braise, jauges PV (danger) + endurance (braise), bourse 3 monnaies alignée à droite. Toujours visible : c'est le tableau de bord du joueur.                                                                                       |
+| **Barre de file d'actions** (sous statut) | Une ligne : point pulsant braise + libellé + compte à rebours en `--color-ember-glow`. État vide : « Aucune action en cours — la flammèche attend. »                                                                                               |
+| **Carte (card)**                          | `--color-panel`, liseré, rayon 10, padding 12–14px. Titre .92rem + contenu.                                                                                                                                                                        |
+| **Bouton**                                | Secondaire : dégradé panel, liseré. Primaire : dégradé braise, texte quasi-noir `#1A0E02`, lueur orange. Coût d'action toujours affiché dans le libellé : « Lancer un assaut (⚡25) ». `disabled` = opacité .45. `transform: scale(.97)` au press. |
+| **Jauges**                                | Fond `#0A1016` + liseré, remplissage en dégradé de la gamme sémantique, label centré avec text-shadow. Transition `width .5–.6s ease`.                                                                                                             |
+| **Nav basse** (4 onglets)                 | Carte · Bastion · Héros · Raid. Icônes SVG trait 1.7, actif = `--color-ember-glow` + drop-shadow. `padding-bottom: env(safe-area-inset-bottom)`.                                                                                                   |
+| **Toast**                                 | Pilule `--color-ember-bg` + liseré braise, bas d'écran au-dessus de la nav, 2.4s. Une seule à la fois.                                                                                                                                             |
+| **Rangée PNJ / compétence**               | Face ou rune 38–44px à gauche (initiale Cinzel), nom + description, action ou coût à droite. Séparateur 1px `#202D3B`. Compétence acquise : rune fond `--color-ember-bg` liseré braise ; verrouillée : gamme froide.                               |
+| **Overlay combat**                        | Plein écran au-dessus de tout. Ennemi centré, jauges au-dessus/en dessous, log 88px scrollable, **grille 2×2 de gros boutons** (min 44px de haut, sous-libellé d'info). Aucune contrainte de temps.                                                |
 
 ## 4. La carte hexagonale (élément signature)
 

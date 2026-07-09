@@ -46,10 +46,7 @@ describe('resolveAttack (GDD §13)', () => {
 
   it('crits at ×1.5 with chance DEX × 0.5 %', () => {
     // defender can't dodge; attacker DEX 10 → 5 % crit; crit roll 0.049 < 0.05
-    const result = resolveAttack(
-      { ...base, attackerDex: 10 },
-      rngOf(0.99, 0.049, 0.5),
-    );
+    const result = resolveAttack({ ...base, attackerDex: 10 }, rngOf(0.99, 0.049, 0.5));
     expect(result.outcome).toBe('crit');
     expect(result.damage).toBe(Math.round(22 * 1.5));
   });

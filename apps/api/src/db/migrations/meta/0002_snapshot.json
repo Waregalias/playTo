@@ -116,12 +116,8 @@
           "name": "action_queue_character_id_characters_id_fk",
           "tableFrom": "action_queue",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -175,12 +171,8 @@
           "name": "character_quests_character_id_characters_id_fk",
           "tableFrom": "character_quests",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -188,12 +180,8 @@
           "name": "character_quests_quest_id_quests_id_fk",
           "tableFrom": "character_quests",
           "tableTo": "quests",
-          "columnsFrom": [
-            "quest_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quest_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -201,10 +189,7 @@
       "compositePrimaryKeys": {
         "character_quests_character_id_quest_id_pk": {
           "name": "character_quests_character_id_quest_id_pk",
-          "columns": [
-            "character_id",
-            "quest_id"
-          ]
+          "columns": ["character_id", "quest_id"]
         }
       },
       "uniqueConstraints": {},
@@ -367,12 +352,8 @@
           "name": "characters_hex_id_hexes_id_fk",
           "tableFrom": "characters",
           "tableTo": "hexes",
-          "columnsFrom": [
-            "hex_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hex_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -382,16 +363,12 @@
         "characters_user_id_unique": {
           "name": "characters_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "characters_name_unique": {
           "name": "characters_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -520,12 +497,8 @@
           "name": "combats_character_id_characters_id_fk",
           "tableFrom": "combats",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -573,12 +546,8 @@
           "name": "discoveries_character_id_characters_id_fk",
           "tableFrom": "discoveries",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -586,12 +555,8 @@
           "name": "discoveries_hex_id_hexes_id_fk",
           "tableFrom": "discoveries",
           "tableTo": "hexes",
-          "columnsFrom": [
-            "hex_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hex_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -599,10 +564,7 @@
       "compositePrimaryKeys": {
         "discoveries_character_id_hex_id_pk": {
           "name": "discoveries_character_id_hex_id_pk",
-          "columns": [
-            "character_id",
-            "hex_id"
-          ]
+          "columns": ["character_id", "hex_id"]
         }
       },
       "uniqueConstraints": {},
@@ -694,12 +656,8 @@
           "name": "hexes_region_id_regions_id_fk",
           "tableFrom": "hexes",
           "tableTo": "regions",
-          "columnsFrom": [
-            "region_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["region_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -776,12 +734,8 @@
           "name": "inventory_character_id_characters_id_fk",
           "tableFrom": "inventory",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -789,12 +743,8 @@
           "name": "inventory_item_id_items_id_fk",
           "tableFrom": "inventory",
           "tableTo": "items",
-          "columnsFrom": [
-            "item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["item_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -891,12 +841,8 @@
           "name": "poi_searches_character_id_characters_id_fk",
           "tableFrom": "poi_searches",
           "tableTo": "characters",
-          "columnsFrom": [
-            "character_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["character_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -904,12 +850,8 @@
           "name": "poi_searches_hex_id_hexes_id_fk",
           "tableFrom": "poi_searches",
           "tableTo": "hexes",
-          "columnsFrom": [
-            "hex_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hex_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -917,11 +859,7 @@
       "compositePrimaryKeys": {
         "poi_searches_character_id_hex_id_searched_on_pk": {
           "name": "poi_searches_character_id_hex_id_searched_on_pk",
-          "columns": [
-            "character_id",
-            "hex_id",
-            "searched_on"
-          ]
+          "columns": ["character_id", "hex_id", "searched_on"]
         }
       },
       "uniqueConstraints": {},
@@ -976,12 +914,8 @@
           "name": "quests_region_id_regions_id_fk",
           "tableFrom": "quests",
           "tableTo": "regions",
-          "columnsFrom": [
-            "region_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["region_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1037,9 +971,7 @@
         "regions_slug_unique": {
           "name": "regions_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1157,12 +1089,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1249,12 +1177,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1264,9 +1188,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -1330,9 +1252,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1411,68 +1331,32 @@
     "public.action_type": {
       "name": "action_type",
       "schema": "public",
-      "values": [
-        "move",
-        "search",
-        "rest",
-        "craft",
-        "raid_assault",
-        "expedition_leg"
-      ]
+      "values": ["move", "search", "rest", "craft", "raid_assault", "expedition_leg"]
     },
     "public.class": {
       "name": "class",
       "schema": "public",
-      "values": [
-        "blade",
-        "arcanist",
-        "scout",
-        "cantor"
-      ]
+      "values": ["blade", "arcanist", "scout", "cantor"]
     },
     "public.combat_status": {
       "name": "combat_status",
       "schema": "public",
-      "values": [
-        "active",
-        "won",
-        "lost",
-        "fled"
-      ]
+      "values": ["active", "won", "lost", "fled"]
     },
     "public.quest_state": {
       "name": "quest_state",
       "schema": "public",
-      "values": [
-        "available",
-        "active",
-        "done",
-        "failed"
-      ]
+      "values": ["available", "active", "done", "failed"]
     },
     "public.rarity": {
       "name": "rarity",
       "schema": "public",
-      "values": [
-        "common",
-        "rare",
-        "ember",
-        "relic"
-      ]
+      "values": ["common", "rare", "ember", "relic"]
     },
     "public.terrain": {
       "name": "terrain",
       "schema": "public",
-      "values": [
-        "plain",
-        "forest",
-        "hill",
-        "marsh",
-        "ruins",
-        "ash_road",
-        "ford",
-        "shrine"
-      ]
+      "values": ["plain", "forest", "hill", "marsh", "ruins", "ash_road", "ford", "shrine"]
     }
   },
   "schemas": {},

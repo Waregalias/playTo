@@ -16,9 +16,7 @@ const stepBase = {
       xp: z.number().int().min(0).optional(),
       ashCrowns: z.number().int().min(0).optional(),
       skillPoints: z.number().int().min(0).optional(),
-      items: z
-        .array(z.object({ itemId: z.string(), qty: z.number().int().positive() }))
-        .optional(),
+      items: z.array(z.object({ itemId: z.string(), qty: z.number().int().positive() })).optional(),
     })
     .optional(),
 };

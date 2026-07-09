@@ -186,7 +186,9 @@ describe('inventory (US5)', () => {
     expect(items.find((i: { id: string }) => i.id === chain!.id).equipped).toBe(true);
     expect(items.find((i: { id: string }) => i.id === leather!.id).equipped).toBe(false);
     // l'arme de départ reste équipée (kind différent)
-    expect(items.find((i: { itemId: string }) => i.itemId === 'weapon.scout.t1').equipped).toBe(true);
+    expect(items.find((i: { itemId: string }) => i.itemId === 'weapon.scout.t1').equipped).toBe(
+      true,
+    );
   });
 
   it('refuses a weapon of another class', async () => {
@@ -376,10 +378,7 @@ describe('main chain Q1→Q4 (US6 — exit criterion)', () => {
 
     // un Ravivé aguerri pour un mini-boss de niveau 5
     me = await charRow();
-    await db
-      .update(characters)
-      .set({ str: 20, vit: 20, hp: 190 })
-      .where(eq(characters.id, me.id));
+    await db.update(characters).set({ str: 20, vit: 20, hp: 190 }).where(eq(characters.id, me.id));
 
     const boss = await app.inject({
       method: 'POST',

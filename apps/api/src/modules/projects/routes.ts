@@ -59,7 +59,11 @@ export function registerProjectRoutes(app: FastifyInstance, auth: Auth, now: () 
           app.realtime.publish(
             `region:${out.regionId}`,
             'project.progress',
-            { projectId: request.params.id, progress: out.detail.progress, goals: out.detail.goals },
+            {
+              projectId: request.params.id,
+              progress: out.detail.progress,
+              goals: out.detail.goals,
+            },
             at,
           );
         }

@@ -7,10 +7,10 @@ import { ToastService } from '../../core/toast';
 import { SkillTreeComponent } from './skill-tree';
 
 const PORTRAITS: Record<CharacterClass, string> = {
-  blade: '/assets/Lame.png',
-  arcanist: '/assets/Arcaniste.png',
-  scout: '/assets/Eclaireur.png',
-  cantor: '/assets/Chantre.png',
+  blade: '/assets/blade.png',
+  arcanist: '/assets/arcanist.png',
+  scout: '/assets/scout.png',
+  cantor: '/assets/cantor.png',
 };
 
 type AttributeKey = 'str' | 'dex' | 'wil' | 'vit' | 'fer';

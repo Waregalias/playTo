@@ -1,10 +1,5 @@
 import { eq } from 'drizzle-orm';
-import {
-  effectiveMistLevel,
-  isAdjacent,
-  type HexDto,
-  type RegionDto,
-} from '@aldenfer/shared';
+import { effectiveMistLevel, isAdjacent, type HexDto, type RegionDto } from '@aldenfer/shared';
 import { REGION_NAMES_FR } from '@aldenfer/shared/content/fr';
 import type { Db } from '../../db/client.js';
 import { discoveries, hexes, regions } from '../../db/schema.js';
