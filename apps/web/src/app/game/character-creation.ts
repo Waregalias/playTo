@@ -4,10 +4,10 @@ import { CHARACTER_CLASSES, type CharacterClass } from '@aldenfer/shared';
 import { ApiClient, ApiError } from '../core/api-client';
 
 const PORTRAITS: Record<CharacterClass, string> = {
-  blade: '/assets/blade.png',
-  arcanist: '/assets/arcanist.png',
-  scout: '/assets/scout.png',
-  cantor: '/assets/cantor.png',
+  blade: '/assets/heroes/blade.png',
+  arcanist: '/assets/heroes/arcanist.png',
+  scout: '/assets/heroes/scout.png',
+  cantor: '/assets/heroes/cantor.png',
 };
 
 @Component({

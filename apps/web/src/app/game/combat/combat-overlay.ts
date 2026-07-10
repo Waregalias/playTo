@@ -6,10 +6,10 @@ import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
 
 const FOE_PORTRAITS: Record<string, string> = {
-  'soot-wolf': '/assets/soot-wolf.png',
-  'spectral-shepherd': '/assets/spectral-shepherd.png',
-  'heather-reaper': '/assets/heather-reaper.png',
-  'hollow-knight': '/assets/hollow-knight.png',
+  'soot-wolf': '/assets/monsters/soot-wolf.png',
+  'spectral-shepherd': '/assets/monsters/spectral-shepherd.png',
+  'heather-reaper': '/assets/monsters/heather-reaper.png',
+  'hollow-knight': '/assets/monsters/hollow-knight.png',
 };
 
 @Component({
