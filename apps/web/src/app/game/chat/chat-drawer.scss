@@ -1,3 +1,5 @@
+@use '../layout';
+
 :host {
   position: fixed;
   left: 0;
@@ -102,4 +104,30 @@
     color: #1a0e02;
     box-shadow: 0 2px 10px rgba(224, 122, 40, 0.35);
   }
+}
+
+/* ── Right-docked panel (≥ 1024px) ── */
+@include layout.wide {
+  :host {
+    left: auto;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    max-width: 380px;
+    max-height: 100dvh;
+    border-top: none;
+    border-left: 1px solid var(--g-border);
+    border-radius: 0;
+    animation: slidein 0.25s ease;
+  }
+
+  @keyframes slidein {
+    from { transform: translateX(100%); }
+    to { transform: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host { animation: none; }
 }

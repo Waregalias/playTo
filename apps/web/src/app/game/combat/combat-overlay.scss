@@ -1,3 +1,5 @@
+@use '../layout';
+
 .overlay {
   position: absolute;
   inset: 0;
@@ -140,4 +142,18 @@
     color: #1a0e02;
     box-shadow: 0 2px 10px rgba(224, 122, 40, 0.35);
   }
+}
+
+/* ── Centered modal card (≥ 1024px) ── */
+@include layout.wide {
+  .overlay {
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+  .foe, .clog, .actions {
+    width: 100%;
+    max-width: 440px;
+  }
+  .foe { flex: 0 0 auto; }
 }

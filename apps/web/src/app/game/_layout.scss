@@ -1,0 +1,6 @@
+// Single source of truth for the desktop breakpoint (spec: wide dashboard >= 1024px).
+@mixin wide {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}

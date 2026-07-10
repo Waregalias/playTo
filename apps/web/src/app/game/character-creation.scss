@@ -1,8 +1,14 @@
+@use 'layout';
+
 .creation {
   padding: 20px 14px calc(20px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   animation: fadein 0.25s ease;
+}
+
+@include layout.wide {
+  .creation { max-width: 720px; margin: 0 auto; }
 }
 
 @keyframes fadein {

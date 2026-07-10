@@ -1,3 +1,5 @@
+@use 'layout';
+
 :host {
   display: flex;
   justify-content: center;
@@ -242,4 +244,56 @@ nav {
   font-size: 0.82rem;
   white-space: nowrap;
   z-index: 40;
+}
+
+/* ── Desktop dashboard (≥ 1024px) ── */
+@include layout.wide {
+  .app {
+    max-width: 1680px;
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "status status"
+      "nav    queue"
+      "nav    main";
+  }
+
+  .statusbar { grid-area: status; }
+  .queuebar  { grid-area: queue; }
+  main       { grid-area: main; }
+
+  nav {
+    grid-area: nav;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 12px 10px;
+    border-top: none;
+    border-right: 1px solid var(--g-border);
+    overflow-y: auto;
+
+    button {
+      flex: 0 0 auto;
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 12px;
+      min-height: 48px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+
+      svg { width: 20px; height: 20px; }
+
+      &.on {
+        background: var(--g-ember-bg);
+        box-shadow: inset 3px 0 0 var(--g-ember);
+      }
+    }
+  }
+
+  .statusbar .gauges { max-width: 420px; }
+  .statusbar .purse { margin-left: auto; }
 }

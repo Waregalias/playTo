@@ -1,3 +1,5 @@
+@use '../layout';
+
 :host {
   display: block;
   animation: fadein 0.25s ease;
@@ -102,4 +104,12 @@
   &:active { transform: scale(0.97); }
   &:disabled { opacity: 0.45; }
   &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+}
+
+/* ── Dashboard reflow (≥ 1024px) ── */
+@include layout.wide {
+  :host { display: block; padding: 24px 0; }
+  .card { max-width: 900px; }
+  .skillrow { padding: 12px 4px; }
+  .branchtabs { max-width: 620px; }
 }

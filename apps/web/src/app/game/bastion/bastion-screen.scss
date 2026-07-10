@@ -1,3 +1,5 @@
+@use '../layout';
+
 :host {
   display: block;
   padding: 14px;
@@ -121,4 +123,11 @@ h2 {
     color: #1a0e02;
     box-shadow: 0 2px 10px rgba(224, 122, 40, 0.35);
   }
+}
+
+/* ── Dashboard reflow (≥ 1024px) ── */
+@include layout.wide {
+  :host { padding: 24px; }
+  .subnav, .card { max-width: 1100px; margin-left: auto; margin-right: auto; }
+  .subnav { max-width: 520px; }
 }
