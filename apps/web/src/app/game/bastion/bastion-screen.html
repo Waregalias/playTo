@@ -1,5 +1,10 @@
-<span class="eyebrow">{{ regionName }} · dernier feu du royaume</span>
-<h2>{{ regionName }}</h2>
+<header class="banner">
+  <img src="/assets/banners/cendrelune.png" alt="" (error)="$any($event.target).closest('.banner').classList.add('no-img')" />
+  <div class="banner-text">
+    <span class="eyebrow">{{ regionName }} · dernier feu du royaume</span>
+    <h2>{{ regionName }}</h2>
+  </div>
+</header>
 
 <div class="subnav" role="tablist">
   <button role="tab" [class.on]="subTab() === 'quests'" (click)="subTab.set('quests')">

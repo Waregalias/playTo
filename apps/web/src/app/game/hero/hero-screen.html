@@ -66,7 +66,11 @@
     @for (entry of store.inventory().items; track entry.id) {
       <div class="itemrow" [attr.data-testid]="'item-' + entry.itemId">
         <div class="rune" [class.equipped]="entry.equipped">
-          {{ itemName(entry.itemId).charAt(0) }}
+          @if (itemIcon(entry.itemId); as icon) {
+            <img [src]="icon" [alt]="itemName(entry.itemId)" (error)="$any($event.target).style.display='none'" />
+          } @else {
+            {{ itemName(entry.itemId).charAt(0) }}
+          }
         </div>
         <div class="iteminfo">
           <b>

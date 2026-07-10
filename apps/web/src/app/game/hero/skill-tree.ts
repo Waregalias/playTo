@@ -4,6 +4,7 @@ import { UI_FR, SKILL_CONTENT_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/con
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
+import { skillIconUrl } from '../../core/asset-url';
 
 @Component({
   selector: 'app-skill-tree',
@@ -60,6 +61,10 @@ export class SkillTreeComponent {
 
   branchLabel(branch: SkillBranch): string {
     return this.t.branches[branch] ?? branch;
+  }
+
+  skillIcon(skillId: string): string | null {
+    return skillIconUrl(skillId);
   }
 
   async learn(skillId: string): Promise<void> {

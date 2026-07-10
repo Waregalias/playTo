@@ -5,6 +5,7 @@ import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
 import { SkillTreeComponent } from './skill-tree';
+import { heroFullUrl, itemIconUrl } from '../../core/asset-url';
 
 const PORTRAITS: Record<CharacterClass, string> = {
   blade: '/assets/blade.png',
@@ -41,7 +42,8 @@ export class HeroScreenComponent {
 
   readonly portrait = computed(() => {
     const klass = this.store.character()?.class;
-    return klass ? PORTRAITS[klass] : null;
+    if (!klass) return null;
+    return heroFullUrl(klass) ?? PORTRAITS[klass] ?? null;
   });
 
   readonly className = computed(() => {
@@ -131,5 +133,9 @@ export class HeroScreenComponent {
 
   itemName(itemId: string): string {
     return this.itemsFr[itemId]?.name ?? itemId;
+  }
+
+  itemIcon(itemId: string): string | null {
+    return itemIconUrl(itemId);
   }
 }

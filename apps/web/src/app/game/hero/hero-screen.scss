@@ -150,6 +150,8 @@
   border: 1px solid var(--g-border);
   color: var(--g-mist);
 
+  img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 6px; }
+
   &.equipped {
     background: var(--g-ember-bg);
     border-color: var(--g-ember);

@@ -18,7 +18,13 @@
   </div>
   @for (row of rows(); track row.skill.id) {
     <div class="skillrow" [class.locked]="!row.learned" [attr.data-testid]="'skill-' + row.skill.id">
-      <div class="rune" [class.equipped]="row.equipped">{{ row.content.name.charAt(0) }}</div>
+      <div class="rune" [class.equipped]="row.equipped">
+        @if (skillIcon(row.skill.id); as icon) {
+          <img [src]="icon" [alt]="row.content.name" (error)="$any($event.target).style.display='none'" />
+        } @else {
+          {{ row.content.name.charAt(0) }}
+        }
+      </div>
       <div class="skillinfo">
         <b>{{ row.content.name }}</b>
         <small>{{ row.content.description }}</small>

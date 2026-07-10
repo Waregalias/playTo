@@ -26,6 +26,30 @@ h2 {
   margin: 2px 0 12px;
 }
 
+.banner {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  border: 1px solid var(--g-border);
+
+  img { width: 100%; height: 160px; object-fit: cover; display: block; }
+
+  .banner-text {
+    position: absolute;
+    left: 16px;
+    bottom: 10px;
+    text-shadow: 0 2px 8px #000;
+  }
+
+  h2 { margin: 2px 0 0; }
+
+  &.no-img {
+    img { display: none; }
+    .banner-text { position: static; padding: 12px 0; text-shadow: none; }
+  }
+}
+
 .subnav {
   display: flex;
   gap: 6px;
@@ -128,6 +152,7 @@ h2 {
 /* ── Dashboard reflow (≥ 1024px) ── */
 @include layout.wide {
   :host { padding: 24px; }
-  .subnav, .card { max-width: 1100px; margin-left: auto; margin-right: auto; }
+  .banner, .subnav, .card { max-width: 1100px; margin-left: auto; margin-right: auto; }
+  .banner img { height: 220px; }
   .subnav { max-width: 520px; }
 }
