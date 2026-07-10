@@ -2,30 +2,53 @@
 <h2>{{ regionName() }}</h2>
 
 <div class="mapwrap">
-  <svg
-    [attr.viewBox]="viewBox()"
-    role="img"
-    [attr.aria-label]="'Carte — ' + regionName()"
-  >
-    <!-- terrain -->
+  <svg [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="'Carte — ' + regionName()">
+    <!-- 3D tile blocks, painted back-to-front (see byDepth) -->
     @for (view of hexViews(); track view.hex.id) {
-      <polygon
-        class="hex"
+      <g
+        class="tile"
         [class.sel]="view.hex.id === selectedId()"
-        [attr.points]="view.points"
-        [attr.fill]="view.fill"
         (click)="select(view.hex.id)"
         [attr.data-testid]="'hex-' + view.hex.q + '-' + view.hex.r"
-      />
+      >
+        <ellipse
+          class="tile-shadow"
+          [attr.cx]="view.shadowCx"
+          [attr.cy]="view.shadowCy"
+          [attr.rx]="view.shadowRx"
+          [attr.ry]="view.shadowRy"
+        />
+        <polygon class="tile-wall" [attr.points]="view.wallLeft" [attr.fill]="view.wallLeftFill" />
+        <polygon
+          class="tile-wall"
+          [attr.points]="view.wallRight"
+          [attr.fill]="view.wallRightFill"
+        />
+        <polygon class="tile-top" [attr.points]="view.topPoints" [attr.fill]="view.topFill" />
+      </g>
     }
     <!-- mist drift over fog hexes -->
     @for (view of hexViews(); track view.hex.id) {
       @if (!view.hex.discovered) {
-        <ellipse class="mist-drift" [attr.cx]="view.x" [attr.cy]="view.y - 4" rx="16" ry="6" fill="#7E93A6" />
-        <ellipse class="mist-drift slow" [attr.cx]="view.x - 5" [attr.cy]="view.y + 6" rx="13" ry="5" fill="#5A6B7A" />
+        <ellipse
+          class="mist-drift"
+          [attr.cx]="view.x"
+          [attr.cy]="view.y - 4"
+          rx="16"
+          ry="6"
+          fill="#7E93A6"
+        />
+        <ellipse
+          class="mist-drift slow"
+          [attr.cx]="view.x - 5"
+          [attr.cy]="view.y + 6"
+          rx="13"
+          ry="5"
+          fill="#5A6B7A"
+        />
       }
     }
-    <!-- POI / shrine glyphs -->
+    <!-- POI / shrine glyphs on the top face -->
     @for (view of hexViews(); track view.hex.id) {
       @if (view.hex.discovered && view.hex.poi) {
         <text class="hexlabel" [attr.x]="view.x" [attr.y]="view.y + 3">
@@ -35,8 +58,24 @@
     }
     <!-- player marker -->
     @if (playerView(); as player) {
-      <circle [attr.cx]="player.x" [attr.cy]="player.y" r="7" fill="#FFC46B" stroke="#1A0E02" stroke-width="2" />
-      <circle class="pulse" [attr.cx]="player.x" [attr.cy]="player.y" r="11" fill="none" stroke="#FFC46B" stroke-width="1" opacity="0.5" />
+      <circle
+        [attr.cx]="player.x"
+        [attr.cy]="player.y"
+        r="7"
+        fill="#FFC46B"
+        stroke="#1A0E02"
+        stroke-width="2"
+      />
+      <circle
+        class="pulse"
+        [attr.cx]="player.x"
+        [attr.cy]="player.y"
+        r="11"
+        fill="none"
+        stroke="#FFC46B"
+        stroke-width="1"
+        opacity="0.5"
+      />
     }
   </svg>
 </div>
@@ -47,8 +86,12 @@
 
   @if (panel().canMove) {
     <div class="costs">
-      <span>⚡ <b>{{ panel().costLabel }}</b> {{ t.staminaCost }}</span>
-      <span>⏳ <b>{{ panel().timeLabel }}</b></span>
+      <span
+        >⚡ <b>{{ panel().costLabel }}</b> {{ t.staminaCost }}</span
+      >
+      <span
+        >⏳ <b>{{ panel().timeLabel }}</b></span
+      >
     </div>
     <button class="btn primary" data-testid="move-btn" [disabled]="pending()" (click)="move()">
       {{ t.moveAction }}

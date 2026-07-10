@@ -1,54 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import {
-  isAdjacent,
-  moveCost,
-  movePayloadSchema,
-  type HexDto,
-  type MistLevel,
-  type Terrain,
-} from '@aldenfer/shared';
+import { isAdjacent, moveCost, movePayloadSchema, type MistLevel } from '@aldenfer/shared';
 import { REGION_NAMES_FR, UI_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
-
-const HEX_RADIUS = 22; // viewBox units, pointy-top (SPEC-M1 / maquette)
-const SQRT3 = Math.sqrt(3);
-const MARGIN = 30;
-
-// Terrain fills from DESIGN §4 (ford: cold water tone, same muted range).
-const TERRAIN_FILLS: Record<Terrain, string> = {
-  plain: '#8E9C6B',
-  forest: '#4F6B4A',
-  hill: '#8A7B5C',
-  marsh: '#5E6E63',
-  ruins: '#6E6A72',
-  ash_road: '#3D4854',
-  ford: '#4A6272',
-  shrine: '#B0885A',
-};
-
-interface HexView {
-  hex: HexDto;
-  x: number;
-  y: number;
-  points: string;
-  fill: string;
-}
-
-function center(q: number, r: number): { x: number; y: number } {
-  return {
-    x: HEX_RADIUS * (SQRT3 * q + (SQRT3 / 2) * r),
-    y: HEX_RADIUS * 1.5 * r,
-  };
-}
-
-function corners(x: number, y: number): string {
-  return Array.from({ length: 6 }, (_, i) => {
-    const angle = (Math.PI / 180) * (60 * i - 30);
-    return `${(x + HEX_RADIUS * Math.cos(angle)).toFixed(1)},${(y + HEX_RADIUS * Math.sin(angle)).toFixed(1)}`;
-  }).join(' ');
-}
+import { boundsOf, byDepth, toTileView, type TileView } from './map-geometry';
 
 @Component({
   selector: 'app-map-screen',
@@ -86,40 +42,14 @@ export class MapScreenComponent {
     return this.store.character()?.hexId ?? null;
   });
 
-  private readonly bounds = computed(() => {
-    const hexes = this.store.hexes();
-    if (hexes.length === 0) return { minX: 0, minY: 0, width: 340, height: 300 };
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const hex of hexes) {
-      const { x, y } = center(hex.q, hex.r);
-      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-    }
-    return {
-      minX: minX - MARGIN,
-      minY: minY - MARGIN,
-      width: maxX - minX + 2 * MARGIN,
-      height: maxY - minY + 2 * MARGIN,
-    };
-  });
+  private readonly bounds = computed(() => boundsOf(this.store.hexes()));
 
   readonly viewBox = computed(() => {
     const b = this.bounds();
     return `${b.minX} ${b.minY} ${b.width} ${b.height}`;
   });
 
-  readonly hexViews = computed<HexView[]>(() =>
-    this.store.hexes().map((hex) => {
-      const { x, y } = center(hex.q, hex.r);
-      return {
-        hex,
-        x,
-        y,
-        points: corners(x, y),
-        fill: hex.discovered ? TERRAIN_FILLS[hex.terrain] : '#26313D',
-      };
-    }),
-  );
+  readonly hexViews = computed<TileView[]>(() => this.store.hexes().map(toTileView).sort(byDepth));
 
   readonly playerView = computed(() => {
     const hexId = this.store.character()?.hexId;

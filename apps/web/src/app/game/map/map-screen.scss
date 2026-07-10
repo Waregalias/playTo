@@ -5,8 +5,14 @@
 }
 
 @keyframes fadein {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .eyebrow {
@@ -38,14 +44,32 @@ svg {
   touch-action: manipulation;
 }
 
-.hex {
-  stroke: #0a1119;
-  stroke-width: 1.5;
+.tile {
   cursor: pointer;
   transition: filter 0.15s;
 
-  &:hover { filter: brightness(1.25); }
-  &.sel { stroke: var(--g-ember-glow); stroke-width: 2.5; }
+  &:hover {
+    filter: brightness(1.2);
+  }
+  &.sel .tile-top {
+    stroke: var(--g-ember-glow);
+    stroke-width: 2.5;
+  }
+}
+
+.tile-top {
+  stroke: #0a1119;
+  stroke-width: 1;
+}
+
+.tile-wall {
+  stroke: none;
+}
+
+.tile-shadow {
+  fill: #05090d;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .hexlabel {
@@ -61,23 +85,40 @@ svg {
   opacity: 0.5;
   pointer-events: none;
 
-  &.slow { animation-duration: 22s; opacity: 0.32; }
+  &.slow {
+    animation-duration: 22s;
+    opacity: 0.32;
+  }
 }
 
 @keyframes drift {
-  from { transform: translateX(-14px); }
-  to { transform: translateX(14px); }
+  from {
+    transform: translateX(-14px);
+  }
+  to {
+    transform: translateX(14px);
+  }
 }
 
-.pulse { animation: embers 2.4s ease-in-out infinite; }
+.pulse {
+  animation: embers 2.4s ease-in-out infinite;
+}
 
 @keyframes embers {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.9; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mist-drift, .pulse { animation: none; }
+  .mist-drift,
+  .pulse {
+    animation: none;
+  }
 }
 
 .card {
@@ -87,10 +128,19 @@ svg {
   padding: 12px 14px;
   margin-top: 12px;
 
-  h3 { font-family: var(--g-font-display); font-size: 0.92rem; color: var(--g-bone); margin: 0 0 6px; }
+  h3 {
+    font-family: var(--g-font-display);
+    font-size: 0.92rem;
+    color: var(--g-bone);
+    margin: 0 0 6px;
+  }
 }
 
-.muted { color: var(--g-mist); font-size: 0.85rem; margin: 0; }
+.muted {
+  color: var(--g-mist);
+  font-size: 0.85rem;
+  margin: 0;
+}
 
 .costs {
   display: flex;
@@ -100,7 +150,9 @@ svg {
   color: var(--g-bone);
   font-variant-numeric: tabular-nums;
 
-  b { color: var(--g-ember-glow); }
+  b {
+    color: var(--g-ember-glow);
+  }
 }
 
 .btn {
@@ -117,9 +169,17 @@ svg {
   color: var(--g-bone);
   transition: transform 0.08s ease;
 
-  &:active { transform: scale(0.97); }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
-  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+  &:active {
+    transform: scale(0.97);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--g-ember-glow);
+    outline-offset: 2px;
+  }
 
   &.primary {
     background: linear-gradient(180deg, #e58a2e, #b85f13);
