@@ -1,5 +1,34 @@
-<span class="eyebrow">{{ regionName() }} · {{ t.mistLevelLabel }} {{ regionMist() }}</span>
-<h2>{{ regionName() }}</h2>
+<header class="maphead">
+  <span class="eyebrow">{{ regionName() }} · {{ t.mistLevelLabel }} {{ regionMist() }}</span>
+  <h2>{{ regionName() }}</h2>
+</header>
+
+<div class="legend">
+  <div class="card legend-box">
+    <span class="legend-title">{{ t.terrainsTitle }}</span>
+    @for (terrain of terrainLegend; track terrain.id) {
+      <div class="legend-row">
+        <i class="swatch" [style.background]="terrain.color"></i>
+        <span>{{ terrain.label }}</span>
+      </div>
+    }
+  </div>
+  <div class="card legend-box">
+    <span class="legend-title">{{ t.legendTitle }}</span>
+    <div class="legend-row">
+      <i class="swatch you"></i>
+      <span>{{ t.legendYou }}</span>
+    </div>
+    <div class="legend-row">
+      <span class="glyph">✦</span>
+      <span>{{ t.legendPoi }}</span>
+    </div>
+    <div class="legend-row">
+      <i class="swatch mist"></i>
+      <span>{{ t.legendMist }}</span>
+    </div>
+  </div>
+</div>
 
 <div class="mapwrap">
   <svg [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="'Carte — ' + regionName()">
@@ -81,8 +110,15 @@
 </div>
 
 <div class="card panel" data-testid="hex-panel">
-  <h3>{{ panel().title }}</h3>
-  <p class="muted">{{ panel().hint }}</p>
+  <div class="panel-main">
+    @if (terrainVignette(); as vignette) {
+      <img class="vignette" [src]="vignette" alt="" (error)="$any($event.target).style.display='none'" />
+    }
+    <div class="panel-info">
+      <h3>{{ panel().title }}</h3>
+      <p class="muted">{{ panel().hint }}</p>
+    </div>
+  </div>
 
   @if (panel().canMove) {
     <div class="costs">

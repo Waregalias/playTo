@@ -144,6 +144,81 @@ svg {
   margin: 0;
 }
 
+.panel-main {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.vignette {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--g-border);
+  flex-shrink: 0;
+  display: block;
+}
+
+.panel-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Légende (terrains + symboles), révélée en dashboard large ── */
+.legend {
+  display: none;
+}
+
+.legend-box {
+  padding: 10px 12px;
+  margin-top: 0;
+}
+
+.legend-title {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--g-mist);
+  margin-bottom: 8px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.8rem;
+  color: var(--g-bone);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: inline-block;
+
+  &.you {
+    background: var(--g-ember-glow);
+    border-radius: 50%;
+    border: 1px solid #1a0e02;
+  }
+  &.mist {
+    background: #7e93a6;
+    opacity: 0.5;
+  }
+}
+
+.glyph {
+  width: 10px;
+  text-align: center;
+  color: var(--g-ember-glow);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
 .costs {
   display: flex;
   gap: 14px;
@@ -191,13 +266,50 @@ svg {
   }
 }
 
-/* ── Dashboard reflow (≥ 1024px) : la carte ne doit pas s'étirer pleine largeur ── */
+/* ── Dashboard reflow (≥ 1024px) : légende à gauche, carte + bannière à droite ── */
 @include layout.wide {
-  :host { padding: 24px; }
-  .mapwrap, .card {
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
+  :host {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "legend head"
+      "legend map"
+      "legend panel";
+    gap: 14px 20px;
+    padding: 24px;
+    align-items: start;
+    height: 100%;
   }
-  .card { margin-top: 12px; }
+
+  .maphead { grid-area: head; }
+  .mapwrap { grid-area: map; margin: 0; }
+  .panel { grid-area: panel; margin: 0; }
+
+  .legend {
+    grid-area: legend;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .panel {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .panel-main { flex: 1 1 260px; }
+  .vignette { width: 88px; height: 88px; }
+  .costs {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 0;
+  }
+  .btn {
+    width: auto;
+    min-width: 200px;
+    margin-top: 0;
+  }
 }

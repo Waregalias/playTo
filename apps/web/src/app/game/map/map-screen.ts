@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { isAdjacent, moveCost, movePayloadSchema, type MistLevel } from '@aldenfer/shared';
+import { isAdjacent, moveCost, movePayloadSchema, TERRAINS, type MistLevel } from '@aldenfer/shared';
 import { REGION_NAMES_FR, UI_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
-import { boundsOf, byDepth, toTileView, type TileView } from './map-geometry';
+import { terrainVignetteUrl } from '../../core/asset-url';
+import { boundsOf, byDepth, toTileView, TERRAIN_FILLS, type TileView } from './map-geometry';
 
 @Component({
   selector: 'app-map-screen',
@@ -59,6 +60,18 @@ export class MapScreenComponent {
   readonly selectedView = computed(
     () => this.hexViews().find((v) => v.hex.id === this.selectedId()) ?? null,
   );
+
+  /** Static terrain swatch legend, in game order (DESIGN §4 fills). */
+  readonly terrainLegend = TERRAINS.map((terrain) => ({
+    id: terrain,
+    label: this.t.terrains[terrain] ?? terrain,
+    color: TERRAIN_FILLS[terrain],
+  }));
+
+  readonly terrainVignette = computed(() => {
+    const view = this.selectedView();
+    return view?.hex.discovered ? terrainVignetteUrl(view.hex.terrain) : null;
+  });
 
   /** Panel view-model for the selected hex. */
   readonly panel = computed(() => {

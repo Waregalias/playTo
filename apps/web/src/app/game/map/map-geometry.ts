@@ -23,7 +23,7 @@ const WALL_RIGHT = 0.62; // lit facet
 const WALL_LEFT = 0.45; // shadowed facet
 
 // Terrain fills from DESIGN §4 (ford: cold water tone, same muted range).
-const TERRAIN_FILLS: Record<Terrain, string> = {
+export const TERRAIN_FILLS: Record<Terrain, string> = {
   plain: '#8e9c6b',
   forest: '#4f6b4a',
   hill: '#8a7b5c',

@@ -34,6 +34,11 @@ export const UI_FR = {
     restAction: 'Se reposer (30 min · +75 ⚡)',
     queuedFromHint: 'Coût depuis la fin de ta file d’actions.',
     cancelAction: 'Annuler',
+    terrainsTitle: 'Terrains',
+    legendTitle: 'Légende',
+    legendYou: 'Vous',
+    legendPoi: 'Point d’intérêt',
+    legendMist: 'Brume',
     terrains: {
       plain: 'Plaine',
       forest: 'Forêt',
