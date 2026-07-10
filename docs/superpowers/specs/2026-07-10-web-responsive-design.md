@@ -1,87 +1,76 @@
-# Design — Web responsive (mobile-first → dashboard large)
+# Design — Web responsive + intégration des assets maquette
 
 Date : 2026-07-10
 Statut : validé (brainstorming), prêt pour plan d'implémentation.
 
 ## Objectif
 
-L'application est aujourd'hui strictement mobile-first : une colonne
-`max-width: 520px` centrée sur tout écran (`game.scss`). On veut que **depuis un
-navigateur large / une PWA installée sur desktop, l'interface exploite la largeur**
-(rail latéral + statusbar pleine largeur + écrans en dashboard multi-colonnes),
-tout en **gardant l'expérience mobile actuelle inchangée** sur téléphone (y compris
-PWA téléphone).
+Deux volets liés :
+
+1. **Responsive.** L'app est aujourd'hui mobile-first : colonne `max-width: 520px`
+   centrée sur tout écran. On veut que **depuis un navigateur large / PWA desktop,
+   l'interface exploite la largeur** (rail latéral + statusbar pleine largeur +
+   écrans en dashboard multi-colonnes), tout en **gardant l'expérience mobile
+   actuelle inchangée** (téléphone, PWA téléphone).
+2. **Fidélité maquette.** Le joueur a fourni les assets manquants ; on les intègre
+   pour rapprocher l'UI des maquettes (bannière Bastion, héros full-body, icônes
+   objets/matériaux/compétences, vignettes de terrain, vue d'accueil Bastion à
+   6 bâtiments).
 
 ## Décisions cadrées (brainstorming)
 
-1. **Périmètre = reflow responsive.** Aucune nouvelle feature, aucun nouveau
-   panneau, aucune modification de l'API ni du store. On réorganise en CSS le DOM
-   existant. Les panneaux visibles dans les maquettes web mais absents du code
-   (rail Quêtes, Progression région, Chantiers communautaires, Activité serveur,
-   Journal mondial, inventaire rapide, grille des 6 bâtiments du Bastion) sont
-   **hors périmètre** (jalon ultérieur).
-2. **Détection = largeur de viewport.** Point de rupture unique
-   `@media (min-width: 1024px)` (« wide »). Pas de détection `display-mode`.
-   Un téléphone est étroit (PWA ou non) → layout mobile ; un desktop est large
-   (PWA ou non) → dashboard. Correspond exactement au besoin.
-3. **Implémentation = CSS responsive pur.** Un seul arbre de composants, aucun
-   template dupliqué, aucun signal `isDesktop`. Tout le passage colonne→dashboard
-   se fait via media query + CSS grid.
-4. **Deux paliers seulement** (mobile / wide). Pas de palier tablette : sous 1024px,
-   la colonne ~520px centrée actuelle est conservée telle quelle.
+1. **Détection = largeur de viewport.** Point de rupture unique
+   `@media (min-width: 1024px)` (« wide »). Pas de `display-mode`. Téléphone étroit
+   → mobile ; desktop large → dashboard, PWA comprise.
+2. **Implémentation responsive = CSS pur.** Un seul arbre de composants, aucun
+   template dupliqué, aucun signal `isDesktop`. Media query + CSS grid.
+3. **Deux paliers** (mobile / wide). Pas de palier tablette : sous 1024px, la
+   colonne ~520px centrée est conservée telle quelle.
+4. **Carte 3D différée.** La conversion de la carte hexagonale en tuiles « 3D vue
+   du dessus » se fera dans une **passe dédiée**, quand l'esthétique des tuiles
+   sera fournie. Ce lot rend seulement la carte actuelle (hex plats, DESIGN §4)
+   responsive.
+5. **Vue Bastion à 6 bâtiments** construite (voir Phase C).
 
-## Assets
+## Assets fournis (`apps/web/public/assets`)
 
-Le reflow validé **ne nécessite aucun nouvel asset** : il ne fait que réagencer le
-DOM existant en CSS. Les assets ci-dessous ne concernent que la *fidélité pixel*
-totale aux maquettes, qui relève des panneaux hors périmètre — listés ici pour
-mémoire, non requis par cette tâche.
+- `banners/cendrelune.png` — bannière de tête du Bastion.
+- `heroes/{blade,arcanist,scout,cantor}.png` (portraits) + `*_full.png` (full-body ;
+  **`scoot_full.png` = typo pour scout** → alias).
+- `buildings/{anvil,parchment,mandala,coat,balance}.png` + `full-builds.png`
+  (planche). **Icône Archives d'Ennor (livre) manquante** → fallback provisoire.
+- `lands/{plain,forest,hill,marsh,ruins,ford,altar}.png` (+ `lands.png` planche).
+  `shrine`→`altar` ; **`ash_road` sans vignette** → fallback.
+- `items/{weapons,armors,consumables,materials}/*.png` — nommage quasi aligné sur
+  les IDs de jeu, avec exceptions à aliaser : `blade`↔`lame`, `scout`↔`scoot`,
+  `consumable.ash-potion`↔`ash-potioni` (typo) ; **`armor.chain.t1` sans art** →
+  fallback. Les 6 matériaux du jeu ont tous leur icône.
+- `skills/{skill.tracking,skill.precise-shot,skill.double-shot,skill.latern-arrow}.png`
+  — **seulement 4 icônes** (branche Traque de l'Éclaireur). Les 56 autres
+  compétences gardent la rune-lettre.
 
-Présents : portraits de classes (`blade/arcanist/scout/cantor.png`), portraits
-d'ennemis (`soot-wolf/spectral-shepherd/heather-reaper/hollow-knight.png`),
-`hero-meadow.webp`, icônes PWA, polices Cinzel + Alegreya Sans (Google Fonts).
-
-Manquants pour la fidélité totale (hors périmètre) :
-
-- **Bannière du Bastion** : silhouette de citadelle en feu (« Bastion de Cendrelune »),
-  visible en tête de l'écran Bastion (mobile ET desktop). Seul gap qui toucherait
-  un écran existant si on visait la fidélité.
-- **Icônes des 6 bâtiments** du Bastion : Forge de Brasfer (enclume), Archives d'Ennor
-  (livre), Tableau de Mira (parchemin), Chantre-Major Isolde (mandala/mains), Le beffroi
-  du Grand Cairn (blason), L'Hôtel des ventes (balance). → vue « accueil » Bastion future.
-- **Vignettes de terrain** (plaine, forêt, colline, marais, ruines, gué, autel) pour
-  le panneau d'action de l'hex et les panneaux région.
-- **Icônes d'objets / matériaux** (bois, minerai, herbe, potion, flèche, peau, pierre,
-  pièces d'équipement) — aujourd'hui rendus en runes-lettres.
-- **Icônes de compétences** (Traque, Tir précis, Double tir, Flèche de la lanterne).
-- **Tuiles d'hex illustrées** (arbres, ruines, hameaux, rochers) — DESIGN §4 spécifie
-  des polygones plats ; les tuiles illustrées seraient une évolution du parti pris.
-- **Icônes rail Classements / Codex** — destinations hors périmètre.
-- **Icônes de monnaie stylisées** (pièce or, cristal, aile, flamme) — DESIGN §6 impose
-  les glyphes Unicode ; upgrade optionnel, pas un gap.
-- **Polices auto-hébergées** — TODO prod déjà noté dans DESIGN §2.2 (rendu OK via
-  Google Fonts aujourd'hui).
+### Résolveur d'assets
+Un utilitaire front (`apps/web/src/app/core/asset-url.ts`) mappe un identifiant de
+jeu (itemId, skillId, terrain, classe) vers un chemin `/assets/...`, applique la
+table d'alias ci-dessus, et **renvoie `null` quand l'art manque** pour que le
+composant retombe sur le rendu rune-lettre / glyphe existant. Aucun asset manquant
+ne casse un écran.
 
 ## Architecture technique
 
 ### Mixin partagé
-`apps/web/src/app/game/_layout.scss` — expose le point de rupture unique :
+`apps/web/src/app/game/_layout.scss` — point de rupture unique :
 
 ```scss
 @mixin wide { @media (min-width: 1024px) { @content; } }
 ```
 
-`@use`'d par les fichiers `.scss` de composant qui en ont besoin. Centralise la
-valeur 1024px (une seule source de vérité, pas de nombre magique dispersé).
+`@use`'d par les `.scss` de composant concernés (une seule source pour 1024px).
 
-### Shell — `game.scss` (le template `game.html` ne change pas)
+### Phase A — Responsive (CSS pur, templates inchangés sauf mention)
 
-En dessous de 1024px : layout actuel intact (flex-colonne, `.app` max 520px centré).
-
-En wide, `.app` :
-- `max-width: none`, plafonné à ~1680px et centré (évite l'étirement infini sur
-  ultra-large) ;
-- CSS grid :
+**Shell — `game.scss`** (le DOM de `game.html` ne change pas). Sous 1024px : intact.
+En wide, `.app` : `max-width: none`, plafonné ~1680px centré ; CSS grid :
 
 ```
 grid-template-columns: 220px 1fr;
@@ -92,69 +81,103 @@ grid-template-areas:
   "nav    main";
 ```
 
-Placement des éléments existants via `grid-area` :
-- `.statusbar` → `status` (pleine largeur en haut) ;
-- `nav` → `nav` ;
-- `.queuebar` → `queue` ;
-- `main` → `main`.
+`grid-area` : `.statusbar`→status, `nav`→nav, `.queuebar`→queue, `main`→main.
+- **`nav`** barre basse → rail vertical : `flex-direction: column`, bordure droite,
+  boutons `flex-direction: row` (icône + label alignés à gauche), actif = texte
+  `--g-ember-glow` + fond `--g-ember-bg` + accent gauche braise. `safe-area` neutralisé.
+- **`.statusbar`** s'étale, jauges plus larges, bourse à droite. Bouton chat conservé ;
+  pas de notif/settings (sans handler).
+- `.queuebar`, `main`, `.toast` inchangés structurellement.
 
-Transformations CSS en wide :
-- **`nav`** (barre basse → rail vertical) : `flex-direction: column`,
-  `justify-content: flex-start`, bordure droite (`border-right`) au lieu du haut ;
-  chaque bouton `flex-direction: row`, icône + label alignés à gauche, padding
-  confortable ; état actif = texte `--g-ember-glow` + fond `--g-ember-bg` + accent
-  gauche braise. `padding-bottom: env(safe-area-inset-bottom)` neutralisé en wide.
-- **`.statusbar`** : s'étale ; jauges plus larges ; bourse poussée à droite. Le bouton
-  chat reste. **Pas** de boutons notif/settings (hors périmètre, sans handler).
-- **`.queuebar`, `main`, `.toast`** : inchangés structurellement.
+**Reflow par écran** (CSS grid en wide, mêmes templates) :
+- `hero-screen.scss` — sous-onglet *personnage* : grid 2 colonnes `[≈360px] [1fr]`
+  (portrait+stats | équipement/inventaire) ; `subnav`/`herohead` pleine largeur.
+- `skill-tree.scss` — liste des compétences | panneau de détail côte à côte.
+- `map-screen.scss` — grid `"head head" / "map panel"` : grande carte à gauche,
+  `.panel` (action d'hex) en colonne droite `position: sticky`.
+- `bastion-screen.scss` — contenu centré sur largeur max ; listes en grille multi-colonnes.
+- `project-panel.scss` / `market-panel.scss` / `character-creation.scss` — grilles /
+  largeur max centrée.
 
-### Reflow par écran (CSS grid en wide, mêmes templates/DOM)
+**Overlays** :
+- `combat-overlay.scss` — reste plein écran ; en wide, carte modale plafonnée
+  (~440px) et centrée.
+- `chat-drawer.scss` — reste un drawer togglé ; en wide, docké à droite (~380px).
 
-- **`hero-screen.scss`** — sous-onglet *personnage* : `:host` devient grid 2 colonnes
-  `[≈340px] [1fr]`. `subnav` et `herohead` en pleine largeur (`grid-column: 1/-1`),
-  carte stats en col 1, carte équipement/inventaire en col 2. Sous-onglet *skills* :
-  seul `app-skill-tree` (+ subnav) est présent → géré dans `skill-tree.scss`.
-- **`skill-tree.scss`** — en wide : liste des compétences | panneau de détail côte à côte.
-- **`map-screen.scss`** — en wide : grid `[1fr] [≈340px]` avec `grid-template-areas`
-  `"head head" / "map panel"`. Grande carte SVG à gauche, `.panel` (action de l'hex)
-  en colonne droite `position: sticky`.
-- **`bastion-screen.scss`** — en wide : la liste de quêtes passe en grille multi-colonnes
-  (2–3) ; largeur de contenu max centrée. Project/market centrés sur largeur max.
-- **`project-panel.scss` / `market-panel.scss`** — grilles multi-colonnes / largeur max.
-- **`character-creation.scss`** — largeur max centrée en wide (déjà proche).
+### Phase B — Intégration d'assets dans les écrans existants
 
-### Overlays
+- **Bannière Bastion** : `banners/cendrelune.png` en tête de `bastion-screen`
+  (mobile + wide).
+- **Héros full-body** : `hero-screen` affiche `heroes/{class}_full.png` (alias
+  scout→scoot) dans la colonne portrait ; fallback sur le portrait actuel si absent.
+- **Icônes objets/matériaux** : `hero-screen` inventaire — la rune-lettre devient
+  l'icône `items/.../{id}.png` via le résolveur, fallback rune si `null`.
+- **Icônes de compétences** : `skill-tree` — icône `skills/skill.*.png` via résolveur
+  (4 dispo), fallback rune.
+- **Vignette de terrain** : `map-screen` panneau d'hex — miniature `lands/{terrain}.png`
+  (shrine→altar), fallback aucun visuel si absent.
+- L'avatar de la statusbar reste l'initiale (DESIGN §3) — inchangé.
 
-- **`combat-overlay.scss`** — reste plein écran ; en wide, la carte modale plafonnée
-  (~440px) et centrée (proche de la maquette FIGHT).
-- **`chat-drawer.scss`** — reste un drawer *togglé* par le bouton chat ; en wide, docké
-  à droite (max ~380px). Pas reconstruit en rail permanent.
+### Phase C — Vue d'accueil Bastion à 6 bâtiments (nouvelle vue)
 
-## Mise à jour de la spec (obligatoire)
+Nouvelle **vue d'accueil** de `bastion-screen` remplaçant la `subnav` actuelle par
+une grille de 6 cartes bâtiment (icône + nom + description + bouton *Entrer* ou
+cadenas), suivie de la bannière en tête. Entrer dans un bâtiment affiche le panneau
+correspondant avec un retour vers l'accueil. Reflow : 3 colonnes en wide, 2 sur
+mobile (comme la maquette).
 
-`docs/DESIGN.md` :
-- **§7** dit « l'app est une colonne max 520px centrée sur desktop (assumé, genre
-  Hordes) ». → Remplacer par une règle responsive : mobile/PWA-étroit = colonne 520
-  centrée ; à partir de 1024px = dashboard pleine largeur (rail latéral, statusbar
-  pleine largeur, écrans multi-colonnes, largeur de contenu plafonnée ~1680px).
-- **§3** (Nav basse) : préciser qu'au-delà de 1024px la nav devient un **rail vertical
-  à gauche** (mêmes destinations, même sémantique d'état actif).
+**Routage (existant réutilisé ; hypothèse à valider en revue) :**
+| Bâtiment | Icône | État | Ouvre |
+|---|---|---|---|
+| Tableau de Mira | parchment | actif (badge = nb quêtes) | quêtes |
+| L'Hôtel des ventes | balance | actif | marché |
+| Forge de Brasfer | anvil | actif | chantier communautaire (`project`) |
+| Archives d'Ennor | *(manquante → fallback)* | verrouillé | — (lore, pas de contenu) |
+| Chantre-Major Isolde | mandala | verrouillé | — (bénédictions, pas de contenu) |
+| Le beffroi du Grand Cairn | coat | verrouillé | — (raids, pas de contenu) |
+
+> Écart assumé vs maquette : la Forge ouvre le chantier communautaire (contenu
+> existant) au lieu du craft (inexistant) ; Archives/Chantre restent verrouillés
+> faute de contenu. À corriger en revue de spec si le routage souhaité diffère.
+
+**Contenu & nommage (règles CLAUDE.md 5) :** les noms/descriptions de bâtiments sont
+des chaînes joueur → nouvelle entrée dans `packages/shared/src/content/fr/`
+(p.ex. `bastion.ts`), **jamais** en dur dans le composant. Chaque bâtiment a un
+identifiant EN à ajouter à `docs/GLOSSARY.md` avant usage (NPC déjà présents :
+`npc.mira/brasfer/ennor/isolde`).
+
+## Mise à jour de la spec DESIGN.md (obligatoire)
+
+- **§7** : remplacer « colonne max 520px centrée sur desktop » par la règle
+  responsive (mobile/PWA-étroit = colonne 520 ; ≥1024px = dashboard pleine largeur,
+  rail latéral, statusbar pleine largeur, contenu plafonné ~1680px).
+- **§3** (Nav basse) : préciser rail vertical au-delà de 1024px.
+- **§3** : ajouter la ligne « Grille de bâtiments (accueil Bastion) » aux composants
+  canoniques ; noter que runes-lettres / glyphes restent le fallback quand l'asset
+  manque.
+- **§4** : noter que la carte 3D top-down est prévue dans une passe ultérieure
+  (l'actuel reste polygones plats).
 
 ## Vérification (définition de « terminé »)
 
 1. `pnpm lint && pnpm build` passent.
-2. Tests web passent — les specs ciblent des `data-testid`, insensibles au CSS ;
-   aucune régression attendue.
-3. Preview (`ng serve`) : captures à **1280px** (dashboard) et **375px** (mobile) sur
-   Carte / Bastion / Héros (+ combat, chat) :
-   - à 1280 : rail latéral visible, statusbar pleine largeur, écrans multi-colonnes ;
-   - à 375 : rendu **identique** à l'actuel (aucune régression mobile) ;
-   - `prefers-reduced-motion` respecté, zones tactiles ≥ 44px préservées.
-4. Aucune chaîne française en dur ajoutée dans le code (aucun texte nouveau de toute façon).
+2. Tests web passent (specs sur `data-testid`, insensibles au CSS). Ajouter un test :
+   la vue d'accueil Bastion rend 6 bâtiments et *Entrer* sur Tableau ouvre les quêtes.
+3. Preview (`ng serve`) — captures à **1280px** et **375px** sur Carte / Bastion
+   (accueil + un bâtiment) / Héros (+ combat, chat) :
+   - 1280 : rail latéral, statusbar pleine largeur, écrans multi-colonnes ;
+   - 375 : rendu identique à l'actuel côté layout, plus les nouveaux assets ;
+   - `prefers-reduced-motion` respecté, zones ≥ 44px préservées.
+4. Assets manquants → fallback propre (rune/glyphe), aucun écran cassé, aucune 404
+   bloquante.
+5. Aucune chaîne française en dur ajoutée (noms de bâtiments dans la couche contenu).
 
-## Hors périmètre (rappel)
+## Hors périmètre
 
-Nouveaux panneaux des maquettes web (quêtes, région, chantiers, activité serveur,
-journal mondial, inventaire rapide, grille 6 bâtiments), nouvelles destinations
-(Classements, Codex), nouveaux assets illustrés, refonte des runes-lettres en icônes.
-Chacun relève d'un jalon ultérieur avec sa propre boucle spec → plan.
+- **Carte 3D top-down** (passe dédiée, dépend de l'art des tuiles).
+- Panneaux des maquettes web encore sans données : rail Quêtes latéral, Progression
+  région, Chantiers communautaires sur carte/héros, Activité serveur, Journal mondial,
+  inventaire rapide.
+- Destinations Classements / Codex (rail).
+- Contenu des bâtiments verrouillés (craft/forge, lore Archives, bénédictions Chantre,
+  raids Beffroi).
