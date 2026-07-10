@@ -108,6 +108,17 @@ Les noms propres (Maugrith, Cendrelune, Vellebrune…) ne se traduisent pas ; se
 | Fenk                 | `npc.fenk`    |
 | Maîtresse Ossa       | `npc.ossa`    |
 
+## Bâtiments du Bastion
+
+| FR                        | ID code             | ouvre / note              |
+| ------------------------- | ------------------- | ------------------------- |
+| Forge de Brasfer          | `building.forge`    | chantier communautaire    |
+| Archives d'Ennor          | `building.archives` | verrouillé (lore)         |
+| Tableau de Mira           | `building.board`    | quêtes                    |
+| Chantre-Major Isolde      | `building.sanctum`  | verrouillé (bénédictions) |
+| Le beffroi du Grand Cairn | `building.belfry`   | verrouillé (raids)        |
+| L'Hôtel des ventes        | `building.market`   | marché                    |
+
 ## Rangs de renommée
 
 Cendreux `ashen` → Porteur d'étincelle `sparkbearer` → Veilleur `watcher` → Flamme-née `flameborn` → Rallumeur `rekindler`.

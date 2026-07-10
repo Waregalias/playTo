@@ -3,7 +3,7 @@ import { BastionScreenComponent } from './bastion-screen';
 import { ApiClient } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 
-describe('BastionScreenComponent — sub-tabs', () => {
+describe('BastionScreenComponent — home view', () => {
   const storeMock = {
     quests: vi.fn(() => []),
     currentProject: vi.fn(() => null),
@@ -25,19 +25,53 @@ describe('BastionScreenComponent — sub-tabs', () => {
     }).compileComponents();
   });
 
-  it('shows the quest board by default and switches to Chantier/Marché', () => {
+  it('renders a home grid of 6 buildings by default', () => {
     const fixture = TestBed.createComponent(BastionScreenComponent);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="bastion-home"]')).toBeTruthy();
+    expect(el.querySelectorAll('[data-testid^="building-"]').length).toBe(6);
     expect(el.querySelector('app-project-panel')).toBeNull();
     expect(el.querySelector('app-market-panel')).toBeNull();
+  });
 
-    fixture.componentInstance.subTab.set('project');
+  it('enters the board (quests) and can go back home', () => {
+    const fixture = TestBed.createComponent(BastionScreenComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+
+    (el.querySelector('[data-testid="enter-building.board"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(el.querySelector('.card')).toBeTruthy(); // quest board card
+    expect(el.querySelector('[data-testid="bastion-home"]')).toBeNull();
+
+    (el.querySelector('[data-testid="bastion-back"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(el.querySelector('[data-testid="bastion-home"]')).toBeTruthy();
+  });
+
+  it('enters the forge (project) and the market via their buildings', () => {
+    const fixture = TestBed.createComponent(BastionScreenComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+
+    (el.querySelector('[data-testid="enter-building.forge"]') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(el.querySelector('app-project-panel')).toBeTruthy();
 
-    fixture.componentInstance.subTab.set('market');
+    fixture.componentInstance.view.set('home');
+    fixture.detectChanges();
+    (el.querySelector('[data-testid="enter-building.market"]') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(el.querySelector('app-market-panel')).toBeTruthy();
+  });
+
+  it('leaves locked buildings without an enter button', () => {
+    const fixture = TestBed.createComponent(BastionScreenComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const belfry = el.querySelector('[data-testid="building-building.belfry"]')!;
+    expect(belfry.classList.contains('locked')).toBe(true);
+    expect(el.querySelector('[data-testid="enter-building.belfry"]')).toBeNull();
   });
 });

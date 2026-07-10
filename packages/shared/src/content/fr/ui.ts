@@ -115,6 +115,10 @@ export const UI_FR = {
     equippedTag: 'équipé',
     xpLabel: 'XP',
   },
+  bastion: {
+    enter: 'Entrer',
+    back: '← Retour',
+  },
   quests: {
     boardTitle: 'Tableau de Mira',
     boardHint: '« On ne meurt qu’une fois par jour, c’est le règlement. »',

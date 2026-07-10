@@ -6,26 +6,44 @@
   </div>
 </header>
 
-<div class="subnav" role="tablist">
-  <button role="tab" [class.on]="subTab() === 'quests'" (click)="subTab.set('quests')">
-    {{ t.boardTitle }}
-  </button>
-  <button role="tab" [class.on]="subTab() === 'project'" (click)="subTab.set('project')">
-    {{ tProject.title }}
-  </button>
-  <button role="tab" [class.on]="subTab() === 'market'" (click)="subTab.set('market')">
-    {{ tMarket.title }}
-  </button>
-</div>
-
-@switch (subTab()) {
+@switch (view()) {
+  @case ('home') {
+    <div class="buildings" data-testid="bastion-home">
+      @for (b of buildings(); track b.id) {
+        <div class="building" [class.locked]="!b.opens" [attr.data-testid]="'building-' + b.id">
+          <div class="bicon">
+            @if (b.icon) {
+              <img [src]="b.icon" alt="" (error)="$any($event.target).style.display='none'" />
+            } @else {
+              {{ b.name.charAt(0) }}
+            }
+            @if (b.badge; as badge) {
+              <span class="badge">{{ badge }}</span>
+            }
+          </div>
+          <b>{{ b.name }}</b>
+          <small>{{ b.description }}</small>
+          @if (b.opens) {
+            <button class="btn" [attr.data-testid]="'enter-' + b.id" (click)="enter(b)">
+              {{ tBastion.enter }}
+            </button>
+          } @else {
+            <span class="locked-mark" aria-hidden="true">🔒</span>
+          }
+        </div>
+      }
+    </div>
+  }
   @case ('project') {
+    <button class="btn back" data-testid="bastion-back" (click)="view.set('home')">{{ tBastion.back }}</button>
     <app-project-panel />
   }
   @case ('market') {
+    <button class="btn back" data-testid="bastion-back" (click)="view.set('home')">{{ tBastion.back }}</button>
     <app-market-panel />
   }
-  @default {
+  @case ('quests') {
+    <button class="btn back" data-testid="bastion-back" (click)="view.set('home')">{{ tBastion.back }}</button>
 
 <div class="card">
   <h3>{{ t.boardTitle }}</h3>

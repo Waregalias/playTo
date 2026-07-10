@@ -149,10 +149,80 @@ h2 {
   }
 }
 
+/* ── Vue d'accueil : grille de bâtiments ── */
+.buildings {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.building {
+  background: var(--g-panel);
+  border: 1px solid var(--g-border);
+  border-radius: 10px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+
+  b { font-family: var(--g-font-display); color: var(--g-bone); font-size: 0.9rem; }
+  small { color: var(--g-mist); font-size: 0.76rem; min-height: 2.4em; }
+
+  &.locked { opacity: 0.6; }
+}
+
+.bicon {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  font-family: var(--g-font-display);
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: var(--g-ember-glow);
+
+  img { width: 100%; height: 100%; object-fit: contain; }
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--g-ember);
+  color: #1a0e02;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.building .btn {
+  width: 100%;
+  margin-top: auto;
+}
+
+.locked-mark { margin-top: auto; font-size: 1.1rem; opacity: 0.7; }
+
+.back {
+  width: auto;
+  margin: 0 0 12px;
+  padding: 8px 14px;
+  background: none;
+  color: var(--g-mist);
+}
+
 /* ── Dashboard reflow (≥ 1024px) ── */
 @include layout.wide {
   :host { padding: 24px; }
-  .banner, .subnav, .card { max-width: 1100px; margin-left: auto; margin-right: auto; }
+  .banner, .subnav, .card, .buildings { max-width: 1100px; margin-left: auto; margin-right: auto; }
   .banner img { height: 220px; }
   .subnav { max-width: 520px; }
+  .buildings { grid-template-columns: repeat(3, 1fr); }
 }

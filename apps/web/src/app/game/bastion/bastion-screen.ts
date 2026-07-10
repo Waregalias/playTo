@@ -5,14 +5,30 @@ import {
   type CharacterQuestDto,
   type QuestStep,
 } from '@aldenfer/shared';
-import { QUESTS_FR, UI_FR, REGION_NAMES_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
+import {
+  QUESTS_FR,
+  UI_FR,
+  REGION_NAMES_FR,
+  ERROR_MESSAGES_FR,
+  BUILDINGS_FR,
+  type BuildingId,
+} from '@aldenfer/shared/content/fr';
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
 import { ProjectPanelComponent } from './project-panel';
 import { MarketPanelComponent } from './market-panel';
 
-type SubTab = 'quests' | 'project' | 'market';
+type View = 'home' | 'quests' | 'project' | 'market';
+
+interface BuildingVm {
+  id: BuildingId;
+  name: string;
+  description: string;
+  icon: string | null;
+  opens: View | null; // null = verrouillé
+  badge: number | null;
+}
 
 interface QuestVm {
   questId: string;
@@ -36,13 +52,43 @@ export class BastionScreenComponent {
   readonly t = UI_FR.quests;
   readonly tProject = UI_FR.project;
   readonly tMarket = UI_FR.market;
+  readonly tBastion = UI_FR.bastion;
   readonly regionName = REGION_NAMES_FR['cinderlune'];
   readonly store = inject(GameStore);
   private readonly api = inject(ApiClient);
   private readonly toast = inject(ToastService);
 
-  readonly subTab = signal<SubTab>('quests');
+  readonly view = signal<View>('home');
   readonly pending = signal(false);
+
+  private readonly buildingDefs: ReadonlyArray<{
+    id: BuildingId;
+    icon: string | null;
+    opens: View | null;
+  }> = [
+    { id: 'building.board', icon: '/assets/buildings/parchment.png', opens: 'quests' },
+    { id: 'building.market', icon: '/assets/buildings/balance.png', opens: 'market' },
+    { id: 'building.forge', icon: '/assets/buildings/anvil.png', opens: 'project' },
+    { id: 'building.archives', icon: null, opens: null }, // icône livre non fournie → fallback initiale
+    { id: 'building.sanctum', icon: '/assets/buildings/mandala.png', opens: null },
+    { id: 'building.belfry', icon: '/assets/buildings/coat.png', opens: null },
+  ];
+
+  readonly buildings = computed<BuildingVm[]>(() => {
+    const activeQuests = this.store.quests().filter((q) => q.state === 'active').length;
+    return this.buildingDefs.map((def) => ({
+      id: def.id,
+      name: BUILDINGS_FR[def.id].name,
+      description: BUILDINGS_FR[def.id].description,
+      icon: def.icon,
+      opens: def.opens,
+      badge: def.id === 'building.board' && activeQuests > 0 ? activeQuests : null,
+    }));
+  });
+
+  enter(building: BuildingVm): void {
+    if (building.opens) this.view.set(building.opens);
+  }
 
   readonly questVms = computed<QuestVm[]>(() =>
     this.store.quests().map((cq) => {
