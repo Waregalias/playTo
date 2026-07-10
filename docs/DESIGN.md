@@ -74,10 +74,11 @@ Tous existent dans la maquette ; les répliquer, pas les réinventer.
 | **Carte (card)**                          | `--color-panel`, liseré, rayon 10, padding 12–14px. Titre .92rem + contenu.                                                                                                                                                                        |
 | **Bouton**                                | Secondaire : dégradé panel, liseré. Primaire : dégradé braise, texte quasi-noir `#1A0E02`, lueur orange. Coût d'action toujours affiché dans le libellé : « Lancer un assaut (⚡25) ». `disabled` = opacité .45. `transform: scale(.97)` au press. |
 | **Jauges**                                | Fond `#0A1016` + liseré, remplissage en dégradé de la gamme sémantique, label centré avec text-shadow. Transition `width .5–.6s ease`.                                                                                                             |
-| **Nav basse** (4 onglets)                 | Carte · Bastion · Héros · Raid. Icônes SVG trait 1.7, actif = `--color-ember-glow` + drop-shadow. `padding-bottom: env(safe-area-inset-bottom)`.                                                                                                   |
+| **Nav basse** (4 onglets)                 | Carte · Bastion · Héros · Raid. Icônes SVG trait 1.7, actif = `--color-ember-glow` + drop-shadow. `padding-bottom: env(safe-area-inset-bottom)`. Au-delà de 1024px : rail vertical à gauche (mêmes destinations, actif = texte braise + fond ember-bg + accent gauche).                                                                                                   |
 | **Toast**                                 | Pilule `--color-ember-bg` + liseré braise, bas d'écran au-dessus de la nav, 2.4s. Une seule à la fois.                                                                                                                                             |
 | **Rangée PNJ / compétence**               | Face ou rune 38–44px à gauche (initiale Cinzel), nom + description, action ou coût à droite. Séparateur 1px `#202D3B`. Compétence acquise : rune fond `--color-ember-bg` liseré braise ; verrouillée : gamme froide.                               |
-| **Overlay combat**                        | Plein écran au-dessus de tout. Ennemi centré, jauges au-dessus/en dessous, log 88px scrollable, **grille 2×2 de gros boutons** (min 44px de haut, sous-libellé d'info). Aucune contrainte de temps.                                                |
+| **Overlay combat**                        | Plein écran au-dessus de tout. Ennemi centré, jauges au-dessus/en dessous, log 88px scrollable, **grille 2×2 de gros boutons** (min 44px de haut, sous-libellé d'info). Aucune contrainte de temps. En wide : carte modale plafonnée ~440px, centrée.                                                |
+| **Grille de bâtiments** (accueil Bastion) | Cartes bâtiment : icône (`buildings/*`) ou fallback initiale Cinzel, nom, description, bouton *Entrer* ou cadenas si verrouillé. 2 colonnes mobile, 3 en wide.                                                |
 
 ## 4. La carte hexagonale (élément signature)
 
@@ -86,6 +87,8 @@ Tous existent dans la maquette ; les répliquer, pas les réinventer.
 - **Brouillard** : hexagones non découverts en `#26313D` + deux ellipses de brume (`#7E93A6` / `#5A6B7A`) animées en translation lente alternée (14s et 22s). Une Braise non atteinte perce la brume : cercle orange pulsant (2.4s).
 - Marqueur joueur : disque `--color-ember-glow` cerclé sombre + anneau pulsant. POI : glyphe ✦, shrine : ⌂.
 - Interaction : tap = sélection → panneau d'action sous la carte (jamais de popup sur la carte elle-même). `touch-action: manipulation`.
+
+> La conversion en tuiles « 3D vue du dessus » est prévue dans une passe ultérieure (dépend de l'art des tuiles). Tant qu'elle n'est pas livrée, la carte reste en polygones plats décrits ci-dessus.
 
 ## 5. Mouvement
 
@@ -102,7 +105,7 @@ Peu, et signifiant : pulsations de braise (2.4s ease-in-out), dérive de brume (
 
 ## 7. Plancher de qualité
 
-- Mobile-first, cible 360–520px ; l'app est une colonne max 520px centrée sur desktop (assumé, genre Hordes).
+- Mobile-first. Sous 1024px : colonne max 520px centrée (téléphone, PWA téléphone). À partir de 1024px : dashboard pleine largeur — rail de navigation vertical à gauche, barre de statut pleine largeur, écrans en grille multi-colonnes, contenu plafonné à ~1680px et centré. Point de rupture unique `@media (min-width: 1024px)`.
 - Zones tactiles ≥ 44×44px pour toute action de jeu.
 - Focus visible : `outline: 2px solid var(--color-ember-glow); offset: 2px`.
 - Contrastes : bone sur night ≈ 12:1 ; mist sur panel ≥ 4.5:1 pour tout texte informatif (la brume décorative peut descendre en dessous).
