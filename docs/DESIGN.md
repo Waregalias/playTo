@@ -86,11 +86,11 @@ Tous existent dans la maquette ; les répliquer, pas les réinventer.
 - SVG, **hexagones pointe en haut**, coordonnées axiales `(q, r)`, rayon 22 unités de viewBox, projetés en tuiles 3/4 vue du dessus (voir `map-geometry.ts`).
 - **Face du dessus = hexagone** (6 côtés), dont l'axe vertical est comprimé par `TILT` (~0.8) pour le point de vue 3/4 — assez pour lire le relief, pas au point d'aplatir l'hexagone en losange. L'espacement des rangées est comprimé du même facteur, donc les tuiles restent jointives.
 - Extrusion : chaque tuile a deux murs latéraux (`DEPTH` ≈ 7 unités) teintés plus sombre/plus clair que la face du dessus pour lire le relief, plus une ombre de contact ovale sous la tuile. Rester subtil — ce n'est pas un rendu de bloc épais.
-- **Sous-couche décorative** : un champ de tuiles très sombres (les cases vides sur ~2 anneaux autour de la carte découverte), décalées plus bas (`FLOOR_OFFSET`) et rendues en premier (sous tout le reste). Aucune donnée de jeu — uniquement pour donner de la profondeur (la carte flotte au-dessus) et remplir le vide visuel autour/sous les hexagones réels.
+- **Sous-couche décorative** : un champ de tuiles très sombres (les cases vides sur ~2 anneaux autour de la carte découverte), décalées plus bas (`FLOOR_OFFSET`), floutées (`feGaussianBlur`) et rendues en premier (sous tout le reste). Aucune donnée de jeu — uniquement pour donner de la profondeur (la carte flotte au-dessus) et remplir le vide visuel autour/sous les hexagones réels. Le flou renforce l'effet de brume autour de la carte.
 - Couleurs de terrain (fill) : plain `#8E9C6B` · forest `#4F6B4A` · hill `#8A7B5C` · marsh `#5E6E63` · ruins `#6E6A72` · ash_road `#3D4854` · shrine `#B0885A`. Contour `#0A1119` 1px. Sélection : contour `--color-ember-glow` 2.5px.
 - **Brouillard** : hexagones non découverts en `#26313D` + deux ellipses de brume (`#7E93A6` / `#5A6B7A`) animées en translation lente alternée (14s et 22s). Une Braise non atteinte perce la brume : cercle orange pulsant (2.4s).
 - Marqueur joueur : disque `--color-ember-glow` cerclé sombre + anneau pulsant. POI : glyphe ✦, shrine : ⌂.
-- **Cadre de la carte** : pas de liseré dur — un effet de vignette brumeuse (dégradé radial + ombre interne) fait disparaître les bords de la carte dans la Brume plutôt que de les border d'une ligne.
+- **Cadre de la carte** : pas de liseré dur — les bords du SVG sont adoucis par un `mask-image` radial (fondu vers le transparent) + une vignette brumeuse discrète (dégradé radial + ombre interne douce), de sorte que la carte se dissout dans la Brume au lieu d'être bordée d'une ligne.
 - Interaction : tap = sélection → panneau d'action sous la carte (jamais de popup sur la carte elle-même). `touch-action: manipulation`.
 
 ## 5. Mouvement

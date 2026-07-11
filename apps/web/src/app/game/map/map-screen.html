@@ -40,10 +40,17 @@
 
 <div class="mapwrap">
   <svg [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="'Carte — ' + regionName()">
-    <!-- decorative underlayer: darker, one row-step lower, gives depth + fills the void -->
-    @for (floor of floorTiles(); track $index) {
-      <polygon class="tile-floor" [attr.points]="floor.points" />
-    }
+    <defs>
+      <filter id="fog-blur" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="1.6" />
+      </filter>
+    </defs>
+    <!-- decorative underlayer: darker, lower and blurred, gives depth + fills the void -->
+    <g filter="url(#fog-blur)">
+      @for (floor of floorTiles(); track $index) {
+        <polygon class="tile-floor" [attr.points]="floor.points" />
+      }
+    </g>
     <!-- 3D tile blocks, painted back-to-front (see byDepth) -->
     @for (view of hexViews(); track view.hex.id) {
       <g

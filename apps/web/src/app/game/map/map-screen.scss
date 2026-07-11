@@ -36,18 +36,17 @@ h2 {
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  z-index: 0; /* keep the map layer below the action panel (both are positioned) */
   background: radial-gradient(120% 100% at 50% 0%, #182430 0%, #0c141d 70%);
 
-  /* Heavy misty vignette replacing a hard edge — the map dissolves into the Brume. */
+  /* Soft misty vignette — a gentle darkening, not a hard frame. */
   &::after {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
-    box-shadow: inset 0 0 110px 40px rgba(6, 10, 15, 0.96);
-    background:
-      radial-gradient(ellipse 78% 66% at 50% 42%, transparent 34%, rgba(8, 13, 19, 0.92) 100%),
-      linear-gradient(180deg, rgba(10, 15, 21, 0.5) 0%, transparent 22% 74%, rgba(6, 10, 15, 0.85) 100%);
+    box-shadow: inset 0 0 64px 12px rgba(6, 10, 15, 0.85);
+    background: radial-gradient(ellipse 82% 76% at 50% 44%, transparent 52%, rgba(8, 13, 19, 0.72) 100%);
   }
 }
 
@@ -56,6 +55,20 @@ svg {
   width: 100%;
   height: auto;
   touch-action: manipulation;
+
+  /* Feather the map edges so they blur/dissolve into the Brume instead of stopping at a line. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 76% 84% at 50% 46%,
+    #000 54%,
+    rgba(0, 0, 0, 0.4) 84%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 76% 84% at 50% 46%,
+    #000 54%,
+    rgba(0, 0, 0, 0.4) 84%,
+    transparent 100%
+  );
 }
 
 .tile {
@@ -161,6 +174,12 @@ svg {
   color: var(--g-mist);
   font-size: 0.85rem;
   margin: 0;
+}
+
+/* The action panel is a positioned sibling of the (also positioned) map — keep it on top. */
+.panel {
+  position: relative;
+  z-index: 1;
 }
 
 .panel-main {
