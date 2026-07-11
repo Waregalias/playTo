@@ -9,14 +9,16 @@ import type { HexDto, Terrain } from '@aldenfer/shared';
 
 const HEX_RADIUS = 22; // viewBox units, pointy-top (SPEC-M1 / maquette)
 const SQRT3 = Math.sqrt(3);
-const MARGIN = 40;
+const MARGIN = 26;
 
-/** Vertical squish that fakes the 3/4 viewing tilt — low value = wide, flat diamonds. */
-export const TILT = 0.42;
-/** Downward extrusion of the block walls, in viewBox units (subtle). */
-export const DEPTH = 6;
-/** Vertical drop of the decorative underlayer, one row-step lower than its own tile. */
-export const FLOOR_OFFSET = HEX_RADIUS * 1.5 * TILT;
+/** Vertical squish that fakes the 3/4 viewing tilt (subtle — keeps hexagons hexagonal). */
+export const TILT = 0.8;
+/** Downward extrusion of the block walls, in viewBox units (subtle relief). */
+export const DEPTH = 7;
+/** Vertical drop of the decorative underlayer — reads as one storey lower. */
+export const FLOOR_OFFSET = 15;
+/** How many hex rings of dark floor tiles surround the real map. */
+const FLOOR_RINGS = 2;
 
 /** Fog fill for undiscovered hexes (matches the previous flat rendering). */
 const FOG_FILL = '#26313d';
@@ -69,21 +71,15 @@ export function shade(hex: string, factor: number): string {
 
 type Point = { x: number; y: number };
 
-const HALF_W = (HEX_RADIUS * SQRT3) / 2;
-const HALF_H = HEX_RADIUS * 1.5 * TILT;
-
-/**
- * Perfect rhombus (losange) top face: top/right/bottom/left points only.
- * Width/height derive from the same axial spacing used by projectCenter, so
- * neighbouring tiles interlock edge-to-edge with no gaps or overlap.
- */
+/** Pointy-top hexagon whose vertical axis is squished by TILT for the 3/4 view. */
 function tiltedCorners(cx: number, cy: number): Point[] {
-  return [
-    { x: cx, y: cy - HALF_H }, // top
-    { x: cx + HALF_W, y: cy }, // right
-    { x: cx, y: cy + HALF_H }, // bottom
-    { x: cx - HALF_W, y: cy }, // left
-  ];
+  return Array.from({ length: 6 }, (_, i) => {
+    const angle = (Math.PI / 180) * (60 * i - 30);
+    return {
+      x: cx + HEX_RADIUS * Math.cos(angle),
+      y: cy + HEX_RADIUS * Math.sin(angle) * TILT,
+    };
+  });
 }
 
 function toPoints(points: Point[]): string {
@@ -96,9 +92,9 @@ export function toTileView(hex: HexDto): TileView {
   const down = (p: Point): Point => ({ x: p.x, y: p.y + DEPTH });
   const topFill = hex.discovered ? TERRAIN_FILLS[hex.terrain] : FOG_FILL;
 
-  // Corner order (from tiltedCorners): 0=top, 1=right, 2=bottom, 3=left. The
-  // two front-facing lower edges (right→bottom, bottom→left) become the
-  // visible side walls once extruded downward.
+  // Corner order (from tiltedCorners): 0=upper-right, 1=lower-right, 2=bottom,
+  // 3=lower-left, 4=upper-left, 5=top. The two front-facing lower edges become
+  // the visible side walls once extruded downward.
   return {
     hex,
     x,
@@ -111,8 +107,8 @@ export function toTileView(hex: HexDto): TileView {
     wallLeftFill: shade(topFill, WALL_LEFT),
     shadowCx: x,
     shadowCy: y + DEPTH + 3,
-    shadowRx: HALF_W * 0.78,
-    shadowRy: HALF_H * 0.32,
+    shadowRx: HEX_RADIUS * 0.82,
+    shadowRy: HEX_RADIUS * 0.3,
   };
 }
 
@@ -122,19 +118,52 @@ export interface FloorTileView {
   points: string;
 }
 
+// Pointy-top axial neighbour deltas (matches projectCenter's axial convention).
+const HEX_DIRS: ReadonlyArray<readonly [number, number]> = [
+  [1, 0],
+  [1, -1],
+  [0, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, 1],
+];
+
+/** Empty cells within FLOOR_RINGS of the real map — the footprint of the underlayer. */
+function apronCells(hexes: readonly HexDto[]): Point[] {
+  if (hexes.length === 0) return [];
+  const present = new Set(hexes.map((h) => `${h.q}:${h.r}`));
+  const apron = new Map<string, { q: number; r: number }>();
+  let frontier = hexes.map((h) => ({ q: h.q, r: h.r }));
+  for (let ring = 0; ring < FLOOR_RINGS; ring++) {
+    const next: { q: number; r: number }[] = [];
+    for (const { q, r } of frontier) {
+      for (const [dq, dr] of HEX_DIRS) {
+        const nq = q + dq;
+        const nr = r + dr;
+        const key = `${nq}:${nr}`;
+        if (present.has(key) || apron.has(key)) continue;
+        const cell = { q: nq, r: nr };
+        apron.set(key, cell);
+        next.push(cell);
+      }
+    }
+    frontier = next;
+  }
+  return [...apron.values()]
+    .sort((a, b) => a.r - b.r || a.q - b.q)
+    .map(({ q, r }) => projectCenter(q, r));
+}
+
 /**
- * Decorative underlayer, one row-step lower and much darker than the real
- * map — reads as a floor receding into the depths, filling the empty
- * viewBox space around and beneath the discovered hexes. No game data, no
- * adjacency: purely a copy of each real tile's footprint, dropped down by
- * FLOOR_OFFSET (so a discovered tile from the next row naturally covers the
- * interior copies, and only the perimeter peeks through).
+ * Decorative underlayer: a field of dark hexes surrounding the real map, each
+ * dropped by FLOOR_OFFSET so it reads as a storey below. Rendered first (behind
+ * everything) to give the floating map depth and fill the empty viewBox space.
+ * No game data — purely the void around the discovered hexes, tiled and dimmed.
  */
 export function floorViews(hexes: readonly HexDto[]): FloorTileView[] {
-  return hexes.map((hex) => {
-    const { x, y } = projectCenter(hex.q, hex.r);
-    const floorY = y + FLOOR_OFFSET;
-    return { x, y: floorY, points: toPoints(tiltedCorners(x, floorY)) };
+  return apronCells(hexes).map(({ x, y }) => {
+    const fy = y + FLOOR_OFFSET;
+    return { x, y: fy, points: toPoints(tiltedCorners(x, fy)) };
   });
 }
 
@@ -161,7 +190,15 @@ export function boundsOf(hexes: readonly HexDto[]): {
     minY = Math.min(minY, y);
     maxY = Math.max(maxY, y);
   }
-  maxY += DEPTH + FLOOR_OFFSET + HALF_H; // walls + contact shadow + the floor underlayer
+  // The dark apron extends beyond the real map and sits lower — grow to fit it.
+  for (const { x, y } of apronCells(hexes)) {
+    const fy = y + FLOOR_OFFSET;
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, fy);
+    maxY = Math.max(maxY, fy);
+  }
+  maxY += DEPTH; // room for the extruded walls + contact shadow of the front row
   return {
     minX: minX - MARGIN,
     minY: minY - MARGIN,

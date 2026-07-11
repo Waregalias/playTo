@@ -39,9 +39,9 @@ describe('map-geometry', () => {
     expect(shade('#ffffff', 0)).toBe('#000000');
   });
 
-  it('builds a perfect rhombus top face (4 points) and two wall skirts (4 points each)', () => {
+  it('builds a hex top face (6 points) and two wall skirts (4 points each)', () => {
     const view = toTileView(hex({ q: 0, r: 0 }));
-    expect(view.topPoints.split(' ')).toHaveLength(4);
+    expect(view.topPoints.split(' ')).toHaveLength(6);
     expect(view.wallLeft.split(' ')).toHaveLength(4);
     expect(view.wallRight.split(' ')).toHaveLength(4);
     // walls are darker than the top face
@@ -49,29 +49,27 @@ describe('map-geometry', () => {
     expect(view.wallRightFill).not.toBe(view.topFill);
   });
 
-  it('top face is a symmetric diamond centred on the tile', () => {
-    const view = toTileView(hex({ q: 0, r: 0 }));
-    const [top, right, bottom, left] = view.topPoints.split(' ').map((p) => {
-      const [x, y] = p.split(',').map(Number);
-      return { x, y };
-    });
-    // top/bottom sit on the vertical axis, right/left on the horizontal axis
-    expect(top.x).toBeCloseTo(view.x, 5);
-    expect(bottom.x).toBeCloseTo(view.x, 5);
-    expect(right.y).toBeCloseTo(view.y, 5);
-    expect(left.y).toBeCloseTo(view.y, 5);
-    // symmetric around the centre on both axes
-    expect(view.x - left.x).toBeCloseTo(right.x - view.x, 5);
-    expect(view.y - top.y).toBeCloseTo(bottom.y - view.y, 5);
+  it('builds a dark apron of empty neighbour cells, dropped below the real map', () => {
+    // two rings of empty cells around a lone tile: 6 (inner) + 12 (outer) = 18
+    const apron = floorViews([hex({ q: 0, r: 0 })]);
+    expect(apron).toHaveLength(18);
+
+    // no apron tile sits on the real tile's own centre
+    const centre = projectCenter(0, 0);
+    expect(
+      apron.some((t) => Math.abs(t.x - centre.x) < 0.01 && Math.abs(t.y - centre.y) < 0.01),
+    ).toBe(false);
+
+    // a known neighbour (1,0) appears in the apron, dropped by FLOOR_OFFSET
+    const n = projectCenter(1, 0);
+    const match = apron.find(
+      (t) => Math.abs(t.x - n.x) < 0.01 && Math.abs(t.y - (n.y + FLOOR_OFFSET)) < 0.01,
+    );
+    expect(match).toBeDefined();
   });
 
-  it('floorViews drops each tile one row-step lower, same x', () => {
-    const hexes = [hex({ q: 0, r: 0 }), hex({ q: 1, r: 0 })];
-    const [real0] = hexes.map(toTileView);
-    const [floor0] = floorViews(hexes);
-    expect(floor0.x).toBeCloseTo(real0.x, 5);
-    expect(floor0.y).toBeCloseTo(real0.y + FLOOR_OFFSET, 5);
-    expect(floorViews(hexes)).toHaveLength(2);
+  it('has no apron for an empty map', () => {
+    expect(floorViews([])).toEqual([]);
   });
 
   it('uses the fog fill and derived walls for undiscovered hexes', () => {
@@ -90,11 +88,15 @@ describe('map-geometry', () => {
     expect(boundsOf([])).toEqual({ minX: 0, minY: 0, width: 340, height: 300 });
   });
 
-  it('reserves margin, extrusion and floor-underlayer room in the bounds of a single hex', () => {
-    // single hex at projected (0,0): min=max=0 → width = 2*MARGIN(40)
-    const b = boundsOf([hex({ q: 0, r: 0 })]);
-    expect(b.width).toBe(80);
-    // height = 2*MARGIN + DEPTH + FLOOR_OFFSET + HALF_H, and HALF_H === FLOOR_OFFSET by construction
-    expect(b.height).toBeCloseTo(80 + DEPTH + 2 * FLOOR_OFFSET, 5);
+  it('grows the bounds to enclose the surrounding floor apron', () => {
+    const lone = boundsOf([hex({ q: 0, r: 0 })]);
+    // The apron spans two hex rings around the tile and sits FLOOR_OFFSET lower,
+    // so the box is far larger than a bare tile + margin would be.
+    expect(lone.width).toBeGreaterThan(4 * 22);
+    expect(lone.height).toBeGreaterThan(4 * 22 + FLOOR_OFFSET);
+    // the box still starts above/left of the origin tile (negative min corner)
+    expect(lone.minX).toBeLessThan(0);
+    expect(lone.minY).toBeLessThan(0);
+    expect(DEPTH).toBeGreaterThan(0);
   });
 });
