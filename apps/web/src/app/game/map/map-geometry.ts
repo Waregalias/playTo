@@ -9,12 +9,14 @@ import type { HexDto, Terrain } from '@aldenfer/shared';
 
 const HEX_RADIUS = 22; // viewBox units, pointy-top (SPEC-M1 / maquette)
 const SQRT3 = Math.sqrt(3);
-const MARGIN = 30;
+const MARGIN = 40;
 
-/** Vertical squish that fakes the 3/4 viewing tilt (subtle relief). */
-export const TILT = 0.62;
+/** Vertical squish that fakes the 3/4 viewing tilt — low value = wide, flat diamonds. */
+export const TILT = 0.42;
 /** Downward extrusion of the block walls, in viewBox units (subtle). */
-export const DEPTH = 10;
+export const DEPTH = 6;
+/** Vertical drop of the decorative underlayer, one row-step lower than its own tile. */
+export const FLOOR_OFFSET = HEX_RADIUS * 1.5 * TILT;
 
 /** Fog fill for undiscovered hexes (matches the previous flat rendering). */
 const FOG_FILL = '#26313d';
@@ -67,14 +69,21 @@ export function shade(hex: string, factor: number): string {
 
 type Point = { x: number; y: number };
 
+const HALF_W = (HEX_RADIUS * SQRT3) / 2;
+const HALF_H = HEX_RADIUS * 1.5 * TILT;
+
+/**
+ * Perfect rhombus (losange) top face: top/right/bottom/left points only.
+ * Width/height derive from the same axial spacing used by projectCenter, so
+ * neighbouring tiles interlock edge-to-edge with no gaps or overlap.
+ */
 function tiltedCorners(cx: number, cy: number): Point[] {
-  return Array.from({ length: 6 }, (_, i) => {
-    const angle = (Math.PI / 180) * (60 * i - 30);
-    return {
-      x: cx + HEX_RADIUS * Math.cos(angle),
-      y: cy + HEX_RADIUS * Math.sin(angle) * TILT,
-    };
-  });
+  return [
+    { x: cx, y: cy - HALF_H }, // top
+    { x: cx + HALF_W, y: cy }, // right
+    { x: cx, y: cy + HALF_H }, // bottom
+    { x: cx - HALF_W, y: cy }, // left
+  ];
 }
 
 function toPoints(points: Point[]): string {
@@ -87,9 +96,9 @@ export function toTileView(hex: HexDto): TileView {
   const down = (p: Point): Point => ({ x: p.x, y: p.y + DEPTH });
   const topFill = hex.discovered ? TERRAIN_FILLS[hex.terrain] : FOG_FILL;
 
-  // Corner order (from tiltedCorners): 0=upper-right, 1=lower-right, 2=bottom,
-  // 3=lower-left, 4=upper-left, 5=top. The two front-facing lower edges become
-  // the visible side walls once extruded downward.
+  // Corner order (from tiltedCorners): 0=top, 1=right, 2=bottom, 3=left. The
+  // two front-facing lower edges (right→bottom, bottom→left) become the
+  // visible side walls once extruded downward.
   return {
     hex,
     x,
@@ -102,9 +111,31 @@ export function toTileView(hex: HexDto): TileView {
     wallLeftFill: shade(topFill, WALL_LEFT),
     shadowCx: x,
     shadowCy: y + DEPTH + 3,
-    shadowRx: HEX_RADIUS * 0.82,
-    shadowRy: HEX_RADIUS * 0.3,
+    shadowRx: HALF_W * 0.78,
+    shadowRy: HALF_H * 0.32,
   };
+}
+
+export interface FloorTileView {
+  x: number;
+  y: number;
+  points: string;
+}
+
+/**
+ * Decorative underlayer, one row-step lower and much darker than the real
+ * map — reads as a floor receding into the depths, filling the empty
+ * viewBox space around and beneath the discovered hexes. No game data, no
+ * adjacency: purely a copy of each real tile's footprint, dropped down by
+ * FLOOR_OFFSET (so a discovered tile from the next row naturally covers the
+ * interior copies, and only the perimeter peeks through).
+ */
+export function floorViews(hexes: readonly HexDto[]): FloorTileView[] {
+  return hexes.map((hex) => {
+    const { x, y } = projectCenter(hex.q, hex.r);
+    const floorY = y + FLOOR_OFFSET;
+    return { x, y: floorY, points: toPoints(tiltedCorners(x, floorY)) };
+  });
 }
 
 /** Painter's-algorithm order: far rows first, then columns for determinism. */
@@ -130,7 +161,7 @@ export function boundsOf(hexes: readonly HexDto[]): {
     minY = Math.min(minY, y);
     maxY = Math.max(maxY, y);
   }
-  maxY += DEPTH; // room for the extruded walls + contact shadow of the front row
+  maxY += DEPTH + FLOOR_OFFSET + HALF_H; // walls + contact shadow + the floor underlayer
   return {
     minX: minX - MARGIN,
     minY: minY - MARGIN,

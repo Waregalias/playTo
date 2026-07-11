@@ -83,13 +83,15 @@ Tous existent dans la maquette ; les répliquer, pas les réinventer.
 
 ## 4. La carte hexagonale (élément signature)
 
-- SVG, hexagones **pointe en haut**, coordonnées axiales `(q, r)`, rayon 22 unités de viewBox.
-- Couleurs de terrain (fill) : plain `#8E9C6B` · forest `#4F6B4A` · hill `#8A7B5C` · marsh `#5E6E63` · ruins `#6E6A72` · ash_road `#3D4854` · shrine `#B0885A`. Contour `#0A1119` 1.5px. Sélection : contour `--color-ember-glow` 2.5px.
+- SVG, coordonnées axiales `(q, r)`, rayon 22 unités de viewBox, projetées en tuiles 3/4 vue du dessus (voir `map-geometry.ts`).
+- **Face du dessus = losange parfait** (4 points haut/droite/bas/gauche, pas un hexagone à 6 côtés) : largeur/hauteur dérivent du même espacement axial que le centre projeté, donc les tuiles voisines s'emboîtent bord à bord sans trou ni chevauchement. `TILT` (facteur de compression verticale, actuellement 0.42) contrôle l'aplatissement — plus il est bas, plus le losange est large et plat.
+- Extrusion : chaque tuile a deux murs latéraux (`DEPTH` = 6 unités) teintés plus sombre/plus clair que la face du dessus pour lire le relief, plus une ombre de contact ovale sous la tuile. Rester subtil — ce n'est pas un rendu de bloc épais.
+- **Sous-couche décorative** : une copie de chaque tuile, décalée d'un pas de rangée plus bas (`FLOOR_OFFSET`) et beaucoup plus sombre, rendue en premier (sous tout le reste). Aucune donnée de jeu — uniquement pour donner de la profondeur et remplir le vide visuel autour/sous la carte découverte.
+- Couleurs de terrain (fill) : plain `#8E9C6B` · forest `#4F6B4A` · hill `#8A7B5C` · marsh `#5E6E63` · ruins `#6E6A72` · ash_road `#3D4854` · shrine `#B0885A`. Contour `#0A1119` 1px. Sélection : contour `--color-ember-glow` 2.5px.
 - **Brouillard** : hexagones non découverts en `#26313D` + deux ellipses de brume (`#7E93A6` / `#5A6B7A`) animées en translation lente alternée (14s et 22s). Une Braise non atteinte perce la brume : cercle orange pulsant (2.4s).
 - Marqueur joueur : disque `--color-ember-glow` cerclé sombre + anneau pulsant. POI : glyphe ✦, shrine : ⌂.
+- **Cadre de la carte** : pas de liseré dur — un effet de vignette brumeuse (dégradé radial + ombre interne) fait disparaître les bords de la carte dans la Brume plutôt que de les border d'une ligne.
 - Interaction : tap = sélection → panneau d'action sous la carte (jamais de popup sur la carte elle-même). `touch-action: manipulation`.
-
-> La conversion en tuiles « 3D vue du dessus » est prévue dans une passe ultérieure (dépend de l'art des tuiles). Tant qu'elle n'est pas livrée, la carte reste en polygones plats décrits ci-dessus.
 
 ## 5. Mouvement
 

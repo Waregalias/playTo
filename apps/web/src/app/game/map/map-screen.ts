@@ -5,7 +5,15 @@ import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
 import { terrainVignetteUrl } from '../../core/asset-url';
-import { boundsOf, byDepth, toTileView, TERRAIN_FILLS, type TileView } from './map-geometry';
+import {
+  boundsOf,
+  byDepth,
+  floorViews,
+  toTileView,
+  TERRAIN_FILLS,
+  type FloorTileView,
+  type TileView,
+} from './map-geometry';
 
 @Component({
   selector: 'app-map-screen',
@@ -51,6 +59,9 @@ export class MapScreenComponent {
   });
 
   readonly hexViews = computed<TileView[]>(() => this.store.hexes().map(toTileView).sort(byDepth));
+
+  /** Decorative underlayer — one row-step lower, much darker (depth cue only). */
+  readonly floorTiles = computed<FloorTileView[]>(() => floorViews(this.store.hexes()));
 
   readonly playerView = computed(() => {
     const hexId = this.store.character()?.hexId;

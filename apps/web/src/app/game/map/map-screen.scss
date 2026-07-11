@@ -35,8 +35,18 @@ h2 {
 .mapwrap {
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--g-border);
+  position: relative;
   background: radial-gradient(120% 100% at 50% 0%, #182430 0%, #0c141d 70%);
+
+  /* Misty vignette replacing a hard edge — the map fades into the Brume instead of stopping at a line. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 46px 14px rgba(6, 10, 15, 0.9);
+    background: radial-gradient(ellipse at 50% 40%, transparent 58%, rgba(8, 13, 19, 0.55) 100%);
+  }
 }
 
 svg {
@@ -71,6 +81,11 @@ svg {
 .tile-shadow {
   fill: #05090d;
   opacity: 0.35;
+  pointer-events: none;
+}
+
+.tile-floor {
+  fill: #0e161d;
   pointer-events: none;
 }
 
@@ -177,11 +192,15 @@ svg {
 
 .legend-title {
   display: block;
-  font-size: 0.62rem;
+  font-family: var(--g-font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--g-mist);
+  color: var(--g-ember-glow);
   margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--g-border);
 }
 
 .legend-row {

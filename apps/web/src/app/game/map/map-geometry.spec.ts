@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { HexDto } from '@aldenfer/shared';
-import { boundsOf, byDepth, DEPTH, projectCenter, shade, TILT, toTileView } from './map-geometry';
+import {
+  boundsOf,
+  byDepth,
+  DEPTH,
+  FLOOR_OFFSET,
+  floorViews,
+  projectCenter,
+  shade,
+  TILT,
+  toTileView,
+} from './map-geometry';
 
 function hex(partial: Partial<HexDto> & Pick<HexDto, 'q' | 'r'>): HexDto {
   return {
@@ -29,14 +39,39 @@ describe('map-geometry', () => {
     expect(shade('#ffffff', 0)).toBe('#000000');
   });
 
-  it('builds a hex top face (6 points) and two wall skirts (4 points each)', () => {
+  it('builds a perfect rhombus top face (4 points) and two wall skirts (4 points each)', () => {
     const view = toTileView(hex({ q: 0, r: 0 }));
-    expect(view.topPoints.split(' ')).toHaveLength(6);
+    expect(view.topPoints.split(' ')).toHaveLength(4);
     expect(view.wallLeft.split(' ')).toHaveLength(4);
     expect(view.wallRight.split(' ')).toHaveLength(4);
     // walls are darker than the top face
     expect(view.wallLeftFill).not.toBe(view.topFill);
     expect(view.wallRightFill).not.toBe(view.topFill);
+  });
+
+  it('top face is a symmetric diamond centred on the tile', () => {
+    const view = toTileView(hex({ q: 0, r: 0 }));
+    const [top, right, bottom, left] = view.topPoints.split(' ').map((p) => {
+      const [x, y] = p.split(',').map(Number);
+      return { x, y };
+    });
+    // top/bottom sit on the vertical axis, right/left on the horizontal axis
+    expect(top.x).toBeCloseTo(view.x, 5);
+    expect(bottom.x).toBeCloseTo(view.x, 5);
+    expect(right.y).toBeCloseTo(view.y, 5);
+    expect(left.y).toBeCloseTo(view.y, 5);
+    // symmetric around the centre on both axes
+    expect(view.x - left.x).toBeCloseTo(right.x - view.x, 5);
+    expect(view.y - top.y).toBeCloseTo(bottom.y - view.y, 5);
+  });
+
+  it('floorViews drops each tile one row-step lower, same x', () => {
+    const hexes = [hex({ q: 0, r: 0 }), hex({ q: 1, r: 0 })];
+    const [real0] = hexes.map(toTileView);
+    const [floor0] = floorViews(hexes);
+    expect(floor0.x).toBeCloseTo(real0.x, 5);
+    expect(floor0.y).toBeCloseTo(real0.y + FLOOR_OFFSET, 5);
+    expect(floorViews(hexes)).toHaveLength(2);
   });
 
   it('uses the fog fill and derived walls for undiscovered hexes', () => {
@@ -55,10 +90,11 @@ describe('map-geometry', () => {
     expect(boundsOf([])).toEqual({ minX: 0, minY: 0, width: 340, height: 300 });
   });
 
-  it('reserves margin and extrusion room in the bounds of a single hex', () => {
-    // single hex at projected (0,0): min=max=0 → width = 2*MARGIN(30), height = 2*MARGIN + DEPTH
+  it('reserves margin, extrusion and floor-underlayer room in the bounds of a single hex', () => {
+    // single hex at projected (0,0): min=max=0 → width = 2*MARGIN(40)
     const b = boundsOf([hex({ q: 0, r: 0 })]);
-    expect(b.width).toBe(60);
-    expect(b.height).toBe(60 + DEPTH);
+    expect(b.width).toBe(80);
+    // height = 2*MARGIN + DEPTH + FLOOR_OFFSET + HALF_H, and HALF_H === FLOOR_OFFSET by construction
+    expect(b.height).toBeCloseTo(80 + DEPTH + 2 * FLOOR_OFFSET, 5);
   });
 });

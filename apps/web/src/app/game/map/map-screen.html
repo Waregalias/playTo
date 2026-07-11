@@ -40,6 +40,10 @@
 
 <div class="mapwrap">
   <svg [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="'Carte — ' + regionName()">
+    <!-- decorative underlayer: darker, one row-step lower, gives depth + fills the void -->
+    @for (floor of floorTiles(); track $index) {
+      <polygon class="tile-floor" [attr.points]="floor.points" />
+    }
     <!-- 3D tile blocks, painted back-to-front (see byDepth) -->
     @for (view of hexViews(); track view.hex.id) {
       <g
