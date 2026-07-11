@@ -11,6 +11,7 @@ import { CombatOverlayComponent } from './combat/combat-overlay';
 import { HeroScreenComponent } from './hero/hero-screen';
 import { BastionScreenComponent } from './bastion/bastion-screen';
 import { ChatDrawerComponent } from './chat/chat-drawer';
+import { heroPortraitUrl } from '../core/asset-url';
 
 type Tab = 'map' | 'bastion' | 'hero' | 'raid';
 
@@ -74,6 +75,11 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly className = computed(() => {
     const c = this.store.character();
     return c ? (this.t.creation.classes[c.class]?.name ?? c.class) : '';
+  });
+
+  readonly avatarPortrait = computed(() => {
+    const c = this.store.character();
+    return c ? heroPortraitUrl(c.class) : null;
   });
 
   async ngOnInit(): Promise<void> {

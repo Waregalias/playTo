@@ -217,6 +217,18 @@ svg {
   color: var(--g-ember-glow);
   font-size: 0.75rem;
   flex-shrink: 0;
+
+  &.ember { animation: embers 2.4s ease-in-out infinite; }
+}
+
+.legend-row.muted-row {
+  color: var(--g-mist);
+
+  .glyph { color: var(--g-mist); font-size: 0.68rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph.ember { animation: none; }
 }
 
 .costs {

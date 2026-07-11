@@ -1,4 +1,4 @@
-import { heroFullUrl, itemIconUrl, skillIconUrl, terrainVignetteUrl } from './asset-url';
+import { heroFullUrl, heroPortraitUrl, itemIconUrl, skillIconUrl, terrainVignetteUrl } from './asset-url';
 
 describe('asset-url', () => {
   it('maps a material id to its icon', () => {
@@ -37,5 +37,10 @@ describe('asset-url', () => {
   it('maps hero full-body art including scout->scoot', () => {
     expect(heroFullUrl('blade')).toBe('/assets/heroes/blade_full.png');
     expect(heroFullUrl('scout')).toBe('/assets/heroes/scoot_full.png');
+  });
+
+  it('maps small hero portraits, null for unknown class', () => {
+    expect(heroPortraitUrl('blade')).toBe('/assets/heroes/blade.png');
+    expect(heroPortraitUrl('unknown')).toBeNull();
   });
 });

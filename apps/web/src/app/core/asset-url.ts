@@ -84,3 +84,12 @@ export function heroFullUrl(klass: string): string | null {
   const file = HERO_FULL_FILES[klass];
   return file ? `/assets/heroes/${file}.png` : null;
 }
+
+const HERO_PORTRAIT_FILES: Record<string, string> = {
+  blade: 'blade', arcanist: 'arcanist', scout: 'scout', cantor: 'cantor',
+};
+
+export function heroPortraitUrl(klass: string): string | null {
+  const file = HERO_PORTRAIT_FILES[klass];
+  return file ? `/assets/heroes/${file}.png` : null;
+}

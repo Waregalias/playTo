@@ -48,9 +48,12 @@
   /* Night range (backgrounds) */
   --g-night: #0c1219;
   --g-abyss: #060a0f;
-  --g-panel: #17212c;
-  --g-panel-2: #1e2a38;
+  --g-panel: #121a23;
+  --g-panel-2: #18222d;
   --g-border: #2c3b4b;
+
+  /* Texture — subtle static grain over the whole shell, aged-parchment feel */
+  --g-grain-opacity: 0.06;
 
   /* Mist range (cold content) */
   --g-mist: #7e93a6;

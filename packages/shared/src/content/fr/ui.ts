@@ -13,6 +13,8 @@ export const UI_FR = {
     emberFragments: 'fragments',
     gloryMarks: 'gloire',
     level: 'niv.',
+    notifLabel: 'Notifications',
+    settingsLabel: 'Réglages',
   },
   queue: {
     empty: 'Aucune action en cours — la flammèche attend.',
@@ -38,6 +40,8 @@ export const UI_FR = {
     legendTitle: 'Légende',
     legendYou: 'Vous',
     legendPoi: 'Point d’intérêt',
+    legendEmber: 'Braise',
+    legendGuardianLocked: 'Gardien (verrouillé)',
     legendMist: 'Brume',
     terrains: {
       plain: 'Plaine',

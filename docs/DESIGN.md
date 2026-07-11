@@ -23,8 +23,8 @@ Corollaires pratiques :
   /* Gamme nuit (fonds) */
   --color-night: #0c1219; /* fond app */
   --color-abyss: #060a0f; /* fond hors-app, overlays */
-  --color-panel: #17212c; /* cartes, panneaux */
-  --color-panel-2: #1e2a38; /* éléments imbriqués */
+  --color-panel: #121a23; /* cartes, panneaux */
+  --color-panel-2: #18222d; /* éléments imbriqués */
   --color-border: #2c3b4b; /* tous les liserés */
 
   /* Gamme brume (contenus froids) */
@@ -62,6 +62,7 @@ Chargement : Google Fonts avec `display=swap`, fallbacks `serif` / `system-ui, s
 - Grille d'espacement : 4px (gaps usuels 6/8/10/12/14).
 - Rayons : panneaux 10px, boutons/inputs 8px, runes/faces PNJ 8px, jauges = hauteur/2, portrait joueur 12px.
 - Pas d'ombres portées de « profondeur matérielle ». L'élévation s'exprime par les liserés (`--color-border`) et de rares lueurs (`box-shadow` orange translucide sur CTA primaire et éléments braise).
+- **Grain** : un bruit statique très subtil (`--g-grain-opacity`, ~6%, `mix-blend-mode: overlay`) recouvre toute l'interface pour évoquer le vieux parchemin/l'usure du monde mourant. Jamais animé, jamais au point de nuire à la lisibilité.
 
 ## 3. Composants canoniques
 

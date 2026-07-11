@@ -26,7 +26,7 @@
         [class.selected]="selectedClass() === klass"
         (click)="selectedClass.set(klass)"
       >
-        <img [src]="portraits[klass]" [alt]="t.classes[klass].name" />
+        <img [src]="portraitUrl(klass)" [alt]="t.classes[klass].name" />
         <b>{{ t.classes[klass].name }}</b>
         <small>{{ t.classes[klass].tagline }}</small>
       </button>

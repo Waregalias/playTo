@@ -2,13 +2,7 @@ import { Component, computed, inject, output, signal } from '@angular/core';
 import { UI_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
 import { CHARACTER_CLASSES, type CharacterClass } from '@aldenfer/shared';
 import { ApiClient, ApiError } from '../core/api-client';
-
-const PORTRAITS: Record<CharacterClass, string> = {
-  blade: '/assets/heroes/blade.png',
-  arcanist: '/assets/heroes/arcanist.png',
-  scout: '/assets/heroes/scout.png',
-  cantor: '/assets/heroes/cantor.png',
-};
+import { heroPortraitUrl } from '../core/asset-url';
 
 @Component({
   selector: 'app-character-creation',
@@ -20,7 +14,10 @@ export class CharacterCreationComponent {
 
   readonly t = UI_FR.creation;
   readonly classes = CHARACTER_CLASSES;
-  readonly portraits = PORTRAITS;
+
+  portraitUrl(klass: CharacterClass): string | null {
+    return heroPortraitUrl(klass);
+  }
 
   name = signal('');
   selectedClass = signal<CharacterClass>('blade');

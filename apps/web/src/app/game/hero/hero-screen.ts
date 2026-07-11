@@ -1,18 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import type { CharacterClass } from '@aldenfer/shared';
 import { UI_FR, ITEMS_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
 import { ApiClient, ApiError } from '../../core/api-client';
 import { GameStore } from '../../core/game-store';
 import { ToastService } from '../../core/toast';
 import { SkillTreeComponent } from './skill-tree';
-import { heroFullUrl, itemIconUrl } from '../../core/asset-url';
-
-const PORTRAITS: Record<CharacterClass, string> = {
-  blade: '/assets/heroes/blade.png',
-  arcanist: '/assets/heroes/arcanist.png',
-  scout: '/assets/heroes/scout.png',
-  cantor: '/assets/heroes/cantor.png',
-};
+import { heroFullUrl, heroPortraitUrl, itemIconUrl } from '../../core/asset-url';
 
 type AttributeKey = 'str' | 'dex' | 'wil' | 'vit' | 'fer';
 type SubTab = 'personnage' | 'skills';
@@ -43,7 +35,7 @@ export class HeroScreenComponent {
   readonly portrait = computed(() => {
     const klass = this.store.character()?.class;
     if (!klass) return null;
-    return heroFullUrl(klass) ?? PORTRAITS[klass] ?? null;
+    return heroFullUrl(klass) ?? heroPortraitUrl(klass);
   });
 
   readonly className = computed(() => {
