@@ -106,25 +106,23 @@
   }
 }
 
-/* ── Right-docked panel (≥ 1024px) ── */
+/* ── Bottom sheet over the map's main column (≥ 1024px) ──
+   Opens from the bottom (not right-docked), aligned under the map/panel area:
+   offset past the centring gutter + the 220px nav rail + the 24px host padding. */
 @include layout.wide {
   :host {
-    left: auto;
-    right: 0;
-    top: 0;
+    top: auto;
     bottom: 0;
+    left: calc(max(0px, (100vw - 1680px) / 2) + 244px);
+    right: auto;
     margin: 0;
-    max-width: 380px;
-    max-height: 100dvh;
-    border-top: none;
-    border-left: 1px solid var(--g-border);
-    border-radius: 0;
-    animation: slidein 0.25s ease;
-  }
-
-  @keyframes slidein {
-    from { transform: translateX(100%); }
-    to { transform: none; }
+    width: min(520px, calc(100vw - 320px));
+    max-width: none;
+    max-height: 46dvh;
+    border: 1px solid var(--g-border);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    animation: slideup 0.25s ease;
   }
 }
 

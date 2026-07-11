@@ -11,6 +11,7 @@ import { CombatOverlayComponent } from './combat/combat-overlay';
 import { HeroScreenComponent } from './hero/hero-screen';
 import { BastionScreenComponent } from './bastion/bastion-screen';
 import { ChatDrawerComponent } from './chat/chat-drawer';
+import { QueueModalComponent } from './queue/queue-modal';
 import { heroPortraitUrl } from '../core/asset-url';
 
 type Tab = 'map' | 'bastion' | 'hero' | 'raid';
@@ -24,6 +25,7 @@ type Tab = 'map' | 'bastion' | 'hero' | 'raid';
     HeroScreenComponent,
     BastionScreenComponent,
     ChatDrawerComponent,
+    QueueModalComponent,
   ],
   templateUrl: './game.html',
   styleUrl: './game.scss',
@@ -40,6 +42,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly tab = signal<Tab>('map');
   readonly tabs: Tab[] = ['map', 'bastion', 'hero', 'raid'];
   readonly chatOpen = signal(false);
+  readonly queueOpen = signal(false);
 
   /** Display clock — ticks every second to recompute countdowns from endsAt (US6). */
   readonly nowMs = signal(Date.now());
@@ -54,13 +57,31 @@ export class GameComponent implements OnInit, OnDestroy {
     return `${minutes}:${String(seconds).padStart(2, '0')}`;
   });
 
+  private actionKind(type: string): string {
+    if (type === 'rest') return this.t.queue.rest;
+    if (type === 'search') return this.t.queue.search;
+    return this.t.queue.move;
+  }
+
   readonly queueLabel = computed(() => {
     const action = this.store.currentAction();
     if (!action) return null;
-    const kind = action.type === 'rest' ? this.t.queue.rest : this.t.queue.move;
+    const kind = this.actionKind(action.type);
     const extra = this.store.actions().length - 1;
     return extra > 0 ? `${kind} (+${extra} ${this.t.queue.queued})` : kind;
   });
+
+  /** Ordered queue for the modal: current action first, then those waiting behind it. */
+  readonly queueItems = computed(() =>
+    [...this.store.actions()]
+      .sort((a, b) => a.position - b.position)
+      .map((action) => ({
+        id: action.id,
+        kind: this.actionKind(action.type),
+        status: action.position === 0 ? this.t.queue.current : this.t.queue.waiting,
+        isCurrent: action.position === 0,
+      })),
+  );
 
   readonly hpPercent = computed(() => {
     const c = this.store.character();
@@ -130,6 +151,7 @@ export class GameComponent implements OnInit, OnDestroy {
     try {
       await this.api.cancelAction(actionId);
       await this.store.refresh();
+      if (this.store.actions().length === 0) this.queueOpen.set(false);
     } catch (err) {
       this.toast.show(
         err instanceof ApiError && err.message ? err.message : ERROR_MESSAGES_FR.VALIDATION_ERROR,

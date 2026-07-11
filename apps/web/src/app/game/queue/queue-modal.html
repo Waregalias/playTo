@@ -1,0 +1,35 @@
+<div
+  class="queue-modal"
+  role="dialog"
+  [attr.aria-label]="t.title"
+  (click)="$event.stopPropagation()"
+>
+  <header>
+    <h3>{{ t.title }}</h3>
+    <button class="modal-close" type="button" [attr.aria-label]="t.close" (click)="close.emit()">
+      ×
+    </button>
+  </header>
+  <ul class="queue-list">
+    @for (item of items(); track item.id) {
+      <li class="queue-item" [class.current]="item.isCurrent">
+        <span class="q-dot" [class.pulse]="item.isCurrent"></span>
+        <div class="q-info">
+          <b>{{ item.kind }}</b>
+          <small
+            >{{ item.status }}@if (item.isCurrent) {<span class="q-time"> · {{ countdown() }}</span
+            >}</small
+          >
+        </div>
+        <button
+          class="q-cancel"
+          type="button"
+          [attr.data-testid]="'cancel-' + item.id"
+          (click)="cancel.emit(item.id)"
+        >
+          {{ t.cancel }}
+        </button>
+      </li>
+    }
+  </ul>
+</div>

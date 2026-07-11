@@ -130,4 +130,55 @@ describe('GameComponent', () => {
     expect(queuebar?.textContent).toContain('Déplacement');
     expect(queuebar?.textContent).toMatch(/1:\d{2}/);
   });
+
+  it('ouvre la modale de file au clic sur la queuebar et annule une action depuis la liste', async () => {
+    apiMock.getMe.mockResolvedValue(CHARACTER);
+    apiMock.getActions.mockResolvedValue([
+      {
+        id: '4dfc1f88-0000-4000-8000-000000000010',
+        type: 'move',
+        payload: {},
+        position: 0,
+        startsAt: new Date().toISOString(),
+        endsAt: new Date(Date.now() + 90_000).toISOString(),
+        resolved: false,
+      },
+      {
+        id: '4dfc1f88-0000-4000-8000-000000000011',
+        type: 'rest',
+        payload: {},
+        position: 1,
+        startsAt: new Date().toISOString(),
+        endsAt: new Date(Date.now() + 180_000).toISOString(),
+        resolved: false,
+      },
+    ]);
+    apiMock.cancelAction.mockResolvedValue(undefined);
+    const fixture = TestBed.createComponent(GameComponent);
+    fixture.detectChanges();
+    await settle(fixture);
+
+    const el = fixture.nativeElement as HTMLElement;
+    // no crosses piled in the queuebar anymore
+    expect(el.querySelector('[data-testid="queuebar"] .cancel')).toBeNull();
+    // modal closed until the queuebar is clicked
+    expect(el.querySelector('[data-testid="queue-modal"]')).toBeNull();
+
+    (el.querySelector('button[data-testid="queuebar"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const modal = el.querySelector('[data-testid="queue-modal"]');
+    expect(modal).toBeTruthy();
+    expect(modal?.textContent).toContain('Déplacement');
+    expect(modal?.textContent).toContain('Repos');
+
+    const cancelBtn = el.querySelector(
+      '[data-testid="cancel-4dfc1f88-0000-4000-8000-000000000011"]',
+    ) as HTMLButtonElement;
+    expect(cancelBtn).toBeTruthy();
+    cancelBtn.click();
+    await settle(fixture);
+
+    expect(apiMock.cancelAction).toHaveBeenCalledWith('4dfc1f88-0000-4000-8000-000000000011');
+  });
 });

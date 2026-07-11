@@ -59,27 +59,24 @@
       </div>
     </header>
 
-    <!-- File d'actions -->
-    <div class="queuebar" data-testid="queuebar">
-      @if (queueLabel(); as label) {
+    <!-- File d'actions : cliquable pour ouvrir la file complète -->
+    @if (queueLabel(); as label) {
+      <button
+        class="queuebar"
+        type="button"
+        data-testid="queuebar"
+        [attr.aria-label]="t.queue.openHint"
+        (click)="queueOpen.set(true)"
+      >
         <span class="dot"></span>
-        <span>{{ label }} — <b>{{ countdown() }}</b></span>
-        @for (action of store.actions(); track action.id) {
-          @if (action.position > 0) {
-            <button
-              class="cancel"
-              [attr.data-testid]="'cancel-' + action.position"
-              [attr.aria-label]="t.map.cancelAction + ' ' + (action.position + 1)"
-              (click)="cancelQueued(action.id)"
-            >
-              ×
-            </button>
-          }
-        }
-      } @else {
+        <span class="queuebar-label">{{ label }} — <b>{{ countdown() }}</b></span>
+        <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+    } @else {
+      <div class="queuebar" data-testid="queuebar">
         <span class="idle">{{ t.queue.empty }}</span>
-      }
-    </div>
+      </div>
+    }
 
     <main>
       @switch (tab()) {
@@ -93,6 +90,17 @@
     <!-- Combat : par-dessus tout, l'état survit à la fermeture (DESIGN §3) -->
     @if (store.combat()) {
       <app-combat-overlay />
+    }
+
+    <!-- File d'actions : petite modale (annulation par ligne, pas de croix empilées) -->
+    @if (queueOpen()) {
+      <app-queue-modal
+        data-testid="queue-modal"
+        [items]="queueItems()"
+        [countdown]="countdown()"
+        (cancel)="cancelQueued($event)"
+        (close)="queueOpen.set(false)"
+      />
     }
 
     @if (chatOpen()) {
