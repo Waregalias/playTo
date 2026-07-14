@@ -75,6 +75,15 @@
         <polygon class="tile-top" [attr.points]="view.topPoints" [attr.fill]="view.topFill" />
       </g>
     }
+    <!-- atmospheric veil: a flat translucent darkening over the tile layer so the
+         terrain reads under the Brume; markers/mist/POI are drawn above it (DESIGN §4) -->
+    <rect
+      class="tile-veil"
+      [attr.x]="bounds().minX"
+      [attr.y]="bounds().minY"
+      [attr.width]="bounds().width"
+      [attr.height]="bounds().height"
+    />
     <!-- mist drift over fog hexes -->
     @for (view of hexViews(); track view.hex.id) {
       @if (!view.hex.discovered) {
@@ -134,32 +143,45 @@
       <img class="vignette" [src]="vignette" alt="" (error)="$any($event.target).style.display='none'" />
     }
     <div class="panel-info">
+      @if (panel().subtitle) {
+        <span class="panel-eyebrow">{{ panel().subtitle }}</span>
+      }
       <h3>{{ panel().title }}</h3>
+      @if (panel().description) {
+        <p class="panel-desc">{{ panel().description }}</p>
+      }
       <p class="muted">{{ panel().hint }}</p>
     </div>
   </div>
 
   @if (panel().canMove) {
     <div class="costs">
-      <span
-        >⚡ <b>{{ panel().costLabel }}</b> {{ t.staminaCost }}</span
-      >
-      <span
-        >⏳ <b>{{ panel().timeLabel }}</b></span
-      >
+      <div class="cost-row">
+        <span class="cost-label">{{ t.panelMoveLabel }}</span>
+        <span class="cost-val">{{ panel().timeLabel }} <em class="glyph">⏳</em></span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">{{ t.panelStaminaLabel }}</span>
+        <span class="cost-val">{{ panel().costLabel }} <em class="glyph">⚡</em></span>
+      </div>
     </div>
-    <button class="btn primary" data-testid="move-btn" [disabled]="pending()" (click)="move()">
-      {{ t.moveAction }}
-    </button>
   }
-  @if (panel().canRest) {
-    <button class="btn primary" data-testid="rest-btn" [disabled]="pending()" (click)="rest()">
-      {{ t.restAction }}
-    </button>
-  }
-  @if (panel().canSearch) {
-    <button class="btn primary" data-testid="search-btn" [disabled]="pending()" (click)="search()">
-      {{ tExtra.searchAction }}
-    </button>
-  }
+
+  <div class="actions">
+    @if (panel().canMove) {
+      <button class="btn primary" data-testid="move-btn" [disabled]="pending()" (click)="move()">
+        {{ t.moveAction }} (⚡{{ panel().costLabel }})
+      </button>
+    }
+    @if (panel().canRest) {
+      <button class="btn primary" data-testid="rest-btn" [disabled]="pending()" (click)="rest()">
+        {{ t.restAction }}
+      </button>
+    }
+    @if (panel().canSearch) {
+      <button class="btn primary" data-testid="search-btn" [disabled]="pending()" (click)="search()">
+        {{ tExtra.searchAction }}
+      </button>
+    }
+  </div>
 </div>

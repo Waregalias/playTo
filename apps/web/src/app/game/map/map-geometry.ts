@@ -26,16 +26,18 @@ const FOG_FILL = '#26313d';
 const WALL_RIGHT = 0.62; // lit facet
 const WALL_LEFT = 0.45; // shadowed facet
 
-// Terrain fills from DESIGN §4 (ford: cold water tone, same muted range).
+// Terrain fills from DESIGN §4 — muted atmospheric palette (desaturated + darkened
+// versus the earlier vivid range, so the terrain reads under the Brume's haze).
+// ford: cold water tone within the same muted range.
 export const TERRAIN_FILLS: Record<Terrain, string> = {
-  plain: '#8e9c6b',
-  forest: '#4f6b4a',
-  hill: '#8a7b5c',
-  marsh: '#5e6e63',
-  ruins: '#6e6a72',
-  ash_road: '#3d4854',
-  ford: '#4a6272',
-  shrine: '#b0885a',
+  plain: '#767e61',
+  forest: '#445541',
+  hill: '#6e6553',
+  marsh: '#4f5952',
+  ruins: '#5a575c',
+  ash_road: '#343b42',
+  ford: '#414f59',
+  shrine: '#897156',
 };
 
 export interface TileView {

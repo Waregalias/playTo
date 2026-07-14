@@ -51,7 +51,7 @@ export class MapScreenComponent {
     return this.store.character()?.hexId ?? null;
   });
 
-  private readonly bounds = computed(() => boundsOf(this.store.hexes()));
+  readonly bounds = computed(() => boundsOf(this.store.hexes()));
 
   readonly viewBox = computed(() => {
     const b = this.bounds();
@@ -105,21 +105,26 @@ export class MapScreenComponent {
     }
 
     const terrainName = this.t.terrains[view.hex.terrain] ?? view.hex.terrain;
-    const title = view.hex.poi ? `${terrainName} — ${view.hex.poi.type}` : terrainName;
+    const poiName = view.hex.poi ? (this.t.poiNames?.[view.hex.poi.type] ?? view.hex.poi.type) : null;
+    const title = poiName ? `${terrainName} — ${poiName}` : terrainName;
+    const subtitle = `${this.t.mistTag} ${view.hex.mistLevel}`;
+    const description = this.t.terrainDescriptions?.[view.hex.terrain] ?? '';
 
     if (isHere) {
       const canRest = view.hex.terrain === 'shrine';
       // Bastion POIs are services, not dig sites (SPEC-M2 US4).
       const canSearch = !!view.hex.poi && this.store.character()?.regionId !== 0;
-      return { title, hint: this.t.hereSuffix, canRest, canSearch } as PanelVm;
+      return { title, subtitle, description, hint: this.t.hereSuffix, canRest, canSearch } as PanelVm;
     }
     if (!adjacent) {
-      return { title, hint: this.t.tooFar } as PanelVm;
+      return { title, subtitle, description, hint: this.t.tooFar } as PanelVm;
     }
 
     const cost = moveCost(view.hex.terrain, (view.hex.mistLevel ?? 0) as MistLevel);
     return {
       title,
+      subtitle,
+      description,
       hint: this.store.actions().length > 0 ? this.t.queuedFromHint : this.t.mistTax,
       canMove: true,
       costLabel: String(cost.stamina),
@@ -177,6 +182,8 @@ export class MapScreenComponent {
 
 interface PanelVm {
   title: string;
+  subtitle?: string;
+  description?: string;
   hint: string;
   canMove?: boolean;
   canRest?: boolean;

@@ -106,6 +106,12 @@ svg {
   pointer-events: none;
 }
 
+/* Flat atmospheric veil over the tile layer (DESIGN §4). Markers/mist/POI paint above it. */
+.tile-veil {
+  fill: rgba(10, 15, 20, 0.18);
+  pointer-events: none;
+}
+
 .hexlabel {
   font-size: 9px;
   fill: #0b1218;
@@ -201,6 +207,27 @@ svg {
 .panel-info {
   flex: 1;
   min-width: 0;
+
+  h3 {
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+}
+
+.panel-eyebrow {
+  display: block;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--g-mist);
+  margin-bottom: 3px;
+}
+
+.panel-desc {
+  color: var(--g-bone);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 4px 0 2px;
 }
 
 /* ── Légende (terrains + symboles), révélée en dashboard large ── */
@@ -273,17 +300,42 @@ svg {
   .glyph.ember { animation: none; }
 }
 
+/* Labeled cost rows (maquette : « Déplacement … / Coût endurance … »). */
 .costs {
   display: flex;
-  gap: 14px;
-  margin: 8px 0 10px;
-  font-size: 0.85rem;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+  font-size: 0.82rem;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cost-label {
+  color: var(--g-mist);
+}
+
+.cost-val {
   color: var(--g-bone);
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
 
-  b {
-    color: var(--g-ember-glow);
+  .glyph {
+    font-style: normal;
+    color: var(--g-mist);
+    margin-left: 3px;
   }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .btn {
@@ -337,8 +389,22 @@ svg {
   }
 
   .maphead { grid-area: head; }
-  .mapwrap { grid-area: map; margin: 0; }
   .panel { grid-area: panel; margin: 0; }
+
+  /* Fit the SVG to the (1fr) map cell instead of letting its natural height
+     overflow and push the hexes low. min-height:0 breaks the grid blowout;
+     align-self:stretch gives the cell height; the SVG then meets-fits, centered. */
+  .mapwrap {
+    grid-area: map;
+    margin: 0;
+    min-height: 0;
+    align-self: stretch;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
 
   .legend {
     grid-area: legend;
@@ -356,10 +422,11 @@ svg {
   .panel-main { flex: 1 1 260px; }
   .vignette { width: 88px; height: 88px; }
   .costs {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    flex: 0 0 auto;
     margin: 0;
+  }
+  .actions {
+    flex: 0 0 auto;
   }
   .btn {
     width: auto;

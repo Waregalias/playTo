@@ -86,6 +86,26 @@ Identifiants de compétence : `{class}.{branch}.{tier}` → `blade.bulwark.3`.
 | Gué             | `ford`              |
 | Autel           | `shrine`            |
 
+## Points d'intérêt (POI)
+
+Nom affiché ↔ `poiType` (data). Table de correspondance : `UI_FR.map.poiNames`.
+
+| FR                     | `poiType`              | Région |
+| ---------------------- | ---------------------- | ------ |
+| Salle des Cendres      | `ember-hall`           | 0      |
+| Porte de l'Ouest       | `west-gate`            | 0      |
+| Place du marché        | `market-square`        | 0      |
+| Grande Salle du Chantre | `chantry-hall`        | 0      |
+| Jardin des Lanternes   | `lantern-garden`       | 0      |
+| Forge de Brasfer       | `brasfer-forge`        | 0      |
+| Archives d'Ennor       | `archives`             | 0      |
+| Autel du Vieux Gué     | `old-ford-shrine`      | 1      |
+| Vellebrune-la-Basse    | `vellebrune-low-ruins` | 1      |
+| Marais des Soupirs     | `sighing-marsh`        | 1      |
+| Hameau Noyé            | `drowned-hamlet`       | 1      |
+| Autel du Grand Cairn   | `great-cairn-ember`    | 1      |
+| Cairns des Bergers     | `shepherd-cairns`      | 1      |
+
 ## Régions & Gardiens (Saison 1)
 
 | ID  | FR                       | Slug code          | Gardien                   |
