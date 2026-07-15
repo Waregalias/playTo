@@ -1,59 +1,69 @@
-# PlayTo
+# Les Braises d'Aldenfer
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.2.
+Jeu web multijoueur heroic-fantasy (exploration à timers, quêtes, raids communautaires). Monorepo pnpm.
 
-## Development server
+- `apps/api` — Fastify 5 + Drizzle ORM + PostgreSQL 16 (API REST + WebSocket)
+- `apps/web` — Angular 22 (standalone, signals)
+- `packages/shared` — schémas Zod, constantes de jeu, formules pures (contrat API/WS)
 
-To start a local development server, run:
+La documentation fait autorité — voir `docs/` (`GDD`, `DESIGN`, `ARCHITECTURE`, `API-SPEC`, `DATA-MODEL`, `GLOSSARY`, specs de jalon) et `CLAUDE.md`.
 
-```bash
-ng serve
-```
+## Prérequis
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Node 24** (via [nvm](https://github.com/nvm-sh/nvm) : `nvm install 24 && nvm use 24`)
+- **pnpm 11** (via corepack, livré avec Node) :
+  ```bash
+  corepack enable
+  corepack prepare pnpm@11.10.0 --activate
+  ```
+- **Docker** (pour PostgreSQL en local)
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Démarrage
 
 ```bash
-ng generate --help
+# 1. Installer les dépendances (tout le monorepo)
+pnpm install
+
+# 2. Créer le fichier d'environnement de l'API (non versionné)
+cp apps/api/.env.example apps/api/.env
+
+# 3. Lancer PostgreSQL 16 en local (Docker)
+docker compose up -d db
+
+# 4. Appliquer les migrations puis semer les données de jeu
+pnpm --filter api db:migrate
+pnpm --filter api db:seed
+
+# 5. Lancer l'API (watch) + le front (ng serve) en parallèle
+pnpm dev
 ```
 
-## Building
+- API : http://localhost:3000
+- Front : http://localhost:4200
 
-To build the project run:
+> L'API lit `apps/api/.env` (gitignoré). Le `DATABASE_URL` par défaut y pointe vers le conteneur Docker ci-dessus — aucune config supplémentaire pour un dev local.
+
+### Lancer les services séparément
 
 ```bash
-ng build
+pnpm --filter api dev    # API seule (Fastify, watch) — port 3000
+pnpm --filter web start  # Front seul (ng serve)       — port 4200
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Base de données
 
 ```bash
-ng test
+docker compose up -d db          # démarrer Postgres
+docker compose down              # arrêter (les données persistent dans le volume dbdata)
+pnpm --filter api db:generate    # générer une migration depuis le schéma Drizzle
+pnpm --filter api db:migrate     # appliquer les migrations
+pnpm --filter api db:seed        # (ré)injecter régions, hexes, objets, quêtes…
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## Autres commandes
 
 ```bash
-ng e2e
+pnpm test    # tests (vitest : api, shared, web)
+pnpm lint    # typecheck / lint de tous les paquets
+pnpm build   # build de production de tous les paquets
 ```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
