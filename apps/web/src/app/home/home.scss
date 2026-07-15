@@ -1,8 +1,21 @@
 .hero-backdrop {
   position: relative;
   width: 100%;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)), url('/hero-meadow.webp');
+
+  /* Paysage du royaume sous la Brume. L'image est déjà sombre et porte sa propre
+     lueur de braise : voile léger (juste un scrim de lisibilité pour le titre) et
+     fondu appuyé en bas vers le night (#0c1219) pour souder le héros à la page. */
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(12, 18, 25, 0.45) 0%,
+      rgba(12, 18, 25, 0.2) 30%,
+      rgba(12, 18, 25, 0.32) 55%,
+      rgba(12, 18, 25, 0.85) 85%,
+      #0c1219 100%
+    ),
+    url('/landing_page_banner_1.png');
   background-size: cover;
-  background-position: 50%;
+  background-position: 50% 50%;
   background-repeat: no-repeat;
 }

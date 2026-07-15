@@ -10,10 +10,15 @@ describe('HomeComponent', () => {
     }).compileComponents();
   });
 
-  it('affiche le titre Cozy Kingdom', async () => {
+  it('affiche le titre du jeu', async () => {
     const fixture = TestBed.createComponent(HomeComponent);
     await fixture.whenStable();
-    expect(fixture.nativeElement.textContent).toContain('Cozy Kingdom');
+    expect(fixture.nativeElement.textContent).toContain('Les Braises d’Aldenfer');
+  });
+
+  it('présente les quatre voies', () => {
+    const fixture = TestBed.createComponent(HomeComponent);
+    expect(fixture.componentInstance.classes.length).toBe(4);
   });
 
   it('affiche le bouton Sign up', async () => {

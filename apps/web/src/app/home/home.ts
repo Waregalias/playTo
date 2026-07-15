@@ -1,10 +1,13 @@
 import { Component, signal } from '@angular/core';
+import { HOME_FR, UI_FR } from '@aldenfer/shared/content/fr';
+import { heroPortraitUrl } from '../core/asset-url';
 import { LoginModalComponent } from './login-modal/login-modal';
 
-interface Feature {
-  title: string;
-  description: string;
-  bgColor: string;
+interface ClassCard {
+  key: string;
+  name: string;
+  tagline: string;
+  portrait: string | null;
 }
 
 @Component({
@@ -14,28 +17,19 @@ interface Feature {
   styleUrl: './home.scss',
 })
 export class HomeComponent {
+  readonly t = HOME_FR;
   isModalOpen = signal(false);
 
-  readonly features: Feature[] = [
-    {
-      title: 'Relaxing Gameplay',
-      description:
-        'Immerse yourself in a stress-free environment where you can build and expand at your own pace. No time limits, no pressures — just enjoyable town building.',
-      bgColor: '#6fb3ea',
-    },
-    {
-      title: 'Aesthetics',
-      description:
-        'Delight in the charming low-poly graphics that give your medieval town a distinctive and cozy feel. Each element is crafted to create a visually soothing experience.',
-      bgColor: '#e8aabf',
-    },
-    {
-      title: 'Growth and Exploration',
-      description:
-        'Watch your town flourish as you discover new areas, unlock unique buildings, and nurture a thriving medieval community.',
-      bgColor: '#7cc157',
-    },
-  ];
+  /** Three game pillars shown in the “features” band. */
+  readonly features = HOME_FR.pillars;
+
+  /** The four playable ways, from the creation content + shipped portrait art. */
+  readonly classes: ClassCard[] = (['blade', 'arcanist', 'scout', 'cantor'] as const).map((key) => ({
+    key,
+    name: UI_FR.creation.classes[key].name,
+    tagline: UI_FR.creation.classes[key].tagline,
+    portrait: heroPortraitUrl(key),
+  }));
 
   closeModal(): void {
     this.isModalOpen.set(false);
