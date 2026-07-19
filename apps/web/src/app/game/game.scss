@@ -76,8 +76,9 @@
 /* ── Barre de statut ── */
 .statusbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 6px 10px;
   padding: 10px 14px;
   background: linear-gradient(180deg, #141d28, #101822);
   border-bottom: 1px solid var(--g-border);
@@ -109,14 +110,17 @@
 }
 
 .gauges {
-  flex: 1;
+  flex-basis: 100%;
+  order: 99;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 8px;
   min-width: 0;
 }
 
 .gauge {
+  flex: 1;
+  min-width: 0;
   height: 14px;
   border-radius: 7px;
   background: #0a1016;
@@ -152,7 +156,8 @@
   gap: 10px;
   font-size: 0.78rem;
   color: var(--g-mist);
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 
   b { color: var(--g-bone); }
   .frag b { color: var(--g-ember-glow); }
@@ -364,6 +369,8 @@ nav {
     }
   }
 
-  .statusbar .gauges { max-width: 420px; }
-  .statusbar .purse { margin-left: auto; }
+  .statusbar { flex-wrap: nowrap; }
+  .statusbar .gauges { flex: 1; flex-basis: auto; order: 0; max-width: 420px; flex-direction: column; gap: 4px; }
+  .statusbar .gauge { flex: 0 0 auto; }
+  .statusbar .purse { flex: 0 0 auto; margin-left: auto; }
 }
