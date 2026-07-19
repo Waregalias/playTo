@@ -19,7 +19,7 @@ import { ToastService } from '../../core/toast';
 import { ProjectPanelComponent } from './project-panel';
 import { MarketPanelComponent } from './market-panel';
 
-type View = 'home' | 'quests' | 'project' | 'market';
+type View = 'home' | 'quests' | 'project' | 'market' | 'belfry';
 
 interface BuildingVm {
   id: BuildingId;
@@ -77,12 +77,13 @@ export class BastionScreenComponent {
 
   readonly buildings = computed<BuildingVm[]>(() => {
     const activeQuests = this.store.quests().filter((q) => q.state === 'active').length;
+    const belfryDone = !!this.store.currentProject()?.completedAt;
     return this.buildingDefs.map((def) => ({
       id: def.id,
       name: BUILDINGS_FR[def.id].name,
       description: BUILDINGS_FR[def.id].description,
       icon: def.icon,
-      opens: def.opens,
+      opens: def.id === 'building.belfry' && belfryDone ? 'belfry' as View : def.opens,
       badge: def.id === 'building.board' && activeQuests > 0 ? activeQuests : null,
     }));
   });

@@ -186,6 +186,7 @@ export const UI_FR = {
     enter: 'Entrer',
     back: '← Retour',
     lockedLabel: 'Verrouillé',
+    belfryTeaser: 'Le beffroi a sonné le Glas. Les raids ouvriront bientôt leurs portes.',
   },
   quests: {
     boardTitle: 'Tableau de Mira',

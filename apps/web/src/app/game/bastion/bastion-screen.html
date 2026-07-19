@@ -117,4 +117,11 @@
 </div>
 
   }
+  @case ('belfry') {
+    <button class="btn back" data-testid="bastion-back" (click)="view.set('home')">{{ tBastion.back }}</button>
+    <div class="card">
+      <h3>{{ store.currentProject()?.name }}</h3>
+      <p class="muted hint">{{ tBastion.belfryTeaser }}</p>
+    </div>
+  }
 }

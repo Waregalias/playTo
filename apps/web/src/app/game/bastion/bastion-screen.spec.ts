@@ -6,7 +6,7 @@ import { GameStore } from '../../core/game-store';
 describe('BastionScreenComponent — home view', () => {
   const storeMock = {
     quests: vi.fn(() => []),
-    currentProject: vi.fn(() => null),
+    currentProject: vi.fn((): any => null),
     listings: vi.fn(() => ({ items: [], nextCursor: null })),
     inventory: vi.fn(() => ({ items: [], capacity: 30, used: 0 })),
     character: vi.fn(() => null),
@@ -73,5 +73,23 @@ describe('BastionScreenComponent — home view', () => {
     const belfry = el.querySelector('[data-testid="building-building.belfry"]')!;
     expect(belfry.classList.contains('locked')).toBe(true);
     expect(el.querySelector('[data-testid="enter-building.belfry"]')).toBeNull();
+  });
+
+  it('unlocks the belfry building when the project is completed', () => {
+    storeMock.currentProject.mockReturnValue({ id: 'r1.belfry', name: 'Le Beffroi', completedAt: '2026-07-01T00:00:00Z' });
+    const fixture = TestBed.createComponent(BastionScreenComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const belfry = el.querySelector('[data-testid="building-building.belfry"]')!;
+    expect(belfry.classList.contains('locked')).toBe(false);
+    expect(el.querySelector('[data-testid="enter-building.belfry"]')).toBeTruthy();
+  });
+
+  it('keeps the belfry locked when the project is not completed', () => {
+    storeMock.currentProject.mockReturnValue({ id: 'r1.belfry', name: 'Le Beffroi', completedAt: null });
+    const fixture = TestBed.createComponent(BastionScreenComponent);
+    fixture.detectChanges();
+    const belfry = fixture.componentInstance.buildings().find(b => b.id === 'building.belfry');
+    expect(belfry?.opens).toBeNull();
   });
 });

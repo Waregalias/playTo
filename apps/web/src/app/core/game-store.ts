@@ -64,6 +64,7 @@ export class GameStore {
       this.refreshHexes(),
       this.refreshQuests(),
       this.refreshInventory(),
+      this.refreshProject(),
     ]);
     this.loaded.set(true);
   }
