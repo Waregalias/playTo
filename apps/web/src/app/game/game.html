@@ -1,6 +1,9 @@
 <div class="app">
   @if (!store.loaded()) {
-    <div class="loading" aria-busy="true"></div>
+    <div class="loading" aria-busy="true">
+      <div class="loading-ember"></div>
+      <span class="loading-title">Aldenfer</span>
+    </div>
   } @else if (store.needsCharacter()) {
     <main><app-character-creation (created)="onCharacterCreated()" /></main>
   } @else if (store.character(); as character) {
