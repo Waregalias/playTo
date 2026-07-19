@@ -45,6 +45,7 @@ describe('GameComponent', () => {
     getCurrentCombat: vi.fn(),
     getQuests: vi.fn(),
     getInventory: vi.fn(),
+    getProjectDetail: vi.fn(),
   };
 
   const realtimeMock = {
@@ -62,6 +63,7 @@ describe('GameComponent', () => {
     apiMock.getCurrentCombat.mockResolvedValue(null);
     apiMock.getQuests.mockResolvedValue([]);
     apiMock.getInventory.mockResolvedValue({ items: [], capacity: 30, used: 0 });
+    apiMock.getProjectDetail.mockResolvedValue(null);
     await TestBed.configureTestingModule({
       imports: [GameComponent],
       providers: [
