@@ -109,16 +109,16 @@
 
     <!-- Nav basse (DESIGN §3) -->
     <nav>
-      <button [class.on]="tab() === 'map'" (click)="tab.set('map')" [attr.aria-label]="t.nav.map" data-testid="nav-map">
+      <button [class.on]="tab() === 'map'" (click)="go('map')" [attr.aria-label]="t.nav.map" data-testid="nav-map">
         <svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14"/></svg>{{ t.nav.map }}
       </button>
-      <button [class.on]="tab() === 'bastion'" (click)="tab.set('bastion')" [attr.aria-label]="t.nav.bastion" data-testid="nav-bastion">
+      <button [class.on]="tab() === 'bastion'" (click)="go('bastion')" [attr.aria-label]="t.nav.bastion" data-testid="nav-bastion">
         <svg viewBox="0 0 24 24"><path d="M4 21V9l4-2V4h2v2h4V4h2v3l4 2v12M4 21h16M10 21v-5h4v5"/></svg>{{ t.nav.bastion }}
       </button>
-      <button [class.on]="tab() === 'hero'" (click)="tab.set('hero')" [attr.aria-label]="t.nav.hero" data-testid="nav-hero">
+      <button [class.on]="tab() === 'hero'" (click)="go('hero')" [attr.aria-label]="t.nav.hero" data-testid="nav-hero">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>{{ t.nav.hero }}
       </button>
-      <button [class.on]="tab() === 'raid'" (click)="tab.set('raid')" [attr.aria-label]="t.nav.raid" data-testid="nav-raid">
+      <button [class.on]="tab() === 'raid'" (click)="go('raid')" [attr.aria-label]="t.nav.raid" data-testid="nav-raid">
         <svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>{{ t.nav.raid }}
       </button>
     </nav>

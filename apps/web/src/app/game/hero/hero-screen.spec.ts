@@ -66,13 +66,11 @@ describe('HeroScreenComponent — durability & repair', () => {
     }).compileComponents();
   });
 
-  it('shows the durability label and a repair button when damaged', () => {
+  it('shows the equipped weapon in its slot with durability and a repair button when damaged', () => {
     const fixture = TestBed.createComponent(HeroScreenComponent);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('[data-testid="item-weapon.blade.t1"]')?.textContent).toContain(
-      '60 / 100',
-    );
+    expect(el.querySelector('[data-testid="slot-weapon"]')?.textContent).toContain('60 / 100');
     expect(el.querySelector('[data-testid="repair-e1"]')).toBeTruthy();
   });
 
@@ -86,6 +84,23 @@ describe('HeroScreenComponent — durability & repair', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[data-testid="repair-e1"]')).toBeNull();
+  });
+
+  it('lists an unequipped item in the inventory grid and reveals actions on select', () => {
+    storeMock.inventory = vi.fn(() => ({
+      items: [makeEntry({ equipped: false })],
+      capacity: 30,
+      used: 1,
+    }));
+    const fixture = TestBed.createComponent(HeroScreenComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const cell = el.querySelector<HTMLButtonElement>('[data-testid="item-weapon.blade.t1"]');
+    expect(cell).toBeTruthy();
+    expect(el.querySelector('[data-testid="slot-weapon"]')?.textContent).toContain('—');
+    cell?.click();
+    fixture.detectChanges();
+    expect(el.querySelector('[data-testid="item-actions"]')).toBeTruthy();
   });
 
   it('calls repairEntry and refreshes inventory + character', async () => {

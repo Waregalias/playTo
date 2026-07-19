@@ -61,17 +61,18 @@ export class BastionScreenComponent {
   readonly view = signal<View>('home');
   readonly pending = signal(false);
 
+  /** Order matches the maquette WEB_UI_OK_BASTION (left to right). */
   private readonly buildingDefs: ReadonlyArray<{
     id: BuildingId;
     icon: string | null;
     opens: View | null;
   }> = [
-    { id: 'building.board', icon: '/assets/buildings/parchment.png', opens: 'quests' },
-    { id: 'building.market', icon: '/assets/buildings/balance.png', opens: 'market' },
     { id: 'building.forge', icon: '/assets/buildings/anvil.png', opens: 'project' },
     { id: 'building.archives', icon: null, opens: null }, // icône livre non fournie → fallback initiale
+    { id: 'building.board', icon: '/assets/buildings/parchment.png', opens: 'quests' },
     { id: 'building.sanctum', icon: '/assets/buildings/mandala.png', opens: null },
     { id: 'building.belfry', icon: '/assets/buildings/coat.png', opens: null },
+    { id: 'building.market', icon: '/assets/buildings/balance.png', opens: 'market' },
   ];
 
   readonly buildings = computed<BuildingVm[]>(() => {

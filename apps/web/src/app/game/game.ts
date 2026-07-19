@@ -1,5 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { map } from 'rxjs';
 import { UI_FR, ERROR_MESSAGES_FR } from '@aldenfer/shared/content/fr';
 import { GameStore } from '../core/game-store';
 import { ApiClient, ApiError } from '../core/api-client';
@@ -38,9 +40,20 @@ export class GameComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiClient);
 
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly tab = signal<Tab>('map');
   readonly tabs: Tab[] = ['map', 'bastion', 'hero', 'raid'];
+
+  /** Active tab, driven by the URL (/game/:tab) so screens are bookmarkable. */
+  private readonly tabParam = toSignal(this.route.paramMap.pipe(map((p) => p.get('tab'))));
+  readonly tab = computed<Tab>(() => {
+    const param = this.tabParam();
+    return this.tabs.includes(param as Tab) ? (param as Tab) : 'map';
+  });
+
+  go(tab: Tab): void {
+    void this.router.navigate(['/game', tab]);
+  }
   readonly chatOpen = signal(false);
   readonly queueOpen = signal(false);
 

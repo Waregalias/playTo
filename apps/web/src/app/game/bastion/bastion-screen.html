@@ -1,8 +1,8 @@
 <header class="banner">
   <img src="/assets/banners/cendrelune.png" alt="" (error)="$any($event.target).closest('.banner').classList.add('no-img')" />
   <div class="banner-text">
-    <span class="eyebrow">{{ regionName }} · dernier feu du royaume</span>
     <h2>{{ regionName }}</h2>
+    <span class="subtitle">{{ tBastion.subtitle }}</span>
   </div>
 </header>
 
@@ -28,7 +28,7 @@
               {{ tBastion.enter }}
             </button>
           } @else {
-            <span class="locked-mark" aria-hidden="true">🔒</span>
+            <button class="btn" disabled [attr.aria-label]="tBastion.lockedLabel">🔒</button>
           }
         </div>
       }

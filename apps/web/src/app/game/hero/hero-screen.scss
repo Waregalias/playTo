@@ -11,53 +11,6 @@
   to { opacity: 1; transform: none; }
 }
 
-.subnav {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-
-  button {
-    flex: 1;
-    padding: 7px 4px;
-    font-size: 0.78rem;
-    border-radius: 7px;
-    border: 1px solid var(--g-border);
-    background: var(--g-panel-2);
-    color: var(--g-mist);
-    cursor: pointer;
-
-    &.on { border-color: var(--g-ember); color: var(--g-ember-glow); background: var(--g-ember-bg); }
-  }
-}
-
-.herohead {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 12px;
-
-  h2 {
-    font-family: var(--g-font-display);
-    letter-spacing: 0.04em;
-    font-size: 1.15rem;
-    color: var(--g-ember-glow);
-    margin: 0;
-  }
-}
-
-.portrait {
-  width: 76px;
-  height: 76px;
-  border-radius: 12px;
-  flex-shrink: 0;
-  overflow: hidden;
-  background: linear-gradient(160deg, #243546, #101b26);
-  border: 2px solid var(--g-ember);
-  box-shadow: 0 0 14px rgba(224, 122, 40, 0.25) inset;
-
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
-}
-
 .eyebrow {
   font-size: 0.68rem;
   letter-spacing: 0.22em;
@@ -65,7 +18,7 @@
   color: var(--g-mist);
 }
 
-.muted { color: var(--g-mist); font-size: 0.85rem; margin: 0; }
+.muted { color: var(--g-mist); font-size: 0.82rem; margin: 0; }
 
 .card {
   background: var(--g-panel);
@@ -76,10 +29,22 @@
 
   h3 {
     font-family: var(--g-font-display);
-    font-size: 0.92rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
     color: var(--g-bone);
-    margin: 0 0 6px;
+    margin: 0 0 10px;
   }
+}
+
+.cardhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+
+  h3 { margin-bottom: 10px; }
 }
 
 .penalty {
@@ -88,6 +53,78 @@
   b { color: var(--g-danger); display: block; font-size: 0.88rem; }
 }
 
+/* ── Portrait + identité ── */
+.herohead {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+.portrait {
+  width: 42%;
+  max-width: 220px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(160deg, #243546, #101b26);
+  border: 1px solid var(--g-border);
+
+  img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 6px;
+
+  h2 {
+    font-family: var(--g-font-display);
+    letter-spacing: 0.06em;
+    font-size: 1.4rem;
+    color: var(--g-bone);
+    margin: 0;
+  }
+}
+
+.xp {
+  margin-top: 10px;
+
+  .xp-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: var(--g-mist);
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Jauges fines partagées (XP, PV, endurance, charge) */
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #0a1016;
+  border: 1px solid var(--g-border);
+  overflow: hidden;
+
+  > i {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #b15e17, var(--g-ember-glow));
+    transition: width 0.5s ease;
+  }
+
+  &.hp > i { background: linear-gradient(90deg, #8c3b34, var(--g-danger)); }
+  &.charge > i { background: linear-gradient(90deg, #3b5468, #7e93a6); }
+}
+
+/* ── Statistiques ── */
 .allocate-hint {
   color: var(--g-ember-glow);
   font-size: 0.82rem;
@@ -105,11 +142,10 @@
   background: var(--g-panel-2);
   border: 1px solid var(--g-border);
   border-radius: 8px;
-  padding: 7px 2px;
-  position: relative;
+  padding: 6px 2px;
 
-  b { display: block; font-size: 1.05rem; color: var(--g-ember-glow); }
-  small { font-size: 0.62rem; letter-spacing: 0.12em; color: var(--g-mist); }
+  small { display: block; font-size: 0.6rem; letter-spacing: 0.14em; color: var(--g-mist); }
+  b { display: block; font-size: 0.95rem; color: var(--g-bone); margin-top: 2px; }
 }
 
 .plus {
@@ -127,16 +163,100 @@
   &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
 }
 
-.itemrow {
+.gauges {
+  margin-top: 12px;
   display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 9px 0;
-  border-bottom: 1px solid #202d3b;
-
-  &:last-child { border-bottom: none; }
+  flex-direction: column;
+  gap: 8px;
 }
 
+.gaugerow {
+  display: grid;
+  grid-template-columns: 84px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+
+  .glabel { color: var(--g-mist); }
+  .gval { color: var(--g-bone); font-variant-numeric: tabular-nums; }
+}
+
+/* ── Compétences ── */
+.skillcols {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skilllist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skillrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--g-border);
+  background: var(--g-panel-2);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &.sel { border-color: var(--g-ember); background: var(--g-ember-bg); }
+  &.locked { opacity: 0.6; }
+  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+}
+
+.skillinfo {
+  flex: 1;
+  min-width: 0;
+
+  b { display: block; font-size: 0.84rem; color: var(--g-bone); }
+  small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--g-mist);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.tag {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-mist);
+
+  &.active { color: var(--g-ember-glow); }
+}
+
+.skilldetail {
+  border: 1px solid var(--g-border);
+  border-radius: 8px;
+  background: var(--g-panel-2);
+  padding: 12px;
+
+  .detailhead {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+
+    b { display: block; font-family: var(--g-font-display); font-size: 0.95rem; color: var(--g-bone); }
+  }
+
+  .cost { display: block; margin: 8px 0 4px; font-size: 0.78rem; color: var(--g-ember-glow); }
+}
+
+/* ── Runes (icônes compétence/objet) ── */
 .rune {
   width: 38px;
   height: 38px;
@@ -146,35 +266,125 @@
   place-items: center;
   font-family: var(--g-font-display);
   font-weight: 700;
-  background: var(--g-panel-2);
+  background: var(--g-panel);
   border: 1px solid var(--g-border);
   color: var(--g-mist);
+  overflow: hidden;
 
-  img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 6px; }
+  img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
   &.equipped {
     background: var(--g-ember-bg);
     border-color: var(--g-ember);
     color: var(--g-ember-glow);
   }
+
+  &.big { width: 48px; height: 48px; }
 }
 
-.iteminfo {
+/* ── Équipement (emplacements nommés) ── */
+.slotrow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #202d3b;
+
+  &:last-child { border-bottom: none; }
+}
+
+.slotinfo {
   flex: 1;
   min-width: 0;
 
-  b { font-size: 0.86rem; display: block; color: var(--g-bone); }
-  small { font-size: 0.76rem; color: var(--g-mist); }
+  small { display: block; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--g-mist); }
+  b { display: block; font-size: 0.85rem; color: var(--g-bone); }
+  .empty { color: var(--g-mist); }
+}
 
-  .durability {
-    display: block;
-    font-variant-numeric: tabular-nums;
-    color: var(--g-ember-glow);
+.durability {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ember-glow);
+  font-size: 0.74rem;
 
-    &.broken { color: var(--g-danger); }
+  &.broken { color: var(--g-danger); }
+}
+
+/* ── Inventaire (grille) ── */
+.invgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--g-border);
+  background: var(--g-panel-2);
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  cursor: pointer;
+
+  img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .initial { font-family: var(--g-font-display); font-weight: 700; color: var(--g-mist); }
+
+  &.sel { border-color: var(--g-ember); background: var(--g-ember-bg); }
+  &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+}
+
+.cell .qty,
+.matrow .qty {
+  font-variant-numeric: tabular-nums;
+  color: var(--g-bone);
+}
+
+.cell .qty {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #000;
+}
+
+.itemactions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #202d3b;
+
+  .iteminfo {
+    flex: 1;
+    min-width: 0;
+
+    b { font-size: 0.86rem; display: block; color: var(--g-bone); }
+    small { font-size: 0.76rem; color: var(--g-mist); }
   }
 }
 
+/* ── Matériaux ── */
+.matrow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #202d3b;
+
+  &:last-child { border-bottom: none; }
+
+  b { flex: 1; min-width: 0; font-size: 0.84rem; color: var(--g-bone); font-weight: 500; }
+  .qty { font-size: 0.84rem; }
+}
+
+/* ── Boutons ── */
 .btn {
   padding: 8px 10px;
   min-height: 44px;
@@ -191,34 +401,61 @@
   &:active { transform: scale(0.97); }
   &:disabled { opacity: 0.45; }
   &:focus-visible { outline: 2px solid var(--g-ember-glow); outline-offset: 2px; }
+
+  &.primary {
+    background: linear-gradient(180deg, #e58a2e, #b85f13);
+    border-color: #f0a853;
+    color: #1a0e02;
+  }
+
+  &.wide { width: 100%; margin-top: 10px; }
+
+  &.back {
+    width: auto;
+    margin: 0 0 12px;
+    background: none;
+    color: var(--g-mist);
+  }
 }
 
-/* ── Dashboard reflow (≥ 1024px) ── */
+/* ── Dashboard reflow (≥ 1024px) — maquette WEB_UI_OK_HERO ── */
 @include layout.wide {
   :host { padding: 24px; }
 
-  /* Sous-onglet "personnage" (présence de .herohead) : 2 colonnes. */
   :host:has(.herohead) {
     display: grid;
-    grid-template-columns: minmax(300px, 360px) 1fr;
+    grid-template-columns: minmax(240px, 300px) minmax(320px, 420px) 1fr;
+    grid-template-areas:
+      'penalty penalty penalty'
+      'head    stats   skills'
+      'equip   inv     mats';
     gap: 16px 20px;
     align-items: start;
-    max-width: 1400px;
+    max-width: 1500px;
   }
 
-  .subnav { grid-column: 1 / -1; max-width: 420px; }
-  .penalty { grid-column: 1 / -1; margin-bottom: 0; }
+  .penalty { grid-area: penalty; margin-bottom: 0; }
 
-  /* Portrait full-body + stats en colonne gauche, équipement en colonne droite. */
+  /* Portrait pleine colonne, identité dessous. */
   .herohead {
-    grid-column: 1;
+    grid-area: head;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     margin-bottom: 0;
   }
-  .portrait { width: 100%; height: auto; aspect-ratio: 3 / 4; }
-  .portrait img { object-position: top center; }
+  .portrait { width: 100%; max-width: none; }
 
-  .card:nth-of-type(1) { grid-column: 1; margin-bottom: 0; }
-  .card:nth-of-type(2) { grid-column: 2; grid-row: 2 / span 3; margin-bottom: 0; }
+  .stats { grid-area: stats; margin-bottom: 0; }
+  .skills { grid-area: skills; margin-bottom: 0; }
+  .equipment { grid-area: equip; margin-bottom: 0; }
+  .inventory { grid-area: inv; margin-bottom: 0; }
+  .mats { grid-area: mats; margin-bottom: 0; }
+
+  /* Liste + détail côte à côte dans la carte compétences. */
+  .skillcols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(220px, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
 }

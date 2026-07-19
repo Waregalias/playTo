@@ -38,11 +38,19 @@ h2 {
   .banner-text {
     position: absolute;
     left: 16px;
-    bottom: 10px;
+    top: 14px;
     text-shadow: 0 2px 8px #000;
   }
 
-  h2 { margin: 2px 0 0; }
+  h2 { margin: 0; }
+
+  .subtitle {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.82rem;
+    color: var(--g-bone);
+    opacity: 0.85;
+  }
 
   &.no-img {
     img { display: none; }
@@ -208,8 +216,6 @@ h2 {
   margin-top: auto;
 }
 
-.locked-mark { margin-top: auto; font-size: 1.1rem; opacity: 0.7; }
-
 .back {
   width: auto;
   margin: 0 0 12px;
@@ -224,5 +230,6 @@ h2 {
   .banner, .subnav, .card, .buildings { max-width: 1100px; margin-left: auto; margin-right: auto; }
   .banner img { height: 220px; }
   .subnav { max-width: 520px; }
-  .buildings { grid-template-columns: repeat(3, 1fr); }
+  /* Maquette WEB_UI_OK_BASTION : les six bâtiments sur une rangée. */
+  .buildings { grid-template-columns: repeat(6, 1fr); }
 }
