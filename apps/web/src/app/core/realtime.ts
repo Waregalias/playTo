@@ -1,6 +1,8 @@
 import { Injectable, InjectionToken, inject, signal } from '@angular/core';
 import type { ChatChannel, ChatMessageDto, WsServerEvent } from '@aldenfer/shared';
+import { UI_FR } from '@aldenfer/shared/content/fr';
 import { GameStore } from './game-store';
+import { ToastService } from './toast';
 
 /** Minimal surface RealtimeService needs — the real ctor is `(url) => new WebSocket(url)`. */
 export interface WsLike {
@@ -59,6 +61,7 @@ export function refreshActionFor(type: string): RefreshAction {
 export class RealtimeService {
   private readonly store = inject(GameStore);
   private readonly wsFactory = inject(WEBSOCKET_FACTORY);
+  private readonly toast = inject(ToastService);
 
   readonly connected = signal(false);
   readonly announce = signal<{ kind: string; [k: string]: unknown } | null>(null);
@@ -128,6 +131,9 @@ export class RealtimeService {
       this.announce.set(event.data as { kind: string });
       return;
     }
+    const msg = this.notificationMessage(event.type);
+    if (msg) this.toast.show(msg);
+
     const action = refreshActionFor(event.type);
     if (action === 'character') void this.store.refresh().catch(() => undefined);
     else if (action === 'quests') void this.store.refreshQuests().catch(() => undefined);
@@ -152,6 +158,18 @@ export class RealtimeService {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
+    }
+  }
+
+  private notificationMessage(type: string): string | null {
+    const n = UI_FR.notifications;
+    switch (type) {
+      case 'action.resolved': return n.actionResolved;
+      case 'level.up': return n.levelUp;
+      case 'stamina.full': return n.staminaFull;
+      case 'quest.updated': return n.questUpdated;
+      case 'project.progress': return n.projectProgress;
+      default: return null;
     }
   }
 }

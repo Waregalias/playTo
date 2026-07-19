@@ -9,6 +9,7 @@ import {
 } from './realtime';
 import { GameStore } from './game-store';
 import { ApiClient } from './api-client';
+import { ToastService } from './toast';
 
 class FakeSocket implements WsLike {
   onopen: (() => void) | null = null;
@@ -71,6 +72,7 @@ describe('refreshActionFor', () => {
 describe('RealtimeService', () => {
   let sockets: FakeSocket[];
   let storeMock: { refresh: ReturnType<typeof vi.fn>; refreshQuests: ReturnType<typeof vi.fn>; refreshProject: ReturnType<typeof vi.fn>; appendChatMessage: ReturnType<typeof vi.fn> };
+  let toastMock: { show: ReturnType<typeof vi.fn>; message: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -81,10 +83,12 @@ describe('RealtimeService', () => {
       refreshProject: vi.fn().mockResolvedValue(undefined),
       appendChatMessage: vi.fn(),
     };
+    toastMock = { show: vi.fn(), message: vi.fn(() => null) };
     TestBed.configureTestingModule({
       providers: [
         { provide: ApiClient, useValue: {} },
         { provide: GameStore, useValue: storeMock },
+        { provide: ToastService, useValue: toastMock },
         {
           provide: WEBSOCKET_FACTORY,
           useValue: (url: string) => {
@@ -184,5 +188,33 @@ describe('RealtimeService', () => {
     vi.advanceTimersByTime(60_000);
     expect(sockets).toHaveLength(1);
     expect(service.connected()).toBe(false);
+  });
+
+  it('shows a toast notification on action.resolved', () => {
+    const service = TestBed.inject(RealtimeService);
+    service.connect();
+    sockets[0].emitOpen();
+    toastMock.show.mockClear();
+    sockets[0].emitMessage({ channel: 'character:c1', type: 'action.resolved', data: {}, at: '' });
+    expect(toastMock.show).toHaveBeenCalledWith('Action terminée.');
+  });
+
+  it('shows a toast notification on level.up', () => {
+    const service = TestBed.inject(RealtimeService);
+    service.connect();
+    sockets[0].emitOpen();
+    toastMock.show.mockClear();
+    sockets[0].emitMessage({ channel: 'character:c1', type: 'level.up', data: {}, at: '' });
+    expect(toastMock.show).toHaveBeenCalledWith('Niveau supérieur !');
+  });
+
+  it('does not show a toast for chat.message or announce', () => {
+    const service = TestBed.inject(RealtimeService);
+    service.connect();
+    sockets[0].emitOpen();
+    toastMock.show.mockClear();
+    sockets[0].emitMessage({ channel: 'global', type: 'chat.message', data: { id: 'm1', channel: 'global', characterId: 'c1', characterName: 'X', body: 'hi', at: '' }, at: '' });
+    sockets[0].emitMessage({ channel: 'global', type: 'announce', data: { kind: 'test' }, at: '' });
+    expect(toastMock.show).not.toHaveBeenCalled();
   });
 });

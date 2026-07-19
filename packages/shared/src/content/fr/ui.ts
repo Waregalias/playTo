@@ -270,4 +270,11 @@ export const UI_FR = {
     full: 'En parfait état',
     durabilityLabel: (current: number, max: number) => `${current} / ${max}`,
   },
+  notifications: {
+    actionResolved: 'Action terminée.',
+    levelUp: 'Niveau supérieur !',
+    staminaFull: 'Endurance restaurée.',
+    questUpdated: 'Quête mise à jour.',
+    projectProgress: 'Contribution enregistrée.',
+  },
 } as const;
