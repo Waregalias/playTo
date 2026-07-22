@@ -29,6 +29,21 @@ const WALL_LEFT = 0.45; // shadowed facet
 // Terrain fills from DESIGN §4 — muted atmospheric palette (desaturated + darkened
 // versus the earlier vivid range, so the terrain reads under the Brume's haze).
 // ford: cold water tone within the same muted range.
+export const TILE_SPRITE_URLS: Record<Terrain, string> = {
+  plain: 'assets/tiles/plain.tile.png',
+  forest: 'assets/tiles/forest.tile.png',
+  hill: 'assets/tiles/hill.tile.png',
+  marsh: 'assets/tiles/marsh.tile.png',
+  ruins: 'assets/tiles/ruins.tile.png',
+  ash_road: 'assets/tiles/ash-road.tile.png',
+  ford: 'assets/tiles/ford.tile.png',
+  shrine: 'assets/tiles/altar.tile.png',
+};
+
+/** Half-extents of the top-face bounding box, for centering <image> on view.{x,y}. */
+export const TILE_IMG_HW = HEX_RADIUS * Math.cos(Math.PI / 6);       // ≈ 19.05
+export const TILE_IMG_HH = HEX_RADIUS * TILT;                         // = 17.6
+
 export const TERRAIN_FILLS: Record<Terrain, string> = {
   plain: '#767e61',
   forest: '#445541',

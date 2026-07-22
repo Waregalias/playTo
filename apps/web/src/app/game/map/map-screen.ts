@@ -11,6 +11,9 @@ import {
   floorViews,
   toTileView,
   TERRAIN_FILLS,
+  TILE_SPRITE_URLS,
+  TILE_IMG_HW,
+  TILE_IMG_HH,
   type FloorTileView,
   type TileView,
 } from './map-geometry';
@@ -73,6 +76,10 @@ export class MapScreenComponent {
   );
 
   /** Static terrain swatch legend, in game order (DESIGN §4 fills). */
+  readonly TILE_SPRITE_URLS = TILE_SPRITE_URLS;
+  readonly TILE_IMG_HW = TILE_IMG_HW;
+  readonly TILE_IMG_HH = TILE_IMG_HH;
+
   readonly terrainLegend = TERRAINS.map((terrain) => ({
     id: terrain,
     label: this.t.terrains[terrain] ?? terrain,

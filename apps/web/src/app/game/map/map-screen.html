@@ -44,6 +44,13 @@
       <filter id="fog-blur" x="-20%" y="-20%" width="140%" height="140%">
         <feGaussianBlur stdDeviation="1.6" />
       </filter>
+      @for (view of hexViews(); track view.hex.id) {
+        @if (view.hex.discovered) {
+          <clipPath [id]="'clip-' + view.hex.id">
+            <polygon [attr.points]="view.topPoints" />
+          </clipPath>
+        }
+      }
     </defs>
     <!-- decorative underlayer: darker, lower and blurred, gives depth + fills the void -->
     <g filter="url(#fog-blur)">
@@ -67,12 +74,19 @@
           [attr.ry]="view.shadowRy"
         />
         <polygon class="tile-wall" [attr.points]="view.wallLeft" [attr.fill]="view.wallLeftFill" />
-        <polygon
-          class="tile-wall"
-          [attr.points]="view.wallRight"
-          [attr.fill]="view.wallRightFill"
-        />
-        <polygon class="tile-top" [attr.points]="view.topPoints" [attr.fill]="view.topFill" />
+        <polygon class="tile-wall" [attr.points]="view.wallRight" [attr.fill]="view.wallRightFill" />
+        @if (view.hex.discovered) {
+          <image
+            [attr.href]="TILE_SPRITE_URLS[view.hex.terrain]"
+            [attr.x]="view.x - TILE_IMG_HW"
+            [attr.y]="view.y - TILE_IMG_HH"
+            [attr.width]="TILE_IMG_HW * 2"
+            [attr.height]="TILE_IMG_HH * 2"
+            [attr.clip-path]="'url(#clip-' + view.hex.id + ')'"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        }
+        <polygon class="tile-top" [attr.points]="view.topPoints" [attr.fill]="view.hex.discovered ? 'transparent' : view.topFill" />
       </g>
     }
     <!-- atmospheric veil: a flat translucent darkening over the tile layer so the
