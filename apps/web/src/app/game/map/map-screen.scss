@@ -76,11 +76,11 @@ svg {
   transition: filter 0.15s;
 
   &:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.5);
   }
   &.sel .tile-top {
-    stroke: var(--g-ember-glow);
-    stroke-width: 2.5;
+    stroke: var(--g-ember-deep);
+    stroke-width: 1;
   }
 }
 
