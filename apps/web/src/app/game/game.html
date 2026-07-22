@@ -30,19 +30,27 @@
           <i [style.width.%]="staminaPercent()"></i>
           <span>{{ t.status.stamina }} {{ character.stamina }}/{{ character.staminaMax }}</span>
         </div>
+        <div class="gauge xp">
+          <i [style.width.%]="xpPercent()"></i>
+          <span>{{ t.status.xp }} {{ character.xp }}/{{ character.xpNext }}</span>
+        </div>
       </div>
       <div class="purse">
-        <span [attr.aria-label]="character.currencies.ashCrowns + ' ' + t.status.ashCrowns"
-          >◉ <b>{{ character.currencies.ashCrowns }}</b></span
-        >
-        <span
-          class="frag"
-          [attr.aria-label]="character.currencies.emberFragments + ' ' + t.status.emberFragments"
-          >✦ <b>{{ character.currencies.emberFragments }}</b></span
-        >
-        <span [attr.aria-label]="character.currencies.gloryMarks + ' ' + t.status.gloryMarks"
-          >⚑ <b>{{ character.currencies.gloryMarks }}</b></span
-        >
+        <span class="currency crowns" [attr.aria-label]="character.currencies.ashCrowns + ' ' + t.status.ashCrowns">
+          <img src="assets/icons/coin.png" alt="" class="currency-icon" />
+          <b>{{ character.currencies.ashCrowns }}</b>
+          <span class="tooltip">{{ t.status.ashCrowns }}</span>
+        </span>
+        <span class="currency frags" [attr.aria-label]="character.currencies.emberFragments + ' ' + t.status.emberFragments">
+          <img src="assets/icons/fragment.png" alt="" class="currency-icon" />
+          <b>{{ character.currencies.emberFragments }}</b>
+          <span class="tooltip">{{ t.status.emberFragments }}</span>
+        </span>
+        <span class="currency glory" [attr.aria-label]="character.currencies.gloryMarks + ' ' + t.status.gloryMarks">
+          <img src="assets/icons/glory.png" alt="" class="currency-icon" />
+          <b>{{ character.currencies.gloryMarks }}</b>
+          <span class="tooltip">{{ t.status.gloryMarks }}</span>
+        </span>
       </div>
       <div class="iconbar">
         <button
@@ -129,5 +137,9 @@
 
   @if (toast.message(); as message) {
     <div class="toast" role="status">{{ message }}</div>
+  }
+
+  @if (showTutorial()) {
+    <app-tutorial-overlay (done)="onTutorialDone()" />
   }
 </div>

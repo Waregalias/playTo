@@ -53,6 +53,10 @@ export class ApiClient {
     return this.request('POST', '/api/v1/characters', input);
   }
 
+  completeTutorial(): Promise<void> {
+    return this.request('POST', '/api/v1/characters/me/tutorial');
+  }
+
   async getRegions(): Promise<RegionDto[]> {
     const data = await this.request<{ items: RegionDto[] }>('GET', '/api/v1/map/regions');
     return data.items;

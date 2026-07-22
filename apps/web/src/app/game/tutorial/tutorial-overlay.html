@@ -1,0 +1,21 @@
+<div class="backdrop" (click)="$event.stopPropagation()">
+  <div class="card">
+    <div class="progress">
+      @for (s of t.steps; track $index) {
+        <span class="dot" [class.active]="$index === step()" [class.done]="$index < step()"></span>
+      }
+    </div>
+
+    <h2>{{ t.steps[step()].title }}</h2>
+    <p>{{ t.steps[step()].body }}</p>
+
+    <div class="actions">
+      @if (step() < total - 1) {
+        <button class="btn secondary" (click)="skip()" data-testid="tutorial-skip">{{ t.skip }}</button>
+        <button class="btn primary" (click)="next()" data-testid="tutorial-next">{{ t.next }}</button>
+      } @else {
+        <button class="btn primary wide" (click)="next()" data-testid="tutorial-begin">{{ t.begin }}</button>
+      }
+    </div>
+  </div>
+</div>

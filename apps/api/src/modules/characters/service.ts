@@ -172,5 +172,6 @@ export function toCharacterDto(row: CharacterRow, hex: HexRow, now: Date): Chara
             ? (2 as const)
             : null,
     })),
+    tutorialCompletedAt: row.tutorialCompletedAt?.toISOString() ?? null,
   };
 }

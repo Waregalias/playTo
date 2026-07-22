@@ -29,6 +29,13 @@
       "when": 1783370893487,
       "tag": "0003_chemical_karma",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784647378072,
+      "tag": "0004_wealthy_mercury",
+      "breakpoints": true
     }
   ]
 }

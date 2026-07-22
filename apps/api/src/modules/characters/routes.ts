@@ -57,4 +57,21 @@ export function registerCharacterRoutes(
       return reply.send(character);
     },
   );
+
+  typed.post(
+    '/api/v1/characters/me/tutorial',
+    {
+      schema: {
+        response: { 204: z.void() },
+      },
+    },
+    async (request, reply) => {
+      const { userId } = await requireUser(auth, request);
+      await app.db
+        .update(characters)
+        .set({ tutorialCompletedAt: now() })
+        .where(eq(characters.userId, userId));
+      return reply.status(204).send();
+    },
+  );
 }

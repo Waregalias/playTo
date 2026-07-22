@@ -13,6 +13,7 @@ export const UI_FR = {
     emberFragments: 'fragments',
     gloryMarks: 'gloire',
     level: 'niv.',
+    xp: 'XP',
     notifLabel: 'Notifications',
     settingsLabel: 'Réglages',
   },
@@ -277,5 +278,32 @@ export const UI_FR = {
     staminaFull: 'Endurance restaurée.',
     questUpdated: 'Quête mise à jour.',
     projectProgress: 'Contribution enregistrée.',
+  },
+  tutorial: {
+    next: 'Suivant',
+    skip: 'Passer',
+    begin: "Commencer l’aventure",
+    steps: [
+      {
+        title: "La Flamme s’est éteinte",
+        body: "Il y a trente ans, la Flamme Primordiale qui protégeait le royaume d’Aldenfer s’est éteinte sans prévenir. La Brume — un souffle venu de l’Ailleurs — a envahi chaque recoin du monde, dissolvant les souvenirs des lieux et engendrant les Brumeux, créatures distordues nées de ce qui fut.",
+      },
+      {
+        title: 'Tu es un Ravivé',
+        body: "Tu étais mort. Mais la dernière Braise du Bastion de Cendrelune a refusé de te laisser partir. Tu t’es réveillé dans la Salle des Cendres avec une flammèche dans la poitrine — seule chose qui te permet de traverser la Brume sans t’effacer.",
+      },
+      {
+        title: 'Rallume les Braises',
+        body: "Ton objectif : rallumer les Braises éteintes à travers les régions. Explore la carte hexagonale, combats les Brumeux, fouille les ruines et rapporte des ressources au Bastion. Chaque région est verrouillée par un Gardien de Brume que seule la communauté peut vaincre.",
+      },
+      {
+        title: "Gère ton endurance",
+        body: "Chaque action — te déplacer, fouiller, combattre — coûte de l’endurance. Elle se régénère avec le temps, plus vite près d’un autel ou au Bastion. Empile jusqu’à trois actions dans ta file d’attente et reviens plus tard pour en récolter les fruits.",
+      },
+      {
+        title: 'Bâtis ensemble',
+        body: "Tu n’es pas seul. Le Bastion abrite un marché, une forge communautaire et un tableau de quêtes. Contribue aux chantiers collectifs pour débloquer de nouveaux bâtiments et ouvrir la voie vers les raids de Gardiens. Personne ne rallume une Braise seul.",
+      },
+    ],
   },
 } as const;

@@ -48,6 +48,7 @@ export const characterSchema = z.object({
     gloryMarks: z.number().int().min(0),
   }),
   skills: z.array(characterSkillSchema),
+  tutorialCompletedAt: z.iso.datetime().nullish(),
 });
 
 export type CharacterClassInput = z.infer<typeof characterClassSchema>;

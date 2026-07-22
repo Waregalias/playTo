@@ -14,6 +14,7 @@ import { HeroScreenComponent } from './hero/hero-screen';
 import { BastionScreenComponent } from './bastion/bastion-screen';
 import { ChatDrawerComponent } from './chat/chat-drawer';
 import { QueueModalComponent } from './queue/queue-modal';
+import { TutorialOverlayComponent } from './tutorial/tutorial-overlay';
 import { heroPortraitUrl } from '../core/asset-url';
 
 type Tab = 'map' | 'bastion' | 'hero' | 'raid';
@@ -28,6 +29,7 @@ type Tab = 'map' | 'bastion' | 'hero' | 'raid';
     BastionScreenComponent,
     ChatDrawerComponent,
     QueueModalComponent,
+    TutorialOverlayComponent,
   ],
   templateUrl: './game.html',
   styleUrl: './game.scss',
@@ -56,6 +58,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
   readonly chatOpen = signal(false);
   readonly queueOpen = signal(false);
+  readonly showTutorial = signal(false);
 
   /** Display clock — ticks every second to recompute countdowns from endsAt (US6). */
   readonly nowMs = signal(Date.now());
@@ -106,6 +109,11 @@ export class GameComponent implements OnInit, OnDestroy {
     return c ? Math.round((c.stamina / c.staminaMax) * 100) : 0;
   });
 
+  readonly xpPercent = computed(() => {
+    const c = this.store.character();
+    return c && c.xpNext > 0 ? Math.round((c.xp / c.xpNext) * 100) : 0;
+  });
+
   readonly className = computed(() => {
     const c = this.store.character();
     return c ? (this.t.creation.classes[c.class]?.name ?? c.class) : '';
@@ -126,7 +134,10 @@ export class GameComponent implements OnInit, OnDestroy {
       }
       this.toast.show(this.t.errors.loadFailed);
     }
-    if (!this.store.needsCharacter()) this.realtime.connect();
+    if (!this.store.needsCharacter()) {
+      this.realtime.connect();
+      if (!this.store.character()?.tutorialCompletedAt) this.showTutorial.set(true);
+    }
     this.store.startPolling();
     this.ticker = setInterval(() => {
       this.nowMs.set(Date.now());
@@ -147,9 +158,15 @@ export class GameComponent implements OnInit, OnDestroy {
     try {
       await this.store.load();
       this.realtime.connect();
+      this.showTutorial.set(true);
     } catch {
       this.toast.show(this.t.errors.loadFailed);
     }
+  }
+
+  onTutorialDone(): void {
+    this.showTutorial.set(false);
+    void this.store.refresh();
   }
 
   toggleChat(): void {

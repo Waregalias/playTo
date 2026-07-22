@@ -107,6 +107,7 @@ export const characters = pgTable(
     ashCrowns: integer('ash_crowns').notNull().default(0),
     emberFragments: integer('ember_fragments').notNull().default(0),
     gloryMarks: integer('glory_marks').notNull().default(0),
+    tutorialCompletedAt: timestamp('tutorial_completed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

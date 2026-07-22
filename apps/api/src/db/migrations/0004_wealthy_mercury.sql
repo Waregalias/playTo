@@ -1,0 +1,1 @@
+ALTER TABLE "characters" ADD COLUMN "tutorial_completed_at" timestamp with time zone;
